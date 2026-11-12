@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kos Rafasya{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f9f9f9;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #e0e0e0;
+            padding: 20px 0;
+            border-right: 2px solid #ccc;
+        }
+
+        .sidebar h3 {
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 15px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .sidebar a:hover {
+            background-color: #d0d0d0;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-keluar {
+            padding: 8px 15px;
+            background-color: #ff4d4d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .btn-tambah {
+            padding: 10px 15px;
+            background-color: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h3>Kos Rafasya</h3>
+
+        <!-- JIKA YANG LOGIN ADALAH PENGURUS -->
+        {% if request.user.profiluser.role == 'pengurus' %}
+        <a href="{% url 'data_kamar' %}">Data Kamar</a>
+        <a href="{% url 'data_penghuni' %}">Data Penghuni</a>
+        <a href="{% url 'tagihan_pengurus' %}">Kelola Tagihan</a>
+        <a href="{% url 'daftar_verifikasi' %}">Verifikasi Pembayaran</a>
+        <a href="{% url 'daftar_keluhan' %}">Daftar Keluhan</a>
+
+        <!-- JIKA YANG LOGIN ADALAH PENGHUNI -->
+        {% elif request.user.profiluser.role == 'penghuni' %}
+        <a href="{% url 'tagihan_saya' %}">Tagihan Saya</a>
+        <a href="{% url 'keluhan_penghuni' %}">Keluhan Saya</a>
+
+        <!-- JIKA YANG LOGIN ADALAH PEMILIK -->
+        {% elif request.user.profiluser.role == 'pemilik' %}
+        <a href="{% url 'laporan_keuangan' %}">Laporan Keuangan</a>
+        {% endif %}
+    </div>
+
+    <div class="content">
+        <div class="header">
+            <h2>{% block header %}Dashboard{% endblock %}</h2>
+            <div>
+                <span>Halo, {{ request.user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn-keluar">Keluar</a>
+            </div>
+        </div>
+
+        <!-- Area ini yang akan berubah-ubah di setiap halaman -->
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+
+</html>

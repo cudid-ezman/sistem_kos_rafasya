@@ -1,0 +1,44 @@
+{% extends 'administrasi/base.html' %}
+{% block title %}Daftar Keluhan - Kos Rafasya{% endblock %}
+{% block header %}Daftar Keluhan Masuk{% endblock %}
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>Penghuni</th>
+            <th>Kamar</th>
+            <th>Kategori</th>
+            <th>Keluhan</th>
+            <th>Foto</th>
+            <th>Aksi/Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for k in keluhan_list %}
+        <tr>
+            <td>{{ k.penghuni.user.first_name }}</td>
+            <td>{{ k.penghuni.kamar.nomor_kamar }}</td>
+            <td>{{ k.kategori.nama }}</td>
+            <td>{{ k.deskripsi }}</td>
+            <td>{% if k.foto %}<a href="{{ k.foto.url }}" target="_blank">Lihat Foto</a>{% else %}Tanpa Foto{% endif %}
+            </td>
+            <td>
+                {% if k.status == 'diterima' %}
+                <a href="{% url 'proses_keluhan' k.id 'diproses' %}"
+                    style="color: white; background: #ffc107; padding: 5px 10px; border-radius: 4px; text-decoration: none;">Proses</a>
+                {% elif k.status == 'diproses' %}
+                <a href="{% url 'proses_keluhan' k.id 'selesai' %}"
+                    style="color: white; background: #28a745; padding: 5px 10px; border-radius: 4px; text-decoration: none;">Selesaikan</a>
+                {% else %}
+                <span style="color: #28a745; font-weight: bold;">Selesai</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align: center;">Belum ada keluhan masuk.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

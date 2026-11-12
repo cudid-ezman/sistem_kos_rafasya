@@ -1,0 +1,76 @@
+{% extends 'administrasi/base.html' %}
+
+{% block title %}Kelola Tagihan - Kos Rafasya{% endblock %}
+{% block header %}Data Tagihan{% endblock %}
+
+{% block content %}
+<style>
+    .badge-status {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+
+    .status-kuning {
+        background-color: #ffeeba;
+        color: #856404;
+    }
+
+    .status-hijau {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-merah {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+<div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <form method="POST" action="{% url 'buat_tagihan' %}">
+        {% csrf_token %}
+        <label style="font-weight: bold; margin-right: 10px;">Buat Tagihan Baru:</label>
+        <input type="text" name="periode" placeholder="Contoh: November 2026" required
+            style="padding: 8px; width: 200px;">
+        <button type="submit" class="btn-tambah" style="margin-bottom: 0;">Generate Tagihan</button>
+    </form>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Periode</th>
+            <th>Kamar</th>
+            <th>Penghuni</th>
+            <th>Nominal (Rp)</th>
+            <th>Jatuh Tempo</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tagihan_list %}
+        <tr>
+            <td>{{ t.periode }}</td>
+            <td>{{ t.penghuni.kamar.nomor_kamar }}</td>
+            <td>{{ t.penghuni.user.first_name }}</td>
+            <td>{{ t.nominal|floatformat:0 }}</td>
+            <td>{{ t.jatuh_tempo }}</td>
+            <td>
+            <td>
+                <span class="badge-status 
+        {% if t.status == 'belum_dibayar' %} status-kuning 
+        {% elif t.status == 'lunas' %} status-hijau 
+        {% else %} status-merah {% endif %}">
+                    {{ t.get_status_display }}
+                </span>
+            </td>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align: center;">Belum ada data tagihan.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

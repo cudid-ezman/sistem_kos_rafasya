@@ -1,0 +1,37 @@
+{% extends 'administrasi/base.html' %}
+
+{% block title %}Data Kamar - Kos Rafasya{% endblock %}
+{% block header %}Data Kamar{% endblock %}
+
+{% block content %}
+<a href="{% url 'tambah_kamar' %}" class="btn-tambah">Tambah Kamar</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>Nomor Kamar</th>
+            <th>Tipe</th>
+            <th>Harga Sewa</th>
+            <th>Status</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for k in kamar_list %}
+        <tr>
+            <td>{{ k.nomor_kamar }}</td>
+            <td>{{ k.tipe|title }}</td>
+            <td>Rp {{ k.harga_sewa|floatformat:0 }}</td>
+            <td>{{ k.status|title }}</td>
+            <td>
+                <button>Ubah</button>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center;">Belum ada data kamar.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

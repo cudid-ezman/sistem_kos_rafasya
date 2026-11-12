@@ -1,0 +1,32 @@
+{% extends 'administrasi/base.html' %}
+
+{% block title %}Bayar Tagihan - Kos Rafasya{% endblock %}
+{% block header %}Bayar Tagihan (Periode {{ tagihan.periode }}){% endblock %}
+
+{% block content %}
+<div style="background: white; padding: 20px; border-radius: 8px; width: 50%;">
+    <p><strong>Total Tagihan:</strong> Rp {{ tagihan.nominal|floatformat:0 }}</p>
+
+    <!-- WAJIB menambahkan enctype agar file gambar bisa terkirim -->
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Tanggal Bayar</label>
+            <input type="date" name="tanggal_bayar" required style="width: 100%; padding: 8px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Unggah Bukti Transfer (Foto/Screenshot)</label>
+            <input type="file" name="berkas" accept="image/*" required
+                style="width: 100%; padding: 8px; border: 1px solid #ccc;">
+        </div>
+
+        <button type="submit"
+            style="padding: 10px 15px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px;">Kirim
+            Bukti Pembayaran</button>
+        <a href="{% url 'tagihan_saya' %}"
+            style="padding: 10px 15px; background: #ccc; color: black; text-decoration: none; margin-left: 10px; border-radius: 4px;">Batal</a>
+    </form>
+</div>
+{% endblock %}

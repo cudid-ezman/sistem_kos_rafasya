@@ -1,0 +1,78 @@
+{% extends 'administrasi/base.html' %}
+
+{% block title %}Tagihan Saya - Kos Rafasya{% endblock %}
+{% block header %}Tagihan Saya{% endblock %}
+
+{% block content %}
+<style>
+    .badge-status {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+
+    .status-kuning {
+        background-color: #ffeeba;
+        color: #856404;
+    }
+
+    .status-hijau {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-merah {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .btn-bayar {
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+</style>
+
+<table>
+    <thead>
+        <tr>
+            <th>Periode</th>
+            <th>Nominal (Rp)</th>
+            <th>Jatuh Tempo</th>
+            <th>Status</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tagihan_list %}
+        <tr>
+            <td>{{ t.periode }}</td>
+            <td>{{ t.nominal|floatformat:0 }}</td>
+            <td>{{ t.jatuh_tempo }}</td>
+            <td>
+                <span class="badge-status 
+                        {% if t.status == 'belum_dibayar' %} status-kuning 
+                        {% elif t.status == 'lunas' %} status-hijau 
+                        {% else %} status-merah {% endif %}">
+                    {{ t.get_status_display }}
+                </span>
+            </td>
+            <td>
+                {% if t.status == 'belum_dibayar' or t.status == 'ditolak' %}
+                <a href="{% url 'bayar_tagihan' t.id %}" class="btn-bayar">Upload Bukti Transfer</a>
+                {% else %}
+                -
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center;">Hore! Tidak ada tagihan saat ini.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

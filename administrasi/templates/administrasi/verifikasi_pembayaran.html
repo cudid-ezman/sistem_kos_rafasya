@@ -1,0 +1,44 @@
+{% extends 'administrasi/base.html' %}
+
+{% block title %}Verifikasi Pembayaran - Kos Rafasya{% endblock %}
+{% block header %}Verifikasi Pembayaran{% endblock %}
+
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>Penghuni</th>
+            <th>Kamar</th>
+            <th>Periode</th>
+            <th>Tanggal Bayar</th>
+            <th>Bukti Transfer</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for b in bukti_list %}
+        <tr>
+            <td>{{ b.tagihan.penghuni.user.first_name }}</td>
+            <td>{{ b.tagihan.penghuni.kamar.nomor_kamar }}</td>
+            <td>{{ b.tagihan.periode }}</td>
+            <td>{{ b.tanggal_bayar }}</td>
+            <td>
+                <!-- Link ini akan membuka foto di tab baru -->
+                <a href="{{ b.berkas.url }}" target="_blank" style="color: blue; text-decoration: underline;">Lihat
+                    Foto</a>
+            </td>
+            <td>
+                <a href="{% url 'proses_verifikasi' b.id 'terima' %}"
+                    style="padding: 5px 10px; background: #28a745; color: white; text-decoration: none; border-radius: 4px;">Terima</a>
+                <a href="{% url 'proses_verifikasi' b.id 'tolak' %}"
+                    style="padding: 5px 10px; background: #dc3545; color: white; text-decoration: none; border-radius: 4px; margin-left: 5px;">Tolak</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align: center;">Belum ada antrean verifikasi pembayaran saat ini.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

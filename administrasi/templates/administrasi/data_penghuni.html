@@ -1,0 +1,38 @@
+{% extends 'administrasi/base.html' %}
+
+{% block title %}Data Penghuni - Kos Rafasya{% endblock %}
+{% block header %}Data Penghuni{% endblock %}
+
+{% block content %}
+<a href="{% url 'tambah_penghuni' %}" class="btn-tambah">Tambah Penghuni</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>Nama</th>
+            <th>Kamar</th>
+            <th>Tanggal Masuk</th>
+            <th>Status</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in penghuni_list %}
+        <tr>
+            <td>{{ p.user.first_name }}</td>
+            <td>{{ p.kamar.nomor_kamar }}</td>
+            <td>{{ p.tanggal_masuk }}</td>
+            <td>{% if p.status_aktif %}Aktif{% else %}Nonaktif{% endif %}</td>
+            <td>
+                <button>Ubah</button>
+                <button>Nonaktifkan</button>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center;">Belum ada data penghuni.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
