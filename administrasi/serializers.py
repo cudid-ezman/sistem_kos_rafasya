@@ -16,7 +16,7 @@ class TagihanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tagihan
         fields = '__all__'
-        depth = 1
+        depth = 2
 
 class KeluhanSerializer(serializers.ModelSerializer):
     class Meta:

@@ -271,14 +271,24 @@ def laporan_keuangan(request):
 # ENDPOINT PROFIL USER (Untuk frontend cek role)
 # ==========================================
 @api_view(['GET'])
-@permission_classes([IsAuthenticated]) # Wajib pakai Token
+@permission_classes([IsAuthenticated])
 def data_diri(request):
     user = request.user
-    try:
+    role = 'unknown'
+
+    # 1. Cek dulu apakah dia ada di tabel ProfilUser (Untuk Pengurus / Pemilik)
+    if hasattr(user, 'profiluser'):
         role = user.profiluser.role
-    except:
-        role = 'superadmin' if user.is_superuser else 'unknown'
         
+    # 2. Jika bukan pengurus, cek apakah dia ada di tabel Penghuni (Untuk Anak Kos)
+    # Asumsi model Penghuni terhubung ke tabel User
+    elif Penghuni.objects.filter(user=user).exists():
+        role = 'penghuni'
+        
+    # 3. Fallback jika dia adalah admin bawaan Django (createsuperuser)
+    elif user.is_superuser:
+        role = 'superadmin'
+
     return Response({
         'id': user.id,
         'username': user.username,
@@ -290,9 +300,19 @@ def data_diri(request):
 # UPDATE API YANG SUDAH ADA DENGAN GEMBOK KEAMANAN
 # ==========================================
 class TagihanListCreateAPI(generics.ListCreateAPIView):
-    queryset = Tagihan.objects.all().order_by('-id')
     serializer_class = TagihanSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        
+        # 1. Jika dia pengurus atau superadmin, berikan semua data tagihan
+        if hasattr(user, 'profiluser') or user.is_superuser:
+            return Tagihan.objects.all().order_by('-id')
+            
+        # 2. Jika dia penghuni, filter tagihan khusus untuk dirinya saja
+        # Asumsi: model Tagihan memiliki ForeignKey ke Penghuni, dan Penghuni punya ForeignKey ke User
+        return Tagihan.objects.filter(penghuni__user=user).order_by('-id')
 
 class KeluhanListCreateAPI(generics.ListCreateAPIView):
     queryset = Keluhan.objects.all().order_by('-tanggal_kirim')
