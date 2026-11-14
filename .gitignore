@@ -9,3 +9,16 @@ venv/
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Python & Django
+env/
+__pycache__/
+*.py[cod]
+db.sqlite3
+media/
+
+# Frontend & Environment
+kos-frontend/node_modules/
+kos-frontend/dist/
+.env
+*.env

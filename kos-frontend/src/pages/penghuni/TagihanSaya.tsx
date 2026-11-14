@@ -1,34 +1,21 @@
 import { useEffect, useState } from 'react';
-import api from '../../services/api';
-
-interface Tagihan {
-  id: number;
-  periode: string;
-  nominal: number;
-  jatuh_tempo: string;
-  status: string;
-  penghuni?: {
-    nama_lengkap?: string;
-    kamar?: {
-      nomor_kamar?: string;
-    };
-  };
-  penghuni_id?: number;
-}
+import { tagihanService } from '../../services/tagihanService';
+import type { Tagihan } from '../../types/kos';
+import StatusBadge from '../../components/StatusBadge';
 
 export default function TagihanSaya() {
   const [tagihan, setTagihan] = useState<Tagihan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // State untuk Modal Upload
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [tanggalBayar, setTanggalBayar] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
 
   const fetchTagihan = async () => {
     try {
-      const res = await api.get<Tagihan[]>('/tagihan/');
+      const res = await tagihanService.getAll();
       setTagihan(res.data);
     } catch (error) {
       console.error('Gagal mengambil data tagihan', error);
@@ -41,38 +28,31 @@ export default function TagihanSaya() {
     fetchTagihan();
   }, []);
 
-  // Fungsi untuk membuka Modal
   const openModal = (item: Tagihan) => {
     setSelectedTagihan(item);
-    setFile(null); // Reset file sebelumnya
+    setFile(null);
+    setTanggalBayar(new Date().toISOString().split('T')[0]);
     setIsModalOpen(true);
   };
 
-  // Fungsi untuk mengirim File ke Django
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !selectedTagihan) return;
+    if (!file || !selectedTagihan || !tanggalBayar) return;
 
     setIsUploading(true);
-    
-    // Wajib menggunakan FormData untuk mengirim file
     const formData = new FormData();
-    formData.append('bukti_pembayaran', file); 
-    formData.append('status', 'menunggu_verifikasi'); // Ubah status agar diperiksa pengurus
+    formData.append('tagihan', String(selectedTagihan.id));
+    formData.append('berkas', file);
+    formData.append('tanggal_bayar', tanggalBayar);
 
     try {
-      await api.patch(`/tagihan/${selectedTagihan.id}/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
+      await tagihanService.uploadBukti(formData);
       alert('Bukti pembayaran berhasil diunggah!');
       setIsModalOpen(false);
-      fetchTagihan(); // Refresh data tabel agar statusnya berubah
+      fetchTagihan();
     } catch (error) {
       console.error('Gagal mengunggah bukti', error);
-      alert('Gagal mengunggah bukti pembayaran.');
+      alert('Gagal mengunggah bukti pembayaran. Pastikan format file valid.');
     } finally {
       setIsUploading(false);
     }
@@ -112,25 +92,17 @@ export default function TagihanSaya() {
                 <tr key={item.id} className="hover:bg-slate-50 transition">
                   <td className="px-6 py-4 font-medium capitalize">{item.periode}</td>
                   <td className="px-6 py-4">
-                    Kamar {item.penghuni?.kamar?.nomor_kamar || item.penghuni_id || '-'}
+                    Kamar {item.nomor_kamar || item.penghuni?.kamar?.nomor_kamar || item.penghuni_id || '-'}
                   </td>
                   <td className="px-6 py-4">
                     Rp {Number(item.nominal || 0).toLocaleString('id-ID')}
                   </td>
                   <td className="px-6 py-4">
-                    {item.status === 'lunas' ? (
-                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Lunas</span>
-                    ) : item.status === 'ditolak' ? (
-                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Ditolak</span>
-                    ) : item.status === 'menunggu_verifikasi' ? (
-                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Menunggu Verifikasi</span>
-                    ) : (
-                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Belum Bayar</span>
-                    )}
+                    <StatusBadge status={item.status} />
                   </td>
                   <td className="px-6 py-4">
-                    {(item.status === 'belum_dibayar' || item.status === 'ditolak') && (
-                      <button 
+                    {(item.status === 'belum_dibayar' || item.status === 'ditolak' || item.status === 'terlambat') && (
+                      <button
                         onClick={() => openModal(item)}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm transition cursor-pointer"
                       >
@@ -145,22 +117,31 @@ export default function TagihanSaya() {
         </table>
       </div>
 
-      {/* MODAL UPLOAD BUKTI */}
       {isModalOpen && selectedTagihan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-slate-800 mb-2">Upload Bukti Transfer</h3>
-            <p className="text-sm text-slate-500 mb-6">
-              Tagihan periode <span className="font-semibold capitalize">{selectedTagihan.periode}</span> sebesar <span className="font-semibold">Rp {Number(selectedTagihan.nominal).toLocaleString('id-ID')}</span>.
+            <p className="text-sm text-slate-500 mb-5">
+              Tagihan periode <span className="font-semibold capitalize">{selectedTagihan.periode}</span> sebesar{' '}
+              <span className="font-semibold">Rp {Number(selectedTagihan.nominal).toLocaleString('id-ID')}</span>.
             </p>
 
             <form onSubmit={handleUpload} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Pilih Foto/Screenshot Bukti
-                </label>
-                <input 
-                  type="file" 
+                <label className="block text-sm font-medium text-slate-700 mb-1">Tanggal Transfer</label>
+                <input
+                  type="date"
+                  required
+                  value={tanggalBayar}
+                  onChange={(e) => setTanggalBayar(e.target.value)}
+                  className="w-full text-sm text-slate-700 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Pilih Foto/Screenshot Bukti</label>
+                <input
+                  type="file"
                   accept="image/*"
                   required
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
@@ -169,16 +150,16 @@ export default function TagihanSaya() {
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
                 >
                   Batal
                 </button>
-                <button 
-                  type="submit" 
-                  disabled={!file || isUploading}
+                <button
+                  type="submit"
+                  disabled={!file || !tanggalBayar || isUploading}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition cursor-pointer"
                 >
                   {isUploading ? 'Mengunggah...' : 'Kirim Bukti'}

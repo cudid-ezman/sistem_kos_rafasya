@@ -8,6 +8,14 @@ import Login from './pages/Login';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import TagihanSaya from './pages/penghuni/TagihanSaya';
+import KeluhanSaya from './pages/penghuni/KeluhanSaya';
+import VerifikasiPembayaran from './pages/pengurus/VerifikasiPembayaran';
+import DataKamar from './pages/pengurus/DataKamar';
+import DataPenghuni from './pages/pengurus/DataPenghuni';
+import DataTagihan from './pages/pengurus/DataTagihan';
+import DaftarKeluhan from './pages/pengurus/DaftarKeluhan';
+import Beranda from './pages/Beranda';
+import LaporanKeuangan from './pages/pemilik/LaporanKeuangan';
 
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -62,24 +70,21 @@ function App() {
       <Route element={<ProtectedRoute user={user} />}>
         <Route element={<DashboardLayout user={user!} onLogout={handleLogout} />}>
           
-          <Route path="/dashboard" element={
-            <div className="bg-white p-6 rounded-xl border border-slate-200">
-              <h3 className="text-lg font-semibold">Selamat Datang di Dashboard Kos Rafasya</h3>
-              <p className="text-slate-600 mt-2">Silakan pilih menu di samping kiri sesuai dengan hak akses Anda.</p>
-            </div>
-          } />
+         <Route path="/dashboard" element={<Beranda user={user!} />} />
 
           {/* Rute Pengurus */}
-          <Route path="/dashboard/kamar" element={<div>Tabel Data Kamar akan tampil di sini</div>} />
-          <Route path="/dashboard/penghuni" element={<div>Tabel Data Penghuni akan tampil di sini</div>} />
-          <Route path="/dashboard/verifikasi" element={<div>Daftar Verifikasi Pembayaran akan tampil di sini</div>} />
+          <Route path="/dashboard/kamar" element={<DataKamar />} />
+          <Route path="/dashboard/penghuni" element={<DataPenghuni />} />
+          <Route path="/dashboard/verifikasi" element={<VerifikasiPembayaran />} />
+          <Route path="/dashboard/tagihan" element={<DataTagihan />} />
+          <Route path="/dashboard/keluhan" element={<DaftarKeluhan />} />
 
           {/* Rute Penghuni */}
           <Route path="/dashboard/tagihan-saya" element={<TagihanSaya />} />
-          <Route path="/dashboard/keluhan-saya" element={<div>Daftar Keluhan Penghuni akan tampil di sini</div>} />
+          <Route path="/dashboard/keluhan-saya" element={<KeluhanSaya />} />
 
           {/* Rute Pemilik */}
-          <Route path="/dashboard/laporan" element={<div>Laporan Keuangan akan tampil di sini</div>} />
+          <Route path="/dashboard/laporan" element={<LaporanKeuangan />} />
           
         </Route>
       </Route>

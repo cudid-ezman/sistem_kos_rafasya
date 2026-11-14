@@ -42,7 +42,9 @@ export default function DashboardLayout({ user, onLogout }: Props) {
             <>
               <Link to="/dashboard/kamar" className={navLinkClass('/dashboard/kamar')}>Data Kamar</Link>
               <Link to="/dashboard/penghuni" className={navLinkClass('/dashboard/penghuni')}>Data Penghuni</Link>
+              <Link to="/dashboard/tagihan" className={navLinkClass('/dashboard/tagihan')}>Data Tagihan</Link>
               <Link to="/dashboard/verifikasi" className={navLinkClass('/dashboard/verifikasi')}>Verifikasi Pembayaran</Link>
+              <Link to="/dashboard/keluhan" className={navLinkClass('/dashboard/keluhan')}>Daftar Keluhan</Link>
             </>
           )}
 
