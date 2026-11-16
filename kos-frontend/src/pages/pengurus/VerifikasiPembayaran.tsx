@@ -1,230 +1,268 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { tagihanService } from '../../services/tagihanService';
-import StatusBadge from '../../components/StatusBadge';
+import type { BuktiPembayaran } from '../../types/kos';
+import { inisial, rupiah, tglAngka, tglWaktu } from '../../lib/format';
+import PageHeader from '../../components/portal/PageHeader';
+import StatusPill from '../../components/portal/StatusPill';
+import { Skeleton } from '../../components/portal/Skeleton';
+import { useToast } from '../../components/portal/toastContext';
+import { btnOutline, btnPrimary } from '../../components/portal/buttons';
+import { CheckIcon, ImageIcon, ShieldCheckIcon, XIcon } from '../../components/portal/icons';
+import Modal from '../../components/admin/Modal';
+import ConfirmDialog from '../../components/admin/ConfirmDialog';
+import FilterTabs from '../../components/admin/FilterTabs';
+import EmptyState from '../../components/admin/EmptyState';
+import { inputCls, labelCls } from '../../components/admin/styles';
 
-type TabFilter = 'menunggu' | 'semua';
+type Tab = 'menunggu' | 'semua';
 
-interface BuktiPembayaran {
-  id: number;
-  tagihan: number;
-  penghuni_nama: string;
-  nomor_kamar: string;
-  periode: string;
-  nominal: number;
-  tanggal_bayar: string;
-  nama_file: string;
-  file_bukti: string | null;
-  status_verifikasi: string;
-  catatan_penolakan?: string;
-}
+const ALASAN_CEPAT = ['Bukti buram / tidak terbaca', 'Nominal tidak sesuai tagihan', 'Bukan bukti pembayaran QRIS'];
+
+const statusPill = (s: BuktiPembayaran['status']) => (s === 'diterima' ? 'disetujui' : s);
 
 export default function VerifikasiPembayaran() {
-  const [buktiList, setBuktiList] = useState<BuktiPembayaran[]>([]);
+  const toast = useToast();
+  const [list, setList] = useState<BuktiPembayaran[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabFilter>('menunggu');
-  const [isProcessing, setIsProcessing] = useState<number | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('menunggu');
+  const [terpilih, setTerpilih] = useState<number | null>(null);
+  const [gambarError, setGambarError] = useState<number | null>(null);
+
+  const [setujuiOpen, setSetujuiOpen] = useState(false);
+  const [tolakOpen, setTolakOpen] = useState(false);
+  const [alasan, setAlasan] = useState('');
+  const [memproses, setMemproses] = useState(false);
 
   const fetchData = async () => {
     try {
       const res = await tagihanService.getBuktiPembayaran();
-      setBuktiList(res.data);
+      setList(res.data);
     } catch (error) {
       console.error('Gagal mengambil data bukti pembayaran', error);
+      toast.error('Data bukti pembayaran belum bisa dimuat.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleVerifikasi = async (id: number, aksi: 'setuju' | 'tolak') => {
-    let catatan = '';
-    if (aksi === 'tolak') {
-      catatan = prompt('Alasan penolakan (wajib diisi):');
-      if (!catatan) return;
-    } else {
-      if (!confirm('Setujui bukti pembayaran ini dan tandai tagihan sebagai Lunas?')) return;
-    }
+  const urut = useMemo(() => [...list].sort((a, b) => b.waktu_unggah.localeCompare(a.waktu_unggah)), [list]);
+  const menunggu = urut.filter((b) => b.status === 'menunggu_verifikasi');
+  const tampil = tab === 'menunggu' ? menunggu : urut;
+  const dipilih = tampil.find((b) => b.id === terpilih) ?? tampil[0];
 
-    setIsProcessing(id);
+  const proses = async (aksi: 'terima' | 'tolak', catatan = '') => {
+    if (!dipilih) return;
+    setMemproses(true);
     try {
-      await tagihanService.verifikasiBukti(id, { aksi, catatan });
-      alert(`Bukti pembayaran berhasil ${aksi === 'setuju' ? 'disetujui' : 'ditolak'}!`);
-      fetchData();
+      await tagihanService.prosesVerifikasi(dipilih.id, aksi, catatan);
+      toast.success(aksi === 'terima' ? 'Pembayaran disetujui. Tagihan ditandai lunas.' : 'Pembayaran ditolak. Penghuni akan diminta mengunggah ulang.');
+      setSetujuiOpen(false);
+      setTolakOpen(false);
+      setAlasan('');
+      await fetchData();
     } catch (error) {
       console.error('Gagal memverifikasi', error);
-      alert('Gagal memverifikasi bukti pembayaran.');
+      toast.error('Gagal memproses verifikasi. Coba lagi.');
     } finally {
-      setIsProcessing(null);
+      setMemproses(false);
     }
   };
 
-  const filtered =
-    activeTab === 'menunggu'
-      ? buktiList.filter((b) => b.status_verifikasi === 'menunggu_verifikasi')
-      : buktiList;
+  const kirimTolak = (e: FormEvent) => {
+    e.preventDefault();
+    if (alasan.trim().length < 3) return;
+    void proses('tolak', alasan.trim());
+  };
 
   if (isLoading) {
-    return <div className="text-slate-500 animate-pulse p-6">Memuat data verifikasi...</div>;
+    return (
+      <div aria-busy="true">
+        <Skeleton className="mb-3 h-4 w-40" />
+        <Skeleton className="mb-6 h-9 w-72" />
+        <Skeleton className="h-96" />
+      </div>
+    );
   }
 
-  const jumlahMenunggu = buktiList.filter((b) => b.status_verifikasi === 'menunggu_verifikasi').length;
-
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* Header + Tab Filter */}
-      <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-bold text-slate-800">Verifikasi Pembayaran</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Periksa dan validasi bukti transfer yang diunggah penghuni.
-          </p>
-        </div>
+    <div>
+      <PageHeader
+        crumbs={[{ label: 'Beranda', to: '/dashboard' }, { label: 'Verifikasi Pembayaran' }]}
+        title="Verifikasi Pembayaran"
+        subtitle="Periksa dan validasi bukti pembayaran yang diunggah penghuni."
+      />
 
-        {/* Tab Toggle — AKTIF pakai warna Teal (primary) sesuai PDF */}
-        <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden w-fit">
-          <button
-            onClick={() => setActiveTab('menunggu')}
-            className={`px-4 py-2 text-sm font-semibold transition cursor-pointer ${
-              activeTab === 'menunggu'
-                ? 'bg-primary text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Perlu Verifikasi ({jumlahMenunggu})
-          </button>
-          <button
-            onClick={() => setActiveTab('semua')}
-            className={`px-4 py-2 text-sm font-semibold transition cursor-pointer border-l border-slate-200 ${
-              activeTab === 'semua'
-                ? 'bg-primary text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Semua Riwayat
-          </button>
-        </div>
+      <div className="mb-5">
+        <FilterTabs
+          value={tab}
+          onChange={(t) => {
+            setTab(t);
+            setTerpilih(null);
+          }}
+          tabs={[
+            { key: 'menunggu', label: 'Perlu Verifikasi', count: menunggu.length },
+            { key: 'semua', label: 'Semua Riwayat', count: list.length },
+          ]}
+        />
       </div>
 
-      {/* Tabel */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4">Penghuni / Kamar</th>
-              <th className="px-6 py-4">Periode & Nominal</th>
-              <th className="px-6 py-4">Tgl Transfer</th>
-              <th className="px-6 py-4">Bukti Transfer</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                  Tidak ada data pembayaran pada kategori ini.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition">
-                  <td className="px-6 py-4">
-                    <p className="font-semibold text-slate-800">{item.penghuni_nama}</p>
-                    <p className="text-xs text-slate-500">Kamar {item.nomor_kamar}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="capitalize font-medium">{item.periode}</p>
-                    <p className="text-xs text-slate-500">
-                      Rp {Number(item.nominal).toLocaleString('id-ID')}
+      {tampil.length === 0 ? (
+        <section className="rounded-3xl border border-slate-200 bg-white">
+          <EmptyState
+            icon={<ShieldCheckIcon size={26} />}
+            title={tab === 'menunggu' ? 'Antrean kosong' : 'Belum ada pembayaran'}
+            text={tab === 'menunggu' ? 'Semua bukti pembayaran sudah diperiksa. Kerja bagus!' : 'Bukti pembayaran dari penghuni akan muncul di sini.'}
+          />
+        </section>
+      ) : (
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
+          {/* Daftar */}
+          <ul className="space-y-2.5" aria-label="Daftar bukti pembayaran">
+            {tampil.map((b) => {
+              const aktif = dipilih?.id === b.id;
+              return (
+                <li key={b.id}>
+                  <button
+                    type="button"
+                    onClick={() => setTerpilih(b.id)}
+                    aria-pressed={aktif}
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl border bg-white p-4 text-left transition ${
+                      aktif ? 'border-kos-600 shadow-md shadow-kos-600/10 ring-1 ring-kos-600' : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                    }`}
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-kos-100/70 text-sm font-bold text-kos-700">
+                      {inisial(b.nama_penghuni || '?')}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-ink">{b.nama_penghuni || '-'}</span>
+                      <span className="block truncate text-xs text-ink-soft capitalize">
+                        Kamar {b.nomor_kamar || '-'} • {b.periode_tagihan}
+                      </span>
+                    </span>
+                    <span className="flex flex-col items-end gap-1.5">
+                      <span className="text-sm font-bold text-ink tabular-nums">{rupiah(b.nominal_tagihan)}</span>
+                      <StatusPill status={statusPill(b.status)} />
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Detail & pratinjau */}
+          {dipilih && (
+            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white lg:sticky lg:top-24">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-kos-600 text-sm font-bold text-white">
+                    {inisial(dipilih.nama_penghuni || '?')}
+                  </span>
+                  <div>
+                    <p className="font-bold text-ink">{dipilih.nama_penghuni || '-'}</p>
+                    <p className="text-xs text-ink-soft capitalize">
+                      Kamar {dipilih.nomor_kamar || '-'} • {dipilih.periode_tagihan}
                     </p>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {new Date(item.tanggal_bayar).toLocaleDateString('id-ID', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </td>
-                  <td className="px-6 py-4">
-                    {item.file_bukti ? (
-                      <button
-                        onClick={() => setPreviewUrl(item.file_bukti)}
-                        className="text-xs font-medium text-primary hover:text-primary-dark underline cursor-pointer"
-                      >
-                        👁 Lihat Bukti
-                      </button>
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">{item.nama_file}</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={item.status_verifikasi} />
-                    {item.catatan_penolakan && (
-                      <p className="text-[10px] text-red-500 mt-1 max-w-[140px] truncate" title={item.catatan_penolakan}>
-                        {item.catatan_penolakan}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {item.status_verifikasi === 'menunggu_verifikasi' ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleVerifikasi(item.id, 'setuju')}
-                          disabled={isProcessing === item.id}
-                          className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-lg transition cursor-pointer"
-                        >
-                          {isProcessing === item.id ? '...' : 'Setujui'}
-                        </button>
-                        <button
-                          onClick={() => handleVerifikasi(item.id, 'tolak')}
-                          disabled={isProcessing === item.id}
-                          className="px-3 py-1.5 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 rounded-lg transition cursor-pointer"
-                        >
-                          {isProcessing === item.id ? '...' : 'Tolak'}
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">Selesai</span>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                </div>
+                <StatusPill status={statusPill(dipilih.status)} />
+              </div>
 
-      {/* Modal Preview Bukti */}
-      {previewUrl && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          onClick={() => setPreviewUrl(null)}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl max-w-lg w-full p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-bold text-slate-800">Preview Bukti Transfer</h3>
-              <button
-                onClick={() => setPreviewUrl(null)}
-                className="text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-            <img
-              src={previewUrl}
-              alt="Bukti transfer"
-              className="w-full rounded-lg border border-slate-200"
-            />
-          </div>
+              <div className="grid gap-5 p-6 md:grid-cols-[1fr_220px]">
+                <a
+                  href={dipilih.berkas}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex min-h-[260px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+                  aria-label="Buka bukti pembayaran ukuran penuh"
+                >
+                  {gambarError === dipilih.id || !dipilih.berkas ? (
+                    <span className="flex flex-col items-center gap-2 p-6 text-center text-sm text-ink-soft">
+                      <ImageIcon size={32} className="text-slate-300" />
+                      Gambar tidak dapat ditampilkan
+                    </span>
+                  ) : (
+                    <img
+                      src={dipilih.berkas}
+                      alt={`Bukti pembayaran ${dipilih.nama_penghuni ?? ''}`}
+                      onError={() => setGambarError(dipilih.id)}
+                      className="max-h-[440px] w-full object-contain transition group-hover:scale-[1.02]"
+                    />
+                  )}
+                </a>
+
+                <dl className="space-y-4 text-sm">
+                  {[
+                    ['Nominal tagihan', rupiah(dipilih.nominal_tagihan)],
+                    ['Tanggal transfer', tglAngka(dipilih.tanggal_bayar)],
+                    ['Diunggah', tglWaktu(dipilih.waktu_unggah)],
+                    ...(dipilih.tanggal_verifikasi ? [['Diverifikasi', tglAngka(dipilih.tanggal_verifikasi)]] : []),
+                  ].map(([k, v]) => (
+                    <div key={k}>
+                      <dt className="text-[11px] font-semibold tracking-wide text-ink-soft uppercase">{k}</dt>
+                      <dd className="mt-0.5 font-semibold text-ink tabular-nums">{v}</dd>
+                    </div>
+                  ))}
+                  {dipilih.catatan_penolakan && (
+                    <div className="rounded-xl bg-rose-50 p-3 text-xs leading-relaxed text-rose-800">
+                      <p className="font-bold">Alasan penolakan</p>
+                      {dipilih.catatan_penolakan}
+                    </div>
+                  )}
+                </dl>
+              </div>
+
+              {dipilih.status === 'menunggu_verifikasi' && (
+                <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/60 px-6 py-4 sm:flex-row sm:justify-end">
+                  <button type="button" onClick={() => setTolakOpen(true)} className={`${btnOutline} text-rose-600 hover:!border-rose-200 hover:!bg-rose-50`}>
+                    <XIcon size={17} /> Tolak
+                  </button>
+                  <button type="button" onClick={() => setSetujuiOpen(true)} className={btnPrimary}>
+                    <CheckIcon size={17} /> Setujui Pembayaran
+                  </button>
+                </div>
+              )}
+            </section>
+          )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={setujuiOpen}
+        title="Setujui pembayaran?"
+        message={`Bukti pembayaran ${dipilih?.nama_penghuni ?? ''} (${dipilih?.periode_tagihan ?? ''}) akan disetujui dan tagihan ditandai Lunas.`}
+        confirmLabel="Ya, setujui"
+        loading={memproses}
+        onConfirm={() => proses('terima')}
+        onCancel={() => setSetujuiOpen(false)}
+      />
+
+      <Modal open={tolakOpen} onClose={() => setTolakOpen(false)} title="Tolak bukti pembayaran" description="Alasan akan ditampilkan kepada penghuni agar bisa mengunggah ulang.">
+        <form onSubmit={kirimTolak} className="space-y-4">
+          <div>
+            <label htmlFor="alasan" className={labelCls}>Alasan penolakan <span className="text-rose-600">*</span></label>
+            <textarea id="alasan" rows={3} required value={alasan} onChange={(e) => setAlasan(e.target.value)} placeholder="Jelaskan kenapa bukti ditolak..." className={inputCls} />
+            <div className="mt-2 flex flex-wrap gap-2">
+              {ALASAN_CEPAT.map((a) => (
+                <button key={a} type="button" onClick={() => setAlasan(a)} className="cursor-pointer rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-ink-soft transition hover:border-kos-500 hover:text-kos-700">
+                  {a}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setTolakOpen(false)} className={btnOutline}>Batal</button>
+            <button type="submit" disabled={memproses || alasan.trim().length < 3} className="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50">
+              {memproses ? 'Memproses...' : 'Tolak Pembayaran'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

@@ -126,3 +126,28 @@ export const MenuHomeIcon = (p: P) => (
 export const PrinterIcon = (p: P) => (
   <I {...p}><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" /><rect x="7" y="14" width="10" height="6" rx="1" /></I>
 );
+
+export const UsersIcon = (p: P) => (
+  <I {...p}><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.7a3.5 3.5 0 0 1 0 6.6M18 14.2A6.5 6.5 0 0 1 21.5 20" /></I>
+);
+export const MenuIcon = (p: P) => (
+  <I {...p}><path d="M4 7h16M4 12h16M4 17h16" /></I>
+);
+export const SearchIcon = (p: P) => (
+  <I {...p}><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></I>
+);
+export const PencilIcon = (p: P) => (
+  <I {...p}><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" /><path d="m14.5 7.5 3 3" /></I>
+);
+export const ChartIcon = (p: P) => (
+  <I {...p}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></I>
+);
+export const GridIcon = (p: P) => (
+  <I {...p}><rect x="3.5" y="3.5" width="7" height="7" rx="1.5" /><rect x="13.5" y="3.5" width="7" height="7" rx="1.5" /><rect x="3.5" y="13.5" width="7" height="7" rx="1.5" /><rect x="13.5" y="13.5" width="7" height="7" rx="1.5" /></I>
+);
+export const TrendingUpIcon = (p: P) => (
+  <I {...p}><path d="m3 17 6-6 4 4 8-8" /><path d="M15 7h6v6" /></I>
+);
+export const PhoneIcon = (p: P) => (
+  <I {...p}><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" /></I>
+);

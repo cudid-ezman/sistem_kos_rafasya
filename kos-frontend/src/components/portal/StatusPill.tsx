@@ -6,6 +6,11 @@ const STYLES: Record<string, { label: string; dot: string; box: string }> = {
   terlambat: { label: 'Terlambat', dot: 'bg-orange-500', box: 'bg-orange-50 text-orange-700 ring-orange-200' },
   menunggu_verifikasi: { label: 'Menunggu Verifikasi', dot: 'bg-sky-500', box: 'bg-sky-50 text-sky-700 ring-sky-200' },
   diterima: { label: 'Diterima', dot: 'bg-sky-500', box: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  disetujui: { label: 'Disetujui', dot: 'bg-emerald-500', box: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  tersedia: { label: 'Tersedia', dot: 'bg-emerald-500', box: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  terisi: { label: 'Terisi', dot: 'bg-sky-500', box: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  aktif: { label: 'Aktif', dot: 'bg-emerald-500', box: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  nonaktif: { label: 'Nonaktif', dot: 'bg-slate-400', box: 'bg-slate-100 text-slate-600 ring-slate-200' },
   ditolak: { label: 'Ditolak', dot: 'bg-rose-500', box: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 

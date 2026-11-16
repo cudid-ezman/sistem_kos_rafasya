@@ -1,26 +1,41 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { kamarService, type CreateKamarPayload } from '../../services/kamarService';
 import type { Kamar } from '../../types/kos';
-import StatusBadge from '../../components/StatusBadge';
-import DenahKamar from './DenahKamar'; // <-- Import komponen denah baru
+import { rupiah } from '../../lib/format';
+import DenahKamar from './DenahKamar';
+import PageHeader from '../../components/portal/PageHeader';
+import StatusPill from '../../components/portal/StatusPill';
+import { Skeleton } from '../../components/portal/Skeleton';
+import { useToast } from '../../components/portal/toastContext';
+import { btnGhost, btnOutline, btnPrimary } from '../../components/portal/buttons';
+import { DoorIcon, GridIcon, ListIcon, PencilIcon, PlusIcon, TrashIcon } from '../../components/portal/icons';
+import Modal from '../../components/admin/Modal';
+import ConfirmDialog from '../../components/admin/ConfirmDialog';
+import Pagination from '../../components/admin/Pagination';
+import SearchInput from '../../components/admin/SearchInput';
+import EmptyState from '../../components/admin/EmptyState';
+import { inputCls, labelCls, tdCls, thCls } from '../../components/admin/styles';
+
+const KOSONG: CreateKamarPayload = { nomor_kamar: '', tipe: 'individu', harga_sewa: 550000, fasilitas: '', status: 'tersedia' };
+const PER_HALAMAN = 10;
 
 export default function DataKamar() {
+  const toast = useToast();
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'denah' ? 'denah' : 'daftar';
+
   const [kamarList, setKamarList] = useState<Kamar[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // State untuk Tab Switcher
-  const [activeTab, setActiveTab] = useState<'daftar' | 'denah'>('daftar');
+  const [cari, setCari] = useState('');
+  const [halaman, setHalaman] = useState(1);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState<CreateKamarPayload>({
-    nomor_kamar: '',
-    tipe: 'individu',
-    harga_sewa: 375000,
-    fasilitas: '',
-    status: 'tersedia',
-  });
+  const [form, setForm] = useState<CreateKamarPayload>(KOSONG);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hapus, setHapus] = useState<Kamar | null>(null);
+  const [menghapus, setMenghapus] = useState(false);
 
   const fetchKamar = async () => {
     try {
@@ -28,258 +43,272 @@ export default function DataKamar() {
       setKamarList(res.data);
     } catch (error) {
       console.error('Gagal mengambil data kamar', error);
+      toast.error('Data kamar belum bisa dimuat.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchKamar();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchKamar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const openCreateModal = () => {
+  const ringkas = useMemo(
+    () => ({
+      total: kamarList.length,
+      terisi: kamarList.filter((k) => k.status === 'terisi').length,
+      tersedia: kamarList.filter((k) => k.status === 'tersedia').length,
+    }),
+    [kamarList]
+  );
+
+  const tersaring = useMemo(
+    () => kamarList.filter((k) => k.nomor_kamar.toLowerCase().includes(cari.trim().toLowerCase())),
+    [kamarList, cari]
+  );
+  const baris = tersaring.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
+
+  const bukaTambah = () => {
     setEditingId(null);
-    setFormData({
-      nomor_kamar: '',
-      tipe: 'individu',
-      harga_sewa: 375000,
-      fasilitas: '',
-      status: 'tersedia',
-    });
-    setIsModalOpen(true);
+    setForm(KOSONG);
+    setFormOpen(true);
   };
 
-  const openEditModal = (kamar: Kamar) => {
-    setEditingId(kamar.id);
-    setFormData({
-      nomor_kamar: kamar.nomor_kamar,
-      tipe: kamar.tipe,
-      harga_sewa: kamar.harga_sewa,
-      fasilitas: kamar.fasilitas,
-      status: kamar.status,
-    });
-    setIsModalOpen(true);
+  const bukaEdit = (k: Kamar) => {
+    setEditingId(k.id);
+    setForm({ nomor_kamar: k.nomor_kamar, tipe: k.tipe, harga_sewa: k.harga_sewa, fasilitas: k.fasilitas, status: k.status });
+    setFormOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const simpan = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       if (editingId) {
-        await kamarService.updateKamar(editingId, formData);
-        alert('Data kamar berhasil diperbarui!');
+        await kamarService.updateKamar(editingId, form);
+        toast.success('Data kamar berhasil diperbarui.');
       } else {
-        await kamarService.createKamar(formData);
-        alert('Kamar baru berhasil ditambahkan!');
+        await kamarService.createKamar(form);
+        toast.success('Kamar baru berhasil ditambahkan.');
       }
-      setIsModalOpen(false);
-      fetchKamar();
+      setFormOpen(false);
+      await fetchKamar();
     } catch (error) {
       console.error('Gagal menyimpan data kamar', error);
-      alert('Gagal menyimpan data kamar. Pastikan nomor kamar tidak duplikat.');
+      toast.error('Gagal menyimpan kamar. Pastikan nomor kamar tidak duplikat.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (kamar: Kamar) => {
-    if (!confirm(`Hapus kamar nomor ${kamar.nomor_kamar}?`)) return;
+  const konfirmasiHapus = async () => {
+    if (!hapus) return;
+    setMenghapus(true);
     try {
-      await kamarService.deleteKamar(kamar.id);
-      fetchKamar();
+      await kamarService.deleteKamar(hapus.id);
+      toast.success(`Kamar ${hapus.nomor_kamar} dihapus.`);
+      setHapus(null);
+      await fetchKamar();
     } catch (error) {
       console.error('Gagal menghapus kamar', error);
-      alert('Gagal menghapus kamar.');
+      toast.error('Gagal menghapus kamar. Kamar yang masih dihuni tidak bisa dihapus.');
+    } finally {
+      setMenghapus(false);
     }
   };
 
+  const pilihTab = (t: 'daftar' | 'denah') => setParams(t === 'denah' ? { tab: 'denah' } : {}, { replace: true });
+
   if (isLoading) {
-    return <div className="text-slate-500 animate-pulse p-6">Memuat data kamar...</div>;
+    return (
+      <div aria-busy="true">
+        <Skeleton className="mb-3 h-4 w-40" />
+        <Skeleton className="mb-6 h-9 w-72" />
+        <Skeleton className="h-96" />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Halaman */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Manajemen Data Kamar</h1>
-          <p className="text-sm text-slate-500 mt-1">Kelola daftar kamar, harga sewa, fasilitas, dan ketersediaan.</p>
-        </div>
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition cursor-pointer shadow-sm"
-        >
-          + Tambah Kamar
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        crumbs={[{ label: 'Beranda', to: '/dashboard' }, { label: 'Data Kamar' }]}
+        title="Manajemen Data Kamar"
+        subtitle="Kelola daftar kamar, harga sewa, fasilitas, dan ketersediaan."
+        action={
+          <button type="button" onClick={bukaTambah} className={btnPrimary}>
+            <PlusIcon size={17} /> Tambah Kamar
+          </button>
+        }
+      />
 
-      {/* Tab Switcher */}
-      <div className="flex gap-6 border-b border-slate-200">
-        {(['daftar', 'denah'] as const).map((tabName) => (
+      <div className="mb-5 inline-flex rounded-xl bg-slate-100 p-1 text-[13px] font-semibold" role="tablist">
+        {(
+          [
+            ['daftar', 'Daftar Kamar', ListIcon],
+            ['denah', 'Denah Operasional', GridIcon],
+          ] as const
+        ).map(([key, label, Ikon]) => (
           <button
-            key={tabName}
-            onClick={() => setActiveTab(tabName)}
-            className={`pb-3 text-sm font-semibold capitalize transition cursor-pointer border-b-2 -mb-px ${
-              activeTab === tabName
-                ? 'text-primary border-primary'
-                : 'text-slate-500 border-transparent hover:text-slate-700'
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={tab === key}
+            onClick={() => pilihTab(key)}
+            className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 transition ${
+              tab === key ? 'bg-white text-kos-700 shadow-sm' : 'text-ink-soft hover:text-ink'
             }`}
           >
-            {tabName === 'daftar' ? 'Daftar Kamar' : 'Denah Operasional'}
+            <Ikon size={16} /> {label}
           </button>
         ))}
       </div>
 
-      {/* Konten Berdasarkan Tab */}
-      {activeTab === 'denah' ? (
+      {tab === 'denah' ? (
         <DenahKamar />
       ) : (
-        /* TABEL DAFTAR (Logika aslimu tetap utuh, hanya warna yang diupdate ke primary) */
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4">No. Kamar</th>
-                  <th className="px-6 py-4">Tipe</th>
-                  <th className="px-6 py-4">Harga Sewa / Bulan</th>
-                  <th className="px-6 py-4">Fasilitas</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {kamarList.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                      Belum ada data kamar.
-                    </td>
-                  </tr>
-                ) : (
-                  kamarList.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50 transition">
-                      <td className="px-6 py-4 font-bold text-slate-800">{item.nomor_kamar}</td>
-                      <td className="px-6 py-4 capitalize">{item.tipe}</td>
-                      <td className="px-6 py-4">Rp {Number(item.harga_sewa).toLocaleString('id-ID')}</td>
-                      <td className="px-6 py-4 max-w-xs truncate" title={item.fasilitas}>
-                        {item.fasilitas}
-                      </td>
-                      <td className="px-6 py-4">
-                        <StatusBadge status={item.status} />
-                      </td>
-                      <td className="px-6 py-4 flex gap-3">
-                        <button
-                          onClick={() => openEditModal(item)}
-                          className="text-primary hover:text-primary-dark font-medium text-xs cursor-pointer"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item)}
-                          className="text-red-600 hover:text-red-800 font-medium text-xs cursor-pointer"
-                        >
-                          Hapus
-                        </button>
-                      </td>
+        <>
+          <div className="mb-4 grid grid-cols-3 gap-3">
+            {[
+              ['Total Kamar', ringkas.total, 'text-ink'],
+              ['Terisi', ringkas.terisi, 'text-sky-600'],
+              ['Tersedia', ringkas.tersedia, 'text-emerald-600'],
+            ].map(([label, nilai, warna]) => (
+              <div key={label as string} className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5">
+                <p className="text-xs text-ink-soft">{label}</p>
+                <p className={`mt-0.5 text-2xl font-bold tabular-nums ${warna}`}>{nilai}</p>
+              </div>
+            ))}
+          </div>
+
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+            <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-base font-bold text-ink">Daftar Kamar</h2>
+              <SearchInput
+                value={cari}
+                onChange={(v) => {
+                  setCari(v);
+                  setHalaman(1);
+                }}
+                placeholder="Cari nomor kamar..."
+              />
+            </div>
+
+            {tersaring.length === 0 ? (
+              <EmptyState
+                icon={<DoorIcon size={26} />}
+                title={kamarList.length === 0 ? 'Belum ada data kamar' : 'Kamar tidak ditemukan'}
+                text={kamarList.length === 0 ? 'Tambahkan kamar pertama untuk mulai mengelola kos.' : 'Coba kata kunci lain.'}
+                action={
+                  kamarList.length === 0 && (
+                    <button type="button" onClick={bukaTambah} className={btnPrimary}>
+                      <PlusIcon size={17} /> Tambah Kamar
+                    </button>
+                  )
+                }
+              />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50/70">
+                    <tr>
+                      <th className={thCls}>No. Kamar</th>
+                      <th className={thCls}>Tipe</th>
+                      <th className={thCls}>Harga Sewa / Bulan</th>
+                      <th className={thCls}>Fasilitas</th>
+                      <th className={thCls}>Status</th>
+                      <th className={`${thCls} text-right`}>Aksi</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {baris.map((k) => (
+                      <tr key={k.id} className="transition hover:bg-slate-50/70">
+                        <td className={`${tdCls} font-bold`}>{k.nomor_kamar}</td>
+                        <td className={`${tdCls} capitalize`}>{k.tipe}</td>
+                        <td className={`${tdCls} tabular-nums`}>{rupiah(k.harga_sewa)}</td>
+                        <td className={`${tdCls} max-w-xs truncate text-ink-soft`} title={k.fasilitas}>
+                          {k.fasilitas}
+                        </td>
+                        <td className={tdCls}>
+                          <StatusPill status={k.status} />
+                        </td>
+                        <td className={`${tdCls} text-right`}>
+                          <div className="inline-flex gap-1">
+                            <button type="button" onClick={() => bukaEdit(k)} aria-label={`Edit kamar ${k.nomor_kamar}`} className={`${btnGhost} h-9 w-9 !px-0`}>
+                              <PencilIcon size={17} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setHapus(k)}
+                              aria-label={`Hapus kamar ${k.nomor_kamar}`}
+                              className={`${btnGhost} h-9 w-9 !px-0 hover:!bg-rose-50 hover:!text-rose-600`}
+                            >
+                              <TrashIcon size={17} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <Pagination total={tersaring.length} page={halaman} perPage={PER_HALAMAN} onChange={setHalaman} />
+          </section>
+        </>
       )}
 
-      {/* Modal Tambah/Edit (Logika asli tetap utuh, warna diupdate ke primary) */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-slate-800 mb-4">
-              {editingId ? 'Edit Data Kamar' : 'Tambah Kamar Baru'}
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Nomor Kamar</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: A-01"
-                  value={formData.nomor_kamar}
-                  onChange={(e) => setFormData({ ...formData, nomor_kamar: e.target.value })}
-                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipe Kamar</label>
-                  <select
-                    value={formData.tipe}
-                    onChange={(e) => setFormData({ ...formData, tipe: e.target.value as 'individu' | 'berdua' })}
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                  >
-                    <option value="individu">Individu</option>
-                    <option value="berdua">Berdua</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'tersedia' | 'terisi' })}
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                  >
-                    <option value="tersedia">Tersedia</option>
-                    <option value="terisi">Terisi</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Harga Sewa (Rp)</label>
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  value={formData.harga_sewa}
-                  onChange={(e) => setFormData({ ...formData, harga_sewa: Number(e.target.value) })}
-                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Fasilitas</label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Kasur, Lemari, Kamar Mandi Dalam, Wi-Fi..."
-                  value={formData.fasilitas}
-                  onChange={(e) => setFormData({ ...formData, fasilitas: e.target.value })}
-                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark disabled:bg-primary/50 rounded-lg transition cursor-pointer"
-                >
-                  {isSubmitting ? 'Menyimpan...' : 'Simpan'}
-                </button>
-              </div>
-            </form>
+      <Modal open={formOpen} onClose={() => setFormOpen(false)} title={editingId ? 'Edit Data Kamar' : 'Tambah Kamar Baru'}>
+        <form onSubmit={simpan} className="space-y-4">
+          <div>
+            <label htmlFor="nomor" className={labelCls}>Nomor Kamar</label>
+            <input id="nomor" required placeholder="Contoh: A12" value={form.nomor_kamar} onChange={(e) => setForm({ ...form, nomor_kamar: e.target.value })} className={inputCls} />
+            <p className="mt-1.5 text-xs text-ink-soft">Huruf di depan menentukan blok di denah (A12 → Blok A).</p>
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="tipe" className={labelCls}>Tipe Kamar</label>
+              <select id="tipe" value={form.tipe} onChange={(e) => setForm({ ...form, tipe: e.target.value as 'individu' | 'berdua' })} className={inputCls}>
+                <option value="individu">Individu</option>
+                <option value="berdua">Berdua</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="status" className={labelCls}>Status</label>
+              <select id="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'tersedia' | 'terisi' })} className={inputCls}>
+                <option value="tersedia">Tersedia</option>
+                <option value="terisi">Terisi</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="harga" className={labelCls}>Harga Sewa (Rp)</label>
+            <input id="harga" type="number" required min={0} value={form.harga_sewa} onChange={(e) => setForm({ ...form, harga_sewa: Number(e.target.value) })} className={inputCls} />
+            {form.tipe === 'berdua' && <p className="mt-1.5 text-xs text-ink-soft">Kamar berdua: tagihan dibagi rata untuk 2 penghuni.</p>}
+          </div>
+          <div>
+            <label htmlFor="fasilitas" className={labelCls}>Fasilitas</label>
+            <textarea id="fasilitas" rows={3} required placeholder="Kasur, lemari, kamar mandi dalam, Wi-Fi..." value={form.fasilitas} onChange={(e) => setForm({ ...form, fasilitas: e.target.value })} className={inputCls} />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setFormOpen(false)} className={btnOutline}>Batal</button>
+            <button type="submit" disabled={isSubmitting} className={btnPrimary}>{isSubmitting ? 'Menyimpan...' : 'Simpan'}</button>
+          </div>
+        </form>
+      </Modal>
+
+      <ConfirmDialog
+        open={!!hapus}
+        title="Hapus kamar?"
+        message={`Kamar ${hapus?.nomor_kamar ?? ''} akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.`}
+        confirmLabel="Hapus"
+        tone="danger"
+        loading={menghapus}
+        onConfirm={konfirmasiHapus}
+        onCancel={() => setHapus(null)}
+      />
     </div>
   );
 }

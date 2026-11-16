@@ -1,129 +1,174 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { tagihanService } from '../../services/tagihanService';
 import type { Tagihan } from '../../types/kos';
-import StatusBadge from '../../components/StatusBadge';
+import { rupiah } from '../../lib/format';
+import PageHeader from '../../components/portal/PageHeader';
+import StatusPill from '../../components/portal/StatusPill';
+import { Skeleton } from '../../components/portal/Skeleton';
+import { btnPrimary } from '../../components/portal/buttons';
+import { ChartIcon, PrinterIcon, TrendingUpIcon } from '../../components/portal/icons';
+import Pagination from '../../components/admin/Pagination';
+import SearchInput from '../../components/admin/SearchInput';
+import EmptyState from '../../components/admin/EmptyState';
+import { tdCls, thCls } from '../../components/admin/styles';
+
+const PER_HALAMAN = 10;
 
 export default function LaporanKeuangan() {
-  const [totalPemasukan, setTotalPemasukan] = useState<number>(0);
+  const [totalPemasukan, setTotalPemasukan] = useState(0);
   const [transaksi, setTransaksi] = useState<Tagihan[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [cari, setCari] = useState('');
+  const [halaman, setHalaman] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLaporan = async () => {
-      try {
-        const res = await tagihanService.getLaporanKeuangan();
+    let batal = false;
+    tagihanService
+      .getLaporanKeuangan()
+      .then((res) => {
+        if (batal) return;
         setTotalPemasukan(res.data.total_pemasukan || 0);
         setTransaksi(res.data.transaksi || []);
-      } catch (error) {
-        console.error('Gagal memuat laporan keuangan', error);
-      } finally {
-        setIsLoading(false);
-      }
+      })
+      .catch((error) => console.error('Gagal memuat laporan keuangan', error))
+      .finally(() => !batal && setIsLoading(false));
+    return () => {
+      batal = true;
     };
-
-    fetchLaporan();
   }, []);
 
-  const filteredTransaksi = transaksi.filter((item) => {
-    const keyword = searchQuery.toLowerCase();
-    const nama = (item.nama_penghuni || item.penghuni?.nama_lengkap || '').toLowerCase();
-    const periode = (item.periode || '').toLowerCase();
-    const kamar = (item.nomor_kamar || item.penghuni?.kamar?.nomor_kamar || '').toLowerCase();
-    return nama.includes(keyword) || periode.includes(keyword) || kamar.includes(keyword);
-  });
+  // Pemasukan per periode (urutan kemunculan = urutan data dari server)
+  const perPeriode = useMemo(() => {
+    const m = new Map<string, number>();
+    transaksi.forEach((t) => m.set(t.periode, (m.get(t.periode) ?? 0) + Number(t.nominal || 0)));
+    return [...m.entries()].slice(0, 8);
+  }, [transaksi]);
+  const maks = Math.max(1, ...perPeriode.map(([, n]) => n));
+
+  const tersaring = useMemo(() => {
+    const q = cari.trim().toLowerCase();
+    return transaksi.filter((t) => {
+      const nama = (t.nama_penghuni || t.penghuni?.nama_lengkap || '').toLowerCase();
+      const kamar = (t.nomor_kamar || t.penghuni?.kamar?.nomor_kamar || '').toLowerCase();
+      return nama.includes(q) || kamar.includes(q) || (t.periode || '').toLowerCase().includes(q);
+    });
+  }, [transaksi, cari]);
+  const baris = tersaring.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
 
   if (isLoading) {
-    return <div className="text-slate-500 animate-pulse p-6">Memuat laporan keuangan...</div>;
+    return (
+      <div aria-busy="true">
+        <Skeleton className="mb-3 h-4 w-40" />
+        <Skeleton className="mb-6 h-9 w-72" />
+        <Skeleton className="h-96" />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Kartu Ringkasan Pemasukan */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-sm font-medium text-slate-500">Total Pemasukan Lunas</p>
-          <p className="text-3xl font-bold text-green-600 mt-2">
-            Rp {Number(totalPemasukan).toLocaleString('id-ID')}
-          </p>
-          <p className="text-xs text-slate-400 mt-2">
-            Akumulasi dari seluruh pembayaran sewa yang telah diverifikasi pengurus.
-          </p>
-        </div>
+    <div>
+      <PageHeader
+        crumbs={[{ label: 'Beranda', to: '/dashboard' }, { label: 'Laporan Keuangan' }]}
+        title="Laporan Keuangan"
+        subtitle="Ringkasan pemasukan sewa yang sudah diverifikasi pengurus."
+        action={
+          <button type="button" onClick={() => window.print()} className={`${btnPrimary} print:hidden`}>
+            <PrinterIcon size={17} /> Cetak / Simpan PDF
+          </button>
+        }
+      />
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500">Total Transaksi Lunas</p>
-            <p className="text-3xl font-bold text-slate-800 mt-2">{transaksi.length} Transaksi</p>
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-kos-950 via-kos-900 to-kos-600 p-6 text-white shadow-lg shadow-kos-950/20 print:border print:bg-none print:text-ink print:shadow-none">
+          <div className="pointer-events-none absolute -right-10 -top-14 h-48 w-48 rounded-full border border-white/10 print:hidden" />
+          <div className="relative flex items-start justify-between">
+            <p className="text-sm font-medium text-white/80 print:text-ink-soft">Total Pemasukan Lunas</p>
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 print:hidden">
+              <TrendingUpIcon size={20} />
+            </span>
           </div>
-          <div className="mt-4">
-            <button
-              onClick={() => window.print()}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium rounded-lg transition cursor-pointer"
-            >
-              Cetak / Simpan PDF
-            </button>
-          </div>
-        </div>
+          <p className="relative mt-2 text-4xl font-bold tracking-tight tabular-nums">{rupiah(totalPemasukan)}</p>
+          <p className="relative mt-3 border-t border-white/15 pt-3 text-xs text-white/75 print:text-ink-soft">
+            {transaksi.length} transaksi • akumulasi seluruh pembayaran yang telah diverifikasi.
+          </p>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6">
+          <h2 className="flex items-center gap-2 text-base font-bold text-ink">
+            <ChartIcon size={18} className="text-kos-600" /> Pemasukan per Periode
+          </h2>
+          {perPeriode.length === 0 ? (
+            <p className="mt-6 text-sm text-ink-soft">Belum ada data untuk ditampilkan.</p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {perPeriode.map(([periode, nilai]) => (
+                <li key={periode}>
+                  <div className="mb-1 flex items-center justify-between text-xs">
+                    <span className="font-medium text-ink capitalize">{periode}</span>
+                    <span className="font-semibold text-ink tabular-nums">{rupiah(nilai)}</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-full rounded-full bg-kos-600" style={{ width: `${(nilai / maks) * 100}%` }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
 
-      {/* Tabel Rincian Pemasukan */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <section className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-800">Rincian Pemasukan Sewa</h2>
-            <p className="text-sm text-slate-500 mt-1">Daftar tagihan penghuni yang berstatus Lunas.</p>
+            <h2 className="text-base font-bold text-ink">Rincian Pemasukan Sewa</h2>
+            <p className="text-xs text-ink-soft">Daftar tagihan penghuni yang berstatus Lunas.</p>
           </div>
-          <input
-            type="text"
-            placeholder="Cari periode, nama, atau kamar..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="text-sm border border-slate-300 rounded-lg px-3 py-2 w-full sm:w-64 focus:outline-none focus:border-blue-500"
-          />
+          <div className="print:hidden">
+            <SearchInput
+              value={cari}
+              onChange={(v) => {
+                setCari(v);
+                setHalaman(1);
+              }}
+              placeholder="Cari periode, nama, atau kamar..."
+            />
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4">Periode</th>
-                <th className="px-6 py-4">Penghuni</th>
-                <th className="px-6 py-4">Nomor Kamar</th>
-                <th className="px-6 py-4">Nominal Masuk</th>
-                <th className="px-6 py-4">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
-              {filteredTransaksi.length === 0 ? (
+        {tersaring.length === 0 ? (
+          <EmptyState icon={<ChartIcon size={26} />} title="Belum ada transaksi pemasukan" text="Transaksi akan muncul setelah pengurus menyetujui pembayaran." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50/70">
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                    Belum ada transaksi pemasukan yang tercatat.
-                  </td>
+                  <th className={thCls}>Periode</th>
+                  <th className={thCls}>Penghuni</th>
+                  <th className={thCls}>Nomor Kamar</th>
+                  <th className={`${thCls} text-right`}>Nominal Masuk</th>
+                  <th className={thCls}>Status</th>
                 </tr>
-              ) : (
-                filteredTransaksi.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50 transition">
-                    <td className="px-6 py-4 font-medium capitalize">{item.periode}</td>
-                    <td className="px-6 py-4">
-                      {item.nama_penghuni || item.penghuni?.nama_lengkap || '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      Kamar {item.nomor_kamar || item.penghuni?.kamar?.nomor_kamar || '-'}
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-slate-800">
-                      Rp {Number(item.nominal || 0).toLocaleString('id-ID')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={item.status} />
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {baris.map((t) => (
+                  <tr key={t.id} className="transition hover:bg-slate-50/70">
+                    <td className={`${tdCls} font-semibold capitalize`}>{t.periode}</td>
+                    <td className={tdCls}>{t.nama_penghuni || t.penghuni?.nama_lengkap || '-'}</td>
+                    <td className={tdCls}>Kamar {t.nomor_kamar || t.penghuni?.kamar?.nomor_kamar || '-'}</td>
+                    <td className={`${tdCls} text-right font-bold tabular-nums`}>{rupiah(t.nominal)}</td>
+                    <td className={tdCls}>
+                      <StatusPill status={t.status} />
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="print:hidden">
+          <Pagination total={tersaring.length} page={halaman} perPage={PER_HALAMAN} onChange={setHalaman} />
         </div>
-      </div>
+      </section>
     </div>
   );
 }

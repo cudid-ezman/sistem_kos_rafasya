@@ -103,3 +103,22 @@ export function validasiGambar(file: File): string | null {
 
 export const ukuranBerkas = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+
+/** Status tampilan untuk admin: belum dibayar yang sudah lewat jatuh tempo dianggap "terlambat". */
+export function statusTampil(t: Pick<Tagihan, 'jatuh_tempo' | 'status'>): Tagihan['status'] {
+  if (t.status === 'belum_dibayar' && hitungDenda(t).hari > 0) return 'terlambat';
+  return t.status;
+}
+
+/** Nama periode bulan ini, mis. "November 2026". */
+export function periodeSekarang() {
+  const d = new Date();
+  return `${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/** "A12" / "A-01" -> { blok: "A", nomor: 12 } ; selain itu blok null. */
+export function pecahKamar(nomorKamar: string) {
+  const m = nomorKamar.trim().match(/^([A-Za-z]+)[\s-]*(\d+)$/);
+  if (!m) return { blok: null as string | null, nomor: 0 };
+  return { blok: m[1].toUpperCase(), nomor: Number(m[2]) };
+}
