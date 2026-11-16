@@ -1,205 +1,136 @@
-import { useEffect, useState } from 'react';
-import { keluhanService } from '../../services/keluhanService';
-import type { Keluhan, KategoriKeluhan } from '../../types/kos';
-import StatusBadge from '../../components/StatusBadge';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { tglAngka } from '../../lib/format';
+import { usePortal } from '../../components/portal/portalContext';
+import PageHeader from '../../components/portal/PageHeader';
+import StatusPill from '../../components/portal/StatusPill';
+import { PageSkeleton } from '../../components/portal/Skeleton';
+import { btnOutline, btnPrimary } from '../../components/portal/buttons';
+import { ArrowRightIcon, PlusIcon, SparkleIcon, WarningIcon, WrenchIcon } from '../../components/portal/icons';
+
+const PER_HALAMAN = 5;
 
 export default function KeluhanSaya() {
-  const [keluhanList, setKeluhanList] = useState<Keluhan[]>([]);
-  const [kategoriList, setKategoriList] = useState<KategoriKeluhan[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { keluhan, loading, error, reload } = usePortal();
+  const [halaman, setHalaman] = useState(1);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [kategoriId, setKategoriId] = useState<string>('');
-  const [deskripsi, setDeskripsi] = useState<string>('');
-  const [foto, setFoto] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  if (loading) return <PageSkeleton />;
 
-  const fetchData = async () => {
-    try {
-      const [resKeluhan, resKategori] = await Promise.all([
-        keluhanService.getAll(),
-        keluhanService.getKategori(),
-      ]);
-      setKeluhanList(resKeluhan.data);
-      setKategoriList(resKategori.data);
-      if (resKategori.data.length > 0) {
-        setKategoriId(String(resKategori.data[0].id));
-      }
-    } catch (error) {
-      console.error('Gagal memuat data keluhan', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!kategoriId || !deskripsi.trim()) return;
-
-    setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append('kategori', kategoriId);
-    formData.append('deskripsi', deskripsi);
-    if (foto) {
-      formData.append('foto', foto);
-    }
-
-    try {
-      await keluhanService.create(formData);
-      alert('Keluhan berhasil dikirim!');
-      setIsModalOpen(false);
-      setDeskripsi('');
-      setFoto(null);
-      fetchData();
-    } catch (error) {
-      console.error('Gagal mengirim keluhan', error);
-      alert('Terjadi kesalahan saat mengirim keluhan.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoading) {
-    return <div className="text-slate-500 animate-pulse p-6">Memuat data keluhan...</div>;
-  }
-
-  return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-        <div>
-          <h2 className="text-lg font-bold text-slate-800">Keluhan & Laporan Fasilitas</h2>
-          <p className="text-sm text-slate-500 mt-1">Sampaikan kendala fasilitas kamar Anda kepada pengurus.</p>
+  if (error) {
+    return (
+      <div className="mx-auto mt-10 max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+          <WarningIcon size={26} />
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition cursor-pointer"
-        >
-          + Buat Keluhan
+        <h2 className="text-lg font-bold text-ink">Data keluhan belum bisa dimuat</h2>
+        <button type="button" onClick={() => void reload()} className={`${btnPrimary} mt-5`}>
+          Coba lagi
         </button>
       </div>
+    );
+  }
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4">Tanggal</th>
-              <th className="px-6 py-4">Kategori</th>
-              <th className="px-6 py-4">Deskripsi</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Tindak Lanjut Pengurus</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
-            {keluhanList.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                  Belum ada riwayat keluhan yang dikirim.
-                </td>
-              </tr>
-            ) : (
-              keluhanList.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {new Date(item.tanggal_kirim).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </td>
-                  <td className="px-6 py-4 font-medium">{item.nama_kategori || '-'}</td>
-                  <td className="px-6 py-4 max-w-xs">
-                    <p className="truncate" title={item.deskripsi}>{item.deskripsi}</p>
-                    {item.foto && (
-                      <a
-                        href={item.foto}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-blue-600 hover:underline mt-1 inline-block"
-                      >
-                        Lihat Foto Lampiran
-                      </a>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={item.status} />
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">
-                    {item.catatan_tindak_lanjut || <span className="italic text-slate-400">Belum ada catatan</span>}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+  const total = keluhan.length;
+  const jumlahHalaman = Math.max(1, Math.ceil(total / PER_HALAMAN));
+  const aktif = Math.min(halaman, jumlahHalaman);
+  const baris = keluhan.slice((aktif - 1) * PER_HALAMAN, aktif * PER_HALAMAN);
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-slate-800 mb-4">Buat Keluhan Baru</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Kategori Keluhan</label>
-                <select
-                  value={kategoriId}
-                  onChange={(e) => setKategoriId(e.target.value)}
-                  required
-                  className="w-full text-sm text-slate-700 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+  return (
+    <div>
+      <PageHeader
+        crumbs={[{ label: 'Beranda' }, { label: 'Keluhan' }]}
+        title="Keluhan"
+        subtitle="Pantau status keluhan fasilitas Anda."
+        action={
+          <Link to="/dashboard/keluhan-saya/baru" className={btnPrimary}>
+            <PlusIcon size={17} /> Buat Keluhan
+          </Link>
+        }
+      />
+
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white" aria-label="Daftar keluhan">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          <h2 className="text-base font-bold text-ink">Daftar Keluhan &amp; Status</h2>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-ink-soft">Total {total} Laporan</span>
+        </div>
+
+        {total === 0 ? (
+          <div className="px-6 py-16 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-kos-100/60 text-kos-600">
+              <SparkleIcon size={30} />
+            </div>
+            <p className="text-lg font-bold text-ink">Belum ada keluhan</p>
+            <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-ink-soft">
+              Semua fasilitas kos dalam kondisi baik. Jika mengalami kendala teknis atau fasilitas, laporkan segera di sini.
+            </p>
+            <Link to="/dashboard/keluhan-saya/baru" className={`${btnPrimary} mt-6`}>
+              <PlusIcon size={17} /> Buat Keluhan
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="hidden grid-cols-[1.1fr_2.2fr_1fr_1.2fr_auto] gap-4 px-6 py-2.5 text-[11px] font-semibold tracking-wide text-ink-soft uppercase md:grid">
+              <span>Kategori</span>
+              <span>Deskripsi</span>
+              <span>Tanggal</span>
+              <span>Status</span>
+              <span className="w-[130px] text-right">Aksi</span>
+            </div>
+            <ul className="divide-y divide-slate-100">
+              {baris.map((k) => (
+                <li
+                  key={k.id}
+                  className="grid gap-2 px-5 py-4 transition hover:bg-slate-50/70 md:grid-cols-[1.1fr_2.2fr_1fr_1.2fr_auto] md:items-center md:gap-4 md:px-6"
                 >
-                  {kategoriList.map((kat) => (
-                    <option key={kat.id} value={kat.id}>{kat.nama}</option>
-                  ))}
-                </select>
-              </div>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                      <WrenchIcon size={18} />
+                    </span>
+                    <span className="font-semibold text-ink">{k.nama_kategori || 'Lainnya'}</span>
+                    <span className="ml-auto md:hidden">
+                      <StatusPill status={k.status} />
+                    </span>
+                  </div>
+                  <p className="line-clamp-2 text-sm text-ink-soft">{k.deskripsi}</p>
+                  <p className="text-sm text-ink-soft tabular-nums">{tglAngka(k.tanggal_kirim)}</p>
+                  <div className="hidden md:block">
+                    <StatusPill status={k.status} />
+                  </div>
+                  <div className="md:w-[130px] md:text-right">
+                    <Link to={`/dashboard/keluhan-saya/${k.id}`} className={`${btnOutline} h-9 w-full md:w-auto`}>
+                      Lihat Detail <ArrowRightIcon size={15} />
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Deskripsi Kendala</label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Jelaskan kerusakan atau kendala secara detail..."
-                  value={deskripsi}
-                  onChange={(e) => setDeskripsi(e.target.value)}
-                  className="w-full text-sm text-slate-700 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Foto Bukti Kerusakan <span className="text-slate-400 font-normal">(Opsional)</span>
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setFoto(e.target.files?.[0] || null)}
-                  className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-200 rounded-lg p-2"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6">
+            <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 text-xs text-ink-soft sm:flex-row">
+              <span>
+                Menampilkan {baris.length} dari {total} keluhan
+              </span>
+              <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
+                  disabled={aktif <= 1}
+                  onClick={() => setHalaman(aktif - 1)}
+                  className={`${btnOutline} h-9 text-xs`}
                 >
-                  Batal
+                  Sebelumnya
                 </button>
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition cursor-pointer"
+                  type="button"
+                  disabled={aktif >= jumlahHalaman}
+                  onClick={() => setHalaman(aktif + 1)}
+                  className={`${btnOutline} h-9 text-xs`}
                 >
-                  {isSubmitting ? 'Mengirim...' : 'Kirim Keluhan'}
+                  Selanjutnya
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+          </>
+        )}
+      </section>
     </div>
   );
 }

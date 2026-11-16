@@ -32,6 +32,8 @@ export interface Tagihan {
     nama_lengkap?: string;
     kamar?: {
       nomor_kamar?: string;
+      tipe?: 'individu' | 'berdua';
+      harga_sewa?: number;
     };
   };
   penghuni_id?: number;

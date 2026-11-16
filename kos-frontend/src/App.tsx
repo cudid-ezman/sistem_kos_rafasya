@@ -9,9 +9,16 @@ import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import DashboardLayout from './layouts/DashboardLayout';
+import PenghuniLayout from './layouts/PenghuniLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import TagihanSaya from './pages/penghuni/TagihanSaya';
+import RincianTagihan from './pages/penghuni/RincianTagihan';
+import UploadBukti from './pages/penghuni/UploadBukti';
+import PusatInformasi from './pages/penghuni/PusatInformasi';
+import DetailInformasi from './pages/penghuni/DetailInformasi';
 import KeluhanSaya from './pages/penghuni/KeluhanSaya';
+import BuatKeluhan from './pages/penghuni/BuatKeluhan';
+import DetailKeluhan from './pages/penghuni/DetailKeluhan';
 import VerifikasiPembayaran from './pages/pengurus/VerifikasiPembayaran';
 import DataKamar from './pages/pengurus/DataKamar';
 import DataPenghuni from './pages/pengurus/DataPenghuni';
@@ -73,11 +80,33 @@ function App() {
       <Route path="/lupa-kata-sandi" element={user ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} />
       <Route path="/atur-ulang-kata-sandi/:uid/:token" element={<ResetPassword />} />
 
-      {/* Route Dilindungi (Wajib Login) */}
+      {/* Portal Penghuni (layout & halaman khusus penghuni) */}
+      <Route element={<ProtectedRoute user={user} allowedRoles={['penghuni', 'Penghuni']} />}>
+        <Route element={<PenghuniLayout user={user!} onLogout={handleLogout} />}>
+          <Route path="/dashboard/tagihan-saya" element={<TagihanSaya />} />
+          <Route path="/dashboard/tagihan-saya/:id" element={<RincianTagihan />} />
+          <Route path="/dashboard/tagihan-saya/:id/upload" element={<UploadBukti />} />
+          <Route path="/dashboard/informasi" element={<PusatInformasi />} />
+          <Route path="/dashboard/informasi/:slug" element={<DetailInformasi />} />
+          <Route path="/dashboard/keluhan-saya" element={<KeluhanSaya />} />
+          <Route path="/dashboard/keluhan-saya/baru" element={<BuatKeluhan />} />
+          <Route path="/dashboard/keluhan-saya/:id" element={<DetailKeluhan />} />
+        </Route>
+      </Route>
+
+      {/* Route Dilindungi (Pengurus & Pemilik) */}
       <Route element={<ProtectedRoute user={user} />}>
         <Route element={<DashboardLayout user={user!} onLogout={handleLogout} />}>
-          
-         <Route path="/dashboard" element={<Beranda user={user!} />} />
+          <Route
+            path="/dashboard"
+            element={
+              (user?.role || '').toLowerCase() === 'penghuni' ? (
+                <Navigate to="/dashboard/tagihan-saya" replace />
+              ) : (
+                <Beranda user={user!} />
+              )
+            }
+          />
 
           {/* Rute Pengurus */}
           <Route path="/dashboard/kamar" element={<DataKamar />} />
@@ -86,13 +115,8 @@ function App() {
           <Route path="/dashboard/tagihan" element={<DataTagihan />} />
           <Route path="/dashboard/keluhan" element={<DaftarKeluhan />} />
 
-          {/* Rute Penghuni */}
-          <Route path="/dashboard/tagihan-saya" element={<TagihanSaya />} />
-          <Route path="/dashboard/keluhan-saya" element={<KeluhanSaya />} />
-
           {/* Rute Pemilik */}
           <Route path="/dashboard/laporan" element={<LaporanKeuangan />} />
-          
         </Route>
       </Route>
     </Routes>
