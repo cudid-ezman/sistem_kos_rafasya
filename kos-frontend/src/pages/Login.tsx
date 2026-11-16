@@ -39,7 +39,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setError({
           title: 'Gagal Masuk',
-          message: 'Username, NIK, atau kata sandi salah.',
+          message: 'Username, atau kata sandi salah.',
         });
       } else {
         setError({
@@ -56,7 +56,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     <AuthLayout showHelp={false}>
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">Masuk ke Sistem</h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-        Silakan masukkan username, NIK, atau email beserta kata sandi Anda.
+        Silakan masukkan username, atau email beserta kata sandi Anda.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
@@ -67,11 +67,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         )}
 
         <Field
-          label="Username / NIK / Email"
+          label="Username / Email"
           icon={<MailIcon />}
           value={identifier}
           onChange={setIdentifier}
-          placeholder="Masukkan username, NIK, atau email"
+          placeholder="Masukkan username atau email"
           autoComplete="username"
           disabled={isLoading}
         />

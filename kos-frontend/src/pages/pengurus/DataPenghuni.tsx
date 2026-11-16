@@ -64,7 +64,7 @@ export default function DataPenghuni() {
       fetchData();
     } catch (error) {
       console.error('Gagal menambah penghuni', error);
-      alert('Gagal menambah penghuni. Pastikan NIK belum terdaftar.');
+      alert('Gagal menambah penghuni. Pastikan username belum terdaftar.');
     } finally {
       setIsSubmitting(false);
     }
@@ -96,7 +96,7 @@ export default function DataPenghuni() {
           <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
             <tr>
               <th className="px-6 py-4">Nama Lengkap</th>
-              <th className="px-6 py-4">NIK / Username</th>
+              <th className="px-6 py-4">EMAIL / Username</th>
               <th className="px-6 py-4">No. Kontak</th>
               <th className="px-6 py-4">Kamar</th>
               <th className="px-6 py-4">Tanggal Masuk</th>
@@ -166,12 +166,12 @@ export default function DataPenghuni() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    No. Identitas (NIK) <span className="text-xs text-slate-400">(Jadi Username Login)</span>
+                    No. Identitas (EMAIL) <span className="text-xs text-slate-400">(Jadi Username Login)</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="16 digit NIK"
+                    placeholder="16 digit EMAIL"
                     value={formData.no_identitas}
                     onChange={(e) => setFormData({ ...formData, no_identitas: e.target.value })}
                     className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
