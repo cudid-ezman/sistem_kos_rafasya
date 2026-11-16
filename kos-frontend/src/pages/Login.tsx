@@ -34,7 +34,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       onLoginSuccess(profileRes.data);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
-        setError('Username/NIK atau password salah.');
+        setError('Username/Email atau password salah.');
       } else {
         setError('Gagal terhubung ke server. Pastikan backend Django menyala.');
       }
@@ -62,14 +62,14 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Username / NIK
+              Username / Email
             </label>
             <input
               type="text"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Masukkan username atau NIK"
+              placeholder="Masukkan username atau Email"
               className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
             />
           </div>
