@@ -25,7 +25,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setIsLoading(true);
 
     try {
-      // Backend SimpleJWT menerima field "username" (email / NIK sesuai konfigurasi backend)
       const loginRes = await api.post<LoginResponse>('/login/', {
         username: identifier.trim(),
         password,
@@ -38,11 +37,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       onLoginSuccess(profileRes.data);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
-<<<<<<< HEAD
-        setError('Username/Email atau password salah.');
-=======
-        setError({ title: 'Gagal Masuk', message: 'Email atau kata sandi salah' });
->>>>>>> df4a3715ee25c5397fe8d8733139a49ba779f3a3
+        setError({
+          title: 'Gagal Masuk',
+          message: 'Username, NIK, atau kata sandi salah.',
+        });
       } else {
         setError({
           title: 'Gagal Masuk',
@@ -58,7 +56,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     <AuthLayout showHelp={false}>
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">Masuk ke Sistem</h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-        Silakan masukkan email dan kata sandi Anda untuk mengakses sistem.
+        Silakan masukkan username, NIK, atau email beserta kata sandi Anda.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
@@ -68,33 +66,15 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           </Alert>
         )}
 
-<<<<<<< HEAD
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Username / Email
-            </label>
-            <input
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Masukkan username atau Email"
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-            />
-          </div>
-=======
         <Field
-          label="Email"
+          label="Username / NIK / Email"
           icon={<MailIcon />}
           value={identifier}
           onChange={setIdentifier}
-          placeholder="nama@email.com"
+          placeholder="Masukkan username, NIK, atau email"
           autoComplete="username"
-          inputMode="email"
           disabled={isLoading}
         />
->>>>>>> df4a3715ee25c5397fe8d8733139a49ba779f3a3
 
         <div>
           <Field
