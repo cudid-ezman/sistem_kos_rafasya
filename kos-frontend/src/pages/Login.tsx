@@ -1,42 +1,53 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import api from '../services/api';
 import type { LoginResponse, UserProfile } from '../types/auth';
+import AuthLayout from '../components/auth/AuthLayout';
+import Alert from '../components/auth/Alert';
+import Field from '../components/auth/Field';
+import SubmitButton from '../components/auth/SubmitButton';
+import { ArrowRightIcon, LockIcon, MailIcon } from '../components/auth/icons';
 
 interface LoginProps {
   onLoginSuccess: (user: UserProfile) => void;
 }
 
 export default function Login({ onLoginSuccess }: LoginProps) {
-  const [username, setUsername] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<{ title: string; message: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError(null);
     setIsLoading(true);
 
     try {
-      // 1. Minta token JWT dari Django
+      // Backend SimpleJWT menerima field "username" (email / NIK sesuai konfigurasi backend)
       const loginRes = await api.post<LoginResponse>('/login/', {
-        username,
+        username: identifier.trim(),
         password,
       });
 
-      // 2. Simpan token ke Local Storage
       localStorage.setItem('access_token', loginRes.data.access);
       localStorage.setItem('refresh_token', loginRes.data.refresh);
 
-      // 3. Ambil data profil & role (Interceptor otomatis menyisipkan token baru)
       const profileRes = await api.get<UserProfile>('/me/');
       onLoginSuccess(profileRes.data);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
+<<<<<<< HEAD
         setError('Username/Email atau password salah.');
+=======
+        setError({ title: 'Gagal Masuk', message: 'Email atau kata sandi salah' });
+>>>>>>> df4a3715ee25c5397fe8d8733139a49ba779f3a3
       } else {
-        setError('Gagal terhubung ke server. Pastikan backend Django menyala.');
+        setError({
+          title: 'Gagal Masuk',
+          message: 'Tidak dapat terhubung ke server. Pastikan backend menyala.',
+        });
       }
     } finally {
       setIsLoading(false);
@@ -44,21 +55,20 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8 border border-slate-200">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-800">Kos Rafasya</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Sistem Manajemen & Administrasi Kos
-          </p>
-        </div>
+    <AuthLayout showHelp={false}>
+      <h2 className="text-2xl font-bold tracking-tight text-kos-950">Masuk ke Sistem</h2>
+      <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+        Silakan masukkan email dan kata sandi Anda untuk mengakses sistem.
+      </p>
 
+      <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
-            {error}
-          </div>
+          <Alert variant="error" title={error.title} onClose={() => setError(null)}>
+            {error.message}
+          </Alert>
         )}
 
+<<<<<<< HEAD
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -73,30 +83,56 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
             />
           </div>
+=======
+        <Field
+          label="Email"
+          icon={<MailIcon />}
+          value={identifier}
+          onChange={setIdentifier}
+          placeholder="nama@email.com"
+          autoComplete="username"
+          inputMode="email"
+          disabled={isLoading}
+        />
+>>>>>>> df4a3715ee25c5397fe8d8733139a49ba779f3a3
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-            />
-          </div>
-
-          <button
-            type="submit"
+        <div>
+          <Field
+            label="Kata sandi"
+            type="password"
+            icon={<LockIcon />}
+            value={password}
+            onChange={setPassword}
+            placeholder="Masukkan kata sandi"
+            autoComplete="current-password"
             disabled={isLoading}
-            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition cursor-pointer"
-          >
-            {isLoading ? 'Memverifikasi...' : 'Masuk'}
-          </button>
-        </form>
+          />
+          <div className="mt-3 text-right">
+            <Link
+              to="/lupa-kata-sandi"
+              className="text-[13px] font-semibold text-kos-600 hover:text-kos-700 hover:underline"
+            >
+              Lupa kata sandi?
+            </Link>
+          </div>
+        </div>
+
+        <SubmitButton
+          loading={isLoading}
+          loadingText="Memverifikasi..."
+          disabled={!identifier.trim() || !password}
+          icon={<ArrowRightIcon size={16} />}
+        >
+          Masuk
+        </SubmitButton>
+      </form>
+
+      <div className="mt-6 border-t border-slate-200 pt-5 text-center text-[13px] text-ink-soft">
+        Belum punya akun?{' '}
+        <Link to="/daftar" className="font-semibold text-kos-600 hover:text-kos-700 hover:underline">
+          Daftar
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
