@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react';
 import { kamarService, type CreateKamarPayload } from '../../services/kamarService';
 import type { Kamar } from '../../types/kos';
 import StatusBadge from '../../components/StatusBadge';
+import DenahKamar from './DenahKamar'; // <-- Import komponen denah baru
 
 export default function DataKamar() {
   const [kamarList, setKamarList] = useState<Kamar[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // State untuk Tab Switcher
+  const [activeTab, setActiveTab] = useState<'daftar' | 'denah'>('daftar');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -94,72 +98,99 @@ export default function DataKamar() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+    <div className="space-y-6">
+      {/* Header Halaman */}
+      <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-lg font-bold text-slate-800">Manajemen Data Kamar</h2>
+          <h1 className="text-2xl font-bold text-slate-800">Manajemen Data Kamar</h1>
           <p className="text-sm text-slate-500 mt-1">Kelola daftar kamar, harga sewa, fasilitas, dan ketersediaan.</p>
         </div>
         <button
           onClick={openCreateModal}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition cursor-pointer"
+          className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition cursor-pointer shadow-sm"
         >
           + Tambah Kamar
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4">No. Kamar</th>
-              <th className="px-6 py-4">Tipe</th>
-              <th className="px-6 py-4">Harga Sewa / Bulan</th>
-              <th className="px-6 py-4">Fasilitas</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
-            {kamarList.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                  Belum ada data kamar.
-                </td>
-              </tr>
-            ) : (
-              kamarList.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition">
-                  <td className="px-6 py-4 font-bold text-slate-800">{item.nomor_kamar}</td>
-                  <td className="px-6 py-4 capitalize">{item.tipe}</td>
-                  <td className="px-6 py-4">Rp {Number(item.harga_sewa).toLocaleString('id-ID')}</td>
-                  <td className="px-6 py-4 max-w-xs truncate" title={item.fasilitas}>
-                    {item.fasilitas}
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={item.status} />
-                  </td>
-                  <td className="px-6 py-4 flex gap-3">
-                    <button
-                      onClick={() => openEditModal(item)}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-xs cursor-pointer"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item)}
-                      className="text-red-600 hover:text-red-800 font-medium text-xs cursor-pointer"
-                    >
-                      Hapus
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {/* Tab Switcher */}
+      <div className="flex gap-6 border-b border-slate-200">
+        {(['daftar', 'denah'] as const).map((tabName) => (
+          <button
+            key={tabName}
+            onClick={() => setActiveTab(tabName)}
+            className={`pb-3 text-sm font-semibold capitalize transition cursor-pointer border-b-2 -mb-px ${
+              activeTab === tabName
+                ? 'text-primary border-primary'
+                : 'text-slate-500 border-transparent hover:text-slate-700'
+            }`}
+          >
+            {tabName === 'daftar' ? 'Daftar Kamar' : 'Denah Operasional'}
+          </button>
+        ))}
       </div>
 
+      {/* Konten Berdasarkan Tab */}
+      {activeTab === 'denah' ? (
+        <DenahKamar />
+      ) : (
+        /* TABEL DAFTAR (Logika aslimu tetap utuh, hanya warna yang diupdate ke primary) */
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                <tr>
+                  <th className="px-6 py-4">No. Kamar</th>
+                  <th className="px-6 py-4">Tipe</th>
+                  <th className="px-6 py-4">Harga Sewa / Bulan</th>
+                  <th className="px-6 py-4">Fasilitas</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {kamarList.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                      Belum ada data kamar.
+                    </td>
+                  </tr>
+                ) : (
+                  kamarList.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50 transition">
+                      <td className="px-6 py-4 font-bold text-slate-800">{item.nomor_kamar}</td>
+                      <td className="px-6 py-4 capitalize">{item.tipe}</td>
+                      <td className="px-6 py-4">Rp {Number(item.harga_sewa).toLocaleString('id-ID')}</td>
+                      <td className="px-6 py-4 max-w-xs truncate" title={item.fasilitas}>
+                        {item.fasilitas}
+                      </td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={item.status} />
+                      </td>
+                      <td className="px-6 py-4 flex gap-3">
+                        <button
+                          onClick={() => openEditModal(item)}
+                          className="text-primary hover:text-primary-dark font-medium text-xs cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item)}
+                          className="text-red-600 hover:text-red-800 font-medium text-xs cursor-pointer"
+                        >
+                          Hapus
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah/Edit (Logika asli tetap utuh, warna diupdate ke primary) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
@@ -175,7 +206,7 @@ export default function DataKamar() {
                   placeholder="Contoh: A-01"
                   value={formData.nomor_kamar}
                   onChange={(e) => setFormData({ ...formData, nomor_kamar: e.target.value })}
-                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -184,10 +215,8 @@ export default function DataKamar() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tipe Kamar</label>
                   <select
                     value={formData.tipe}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tipe: e.target.value as 'individu' | 'berdua' })
-                    }
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                    onChange={(e) => setFormData({ ...formData, tipe: e.target.value as 'individu' | 'berdua' })}
+                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                   >
                     <option value="individu">Individu</option>
                     <option value="berdua">Berdua</option>
@@ -198,10 +227,8 @@ export default function DataKamar() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
                   <select
                     value={formData.status}
-                    onChange={(e) =>
-                      setFormData({ ...formData, status: e.target.value as 'tersedia' | 'terisi' })
-                    }
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'tersedia' | 'terisi' })}
+                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                   >
                     <option value="tersedia">Tersedia</option>
                     <option value="terisi">Terisi</option>
@@ -217,7 +244,7 @@ export default function DataKamar() {
                   min={0}
                   value={formData.harga_sewa}
                   onChange={(e) => setFormData({ ...formData, harga_sewa: Number(e.target.value) })}
-                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -229,7 +256,7 @@ export default function DataKamar() {
                   placeholder="Kasur, Lemari, Kamar Mandi Dalam, Wi-Fi..."
                   value={formData.fasilitas}
                   onChange={(e) => setFormData({ ...formData, fasilitas: e.target.value })}
-                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -244,7 +271,7 @@ export default function DataKamar() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark disabled:bg-primary/50 rounded-lg transition cursor-pointer"
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Simpan'}
                 </button>

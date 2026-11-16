@@ -20,6 +20,7 @@ export default function Beranda({ user }: Props) {
     totalPemasukan: 0,
   });
 
+  // ═══ LOGIKA API ASLI — TIDAK DIUBAH ═══
   useEffect(() => {
     const loadStats = async () => {
       try {
@@ -68,8 +69,13 @@ export default function Beranda({ user }: Props) {
     loadStats();
   }, [role]);
 
+  // ═══ STYLING DIUPDATE KE TEMA PDF (TEAL) ═══
+  const cardClass =
+    'bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-primary hover:shadow-md transition cursor-pointer';
+
   return (
     <div className="space-y-6">
+      {/* Header Selamat Datang */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800">
           Selamat Datang, {user.nama_lengkap || user.username}
@@ -79,57 +85,60 @@ export default function Beranda({ user }: Props) {
         </p>
       </div>
 
+      {/* ── PENGURUS / SUPERADMIN ── */}
       {(role === 'pengurus' || role === 'superadmin') && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link to="/dashboard/kamar" className="bg-white p-5 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+          <Link to="/dashboard/kamar" className={cardClass}>
             <p className="text-xs font-medium text-slate-500">Kamar Tersedia</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">{stats.kamarTersedia}</p>
+            <p className="text-2xl font-bold text-emerald-600 mt-1">{stats.kamarTersedia}</p>
           </Link>
-          <Link to="/dashboard/kamar" className="bg-white p-5 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+          <Link to="/dashboard/kamar" className={cardClass}>
             <p className="text-xs font-medium text-slate-500">Kamar Terisi</p>
-            <p className="text-2xl font-bold text-slate-800 mt-1">{stats.kamarTerisi}</p>
+            <p className="text-2xl font-bold text-primary mt-1">{stats.kamarTerisi}</p>
           </Link>
-          <Link to="/dashboard/verifikasi" className="bg-white p-5 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+          <Link to="/dashboard/verifikasi" className={cardClass}>
             <p className="text-xs font-medium text-slate-500">Antrean Verifikasi Bayar</p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">{stats.menungguVerifikasi}</p>
+            <p className="text-2xl font-bold text-sky-600 mt-1">{stats.menungguVerifikasi}</p>
           </Link>
-          <Link to="/dashboard/keluhan" className="bg-white p-5 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+          <Link to="/dashboard/keluhan" className={cardClass}>
             <p className="text-xs font-medium text-slate-500">Keluhan Belum Selesai</p>
-            <p className="text-2xl font-bold text-orange-600 mt-1">{stats.keluhanAktif}</p>
+            <p className="text-2xl font-bold text-amber-600 mt-1">{stats.keluhanAktif}</p>
           </Link>
         </div>
       )}
 
+      {/* ── PENGHUNI ── */}
       {role === 'penghuni' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link to="/dashboard/tagihan-saya" className="bg-white p-5 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+          <Link to="/dashboard/tagihan-saya" className={cardClass}>
             <p className="text-xs font-medium text-slate-500">Tagihan Perlu Dibayar</p>
-            <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.tagihanBelumBayar}</p>
+            <p className="text-2xl font-bold text-amber-600 mt-1">{stats.tagihanBelumBayar}</p>
           </Link>
-          <Link to="/dashboard/keluhan-saya" className="bg-white p-5 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+          <Link to="/dashboard/keluhan-saya" className={cardClass}>
             <p className="text-xs font-medium text-slate-500">Keluhan Dalam Penanganan</p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">{stats.keluhanAktif}</p>
+            <p className="text-2xl font-bold text-primary mt-1">{stats.keluhanAktif}</p>
           </Link>
         </div>
       )}
 
+      {/* ── PEMILIK ── */}
       {role === 'pemilik' && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link to="/dashboard/laporan" className="bg-white p-5 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+          <Link to="/dashboard/laporan" className={cardClass}>
             <p className="text-xs font-medium text-slate-500">Total Pemasukan Lunas</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">
+            <p className="text-2xl font-bold text-emerald-600 mt-1">
               Rp {Number(stats.totalPemasukan).toLocaleString('id-ID')}
             </p>
           </Link>
-          <div className="bg-white p-5 rounded-xl border border-slate-200">
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
             <p className="text-xs font-medium text-slate-500">Okupansi Kamar</p>
             <p className="text-2xl font-bold text-slate-800 mt-1">
               {stats.kamarTerisi} / {stats.kamarTerisi + stats.kamarTersedia} Terisi
             </p>
           </div>
-          <div className="bg-white p-5 rounded-xl border border-slate-200">
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
             <p className="text-xs font-medium text-slate-500">Kamar Kosong</p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">{stats.kamarTersedia} Kamar</p>
+            <p className="text-2xl font-bold text-primary mt-1">{stats.kamarTersedia} Kamar</p>
           </div>
         </div>
       )}
