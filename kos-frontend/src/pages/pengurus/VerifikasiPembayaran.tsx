@@ -1,22 +1,31 @@
 import { useEffect, useState } from 'react';
 import { tagihanService } from '../../services/tagihanService';
-import type { BuktiPembayaran } from '../../types/kos';
 import StatusBadge from '../../components/StatusBadge';
+
+type TabFilter = 'menunggu' | 'semua';
+
+interface BuktiPembayaran {
+  id: number;
+  tagihan: number;
+  penghuni_nama: string;
+  nomor_kamar: string;
+  periode: string;
+  nominal: number;
+  tanggal_bayar: string;
+  nama_file: string;
+  file_bukti: string | null;
+  status_verifikasi: string;
+  catatan_penolakan?: string;
+}
 
 export default function VerifikasiPembayaran() {
   const [buktiList, setBuktiList] = useState<BuktiPembayaran[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<'menunggu_verifikasi' | 'semua'>('menunggu_verifikasi');
+  const [activeTab, setActiveTab] = useState<TabFilter>('menunggu');
+  const [isProcessing, setIsProcessing] = useState<number | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // State Modal Preview Gambar
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-
-  // State Modal Tolak Pembayaran
-  const [rejectTarget, setRejectTarget] = useState<BuktiPembayaran | null>(null);
-  const [catatanPenolakan, setCatatanPenolakan] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const fetchBukti = async () => {
+  const fetchData = async () => {
     try {
       const res = await tagihanService.getBuktiPembayaran();
       setBuktiList(res.data);
@@ -28,58 +37,45 @@ export default function VerifikasiPembayaran() {
   };
 
   useEffect(() => {
-    fetchBukti();
+    fetchData();
   }, []);
 
-  const handleTerima = async (item: BuktiPembayaran) => {
-    if (!confirm(`Terima pembayaran periode ${item.periode_tagihan} dari ${item.nama_penghuni}?`)) {
-      return;
+  const handleVerifikasi = async (id: number, aksi: 'setuju' | 'tolak') => {
+    let catatan = '';
+    if (aksi === 'tolak') {
+      catatan = prompt('Alasan penolakan (wajib diisi):');
+      if (!catatan) return;
+    } else {
+      if (!confirm('Setujui bukti pembayaran ini dan tandai tagihan sebagai Lunas?')) return;
     }
 
-    setIsProcessing(true);
+    setIsProcessing(id);
     try {
-      await tagihanService.prosesVerifikasi(item.id, 'terima');
-      alert('Pembayaran diterima! Status tagihan otomatis menjadi Lunas.');
-      fetchBukti();
+      await tagihanService.verifikasiBukti(id, { aksi, catatan });
+      alert(`Bukti pembayaran berhasil ${aksi === 'setuju' ? 'disetujui' : 'ditolak'}!`);
+      fetchData();
     } catch (error) {
-      console.error('Gagal memverifikasi pembayaran', error);
-      alert('Terjadi kesalahan saat memverifikasi pembayaran.');
+      console.error('Gagal memverifikasi', error);
+      alert('Gagal memverifikasi bukti pembayaran.');
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(null);
     }
   };
 
-  const handleTolakSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!rejectTarget || !catatanPenolakan.trim()) return;
-
-    setIsProcessing(true);
-    try {
-      await tagihanService.prosesVerifikasi(rejectTarget.id, 'tolak', catatanPenolakan);
-      alert('Pembayaran ditolak. Penghuni dapat mengunggah ulang bukti yang valid.');
-      setRejectTarget(null);
-      setCatatanPenolakan('');
-      fetchBukti();
-    } catch (error) {
-      console.error('Gagal menolak pembayaran', error);
-      alert('Terjadi kesalahan saat menolak pembayaran.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const filteredList =
-    filterStatus === 'semua'
-      ? buktiList
-      : buktiList.filter((b) => b.status === 'menunggu_verifikasi');
+  const filtered =
+    activeTab === 'menunggu'
+      ? buktiList.filter((b) => b.status_verifikasi === 'menunggu_verifikasi')
+      : buktiList;
 
   if (isLoading) {
-    return <div className="text-slate-500 animate-pulse p-6">Memuat antrean verifikasi...</div>;
+    return <div className="text-slate-500 animate-pulse p-6">Memuat data verifikasi...</div>;
   }
+
+  const jumlahMenunggu = buktiList.filter((b) => b.status_verifikasi === 'menunggu_verifikasi').length;
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* Header & Filter Tab */}
+      {/* Header + Tab Filter */}
       <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-slate-800">Verifikasi Pembayaran</h2>
@@ -88,23 +84,24 @@ export default function VerifikasiPembayaran() {
           </p>
         </div>
 
-        <div className="flex bg-slate-100 p-1 rounded-lg self-start">
+        {/* Tab Toggle — AKTIF pakai warna Teal (primary) sesuai PDF */}
+        <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden w-fit">
           <button
-            onClick={() => setFilterStatus('menunggu_verifikasi')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition cursor-pointer ${
-              filterStatus === 'menunggu_verifikasi'
-                ? 'bg-white text-slate-800 shadow-sm'
-                : 'text-slate-600 hover:text-slate-800'
+            onClick={() => setActiveTab('menunggu')}
+            className={`px-4 py-2 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'menunggu'
+                ? 'bg-primary text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-50'
             }`}
           >
-            Perlu Verifikasi ({buktiList.filter((b) => b.status === 'menunggu_verifikasi').length})
+            Perlu Verifikasi ({jumlahMenunggu})
           </button>
           <button
-            onClick={() => setFilterStatus('semua')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition cursor-pointer ${
-              filterStatus === 'semua'
-                ? 'bg-white text-slate-800 shadow-sm'
-                : 'text-slate-600 hover:text-slate-800'
+            onClick={() => setActiveTab('semua')}
+            className={`px-4 py-2 text-sm font-semibold transition cursor-pointer border-l border-slate-200 ${
+              activeTab === 'semua'
+                ? 'bg-primary text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-50'
             }`}
           >
             Semua Riwayat
@@ -112,7 +109,7 @@ export default function VerifikasiPembayaran() {
         </div>
       </div>
 
-      {/* Tabel Data */}
+      {/* Tabel */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
@@ -126,71 +123,72 @@ export default function VerifikasiPembayaran() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">
-            {filteredList.length === 0 ? (
+            {filtered.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                   Tidak ada data pembayaran pada kategori ini.
                 </td>
               </tr>
             ) : (
-              filteredList.map((item) => (
+              filtered.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50 transition">
                   <td className="px-6 py-4">
-                    <div className="font-medium text-slate-800">{item.nama_penghuni || '-'}</div>
-                    <div className="text-xs text-slate-500">Kamar {item.nomor_kamar || '-'}</div>
+                    <p className="font-semibold text-slate-800">{item.penghuni_nama}</p>
+                    <p className="text-xs text-slate-500">Kamar {item.nomor_kamar}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-medium capitalize">{item.periode_tagihan || '-'}</div>
-                    <div className="text-xs text-slate-600">
-                      Rp {Number(item.nominal_tagihan || 0).toLocaleString('id-ID')}
-                    </div>
+                    <p className="capitalize font-medium">{item.periode}</p>
+                    <p className="text-xs text-slate-500">
+                      Rp {Number(item.nominal).toLocaleString('id-ID')}
+                    </p>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {new Date(item.tanggal_bayar).toLocaleDateString('id-ID', {
-                      day: 'numeric',
+                      day: '2-digit',
                       month: 'short',
                       year: 'numeric',
                     })}
                   </td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => setPreviewImage(item.berkas)}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-xs underline cursor-pointer"
-                    >
-                      Lihat Struk
-                    </button>
+                    {item.file_bukti ? (
+                      <button
+                        onClick={() => setPreviewUrl(item.file_bukti)}
+                        className="text-xs font-medium text-primary hover:text-primary-dark underline cursor-pointer"
+                      >
+                        👁 Lihat Bukti
+                      </button>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">{item.nama_file}</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
-                    <StatusBadge status={item.status} />
+                    <StatusBadge status={item.status_verifikasi} />
                     {item.catatan_penolakan && (
-                      <p className="text-xs text-red-600 mt-1 max-w-xs">
-                        Alasan: {item.catatan_penolakan}
+                      <p className="text-[10px] text-red-500 mt-1 max-w-[140px] truncate" title={item.catatan_penolakan}>
+                        {item.catatan_penolakan}
                       </p>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    {item.status === 'menunggu_verifikasi' ? (
-                      <div className="flex items-center gap-2">
+                    {item.status_verifikasi === 'menunggu_verifikasi' ? (
+                      <div className="flex gap-2">
                         <button
-                          onClick={() => handleTerima(item)}
-                          disabled={isProcessing}
-                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-xs font-medium rounded-lg transition cursor-pointer"
+                          onClick={() => handleVerifikasi(item.id, 'setuju')}
+                          disabled={isProcessing === item.id}
+                          className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-lg transition cursor-pointer"
                         >
-                          Terima
+                          {isProcessing === item.id ? '...' : 'Setujui'}
                         </button>
                         <button
-                          onClick={() => {
-                            setRejectTarget(item);
-                            setCatatanPenolakan('');
-                          }}
-                          disabled={isProcessing}
-                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium rounded-lg border border-red-200 transition cursor-pointer"
+                          onClick={() => handleVerifikasi(item.id, 'tolak')}
+                          disabled={isProcessing === item.id}
+                          className="px-3 py-1.5 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 rounded-lg transition cursor-pointer"
                         >
-                          Tolak
+                          {isProcessing === item.id ? '...' : 'Tolak'}
                         </button>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-400">Selesai diproses</span>
+                      <span className="text-xs text-slate-400 italic">Selesai</span>
                     )}
                   </td>
                 </tr>
@@ -200,75 +198,30 @@ export default function VerifikasiPembayaran() {
         </table>
       </div>
 
-      {/* MODAL PREVIEW FOTO BUKTI */}
-      {previewImage && (
+      {/* Modal Preview Bukti */}
+      {previewUrl && (
         <div
-          onClick={() => setPreviewImage(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setPreviewUrl(null)}
         >
           <div
+            className="bg-white rounded-xl shadow-xl max-w-lg w-full p-4"
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden"
           >
-            <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">Bukti Transfer</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-sm font-bold text-slate-800">Preview Bukti Transfer</h3>
               <button
-                onClick={() => setPreviewImage(null)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-medium cursor-pointer"
+                onClick={() => setPreviewUrl(null)}
+                className="text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer"
               >
-                Tutup ✕
+                ✕
               </button>
             </div>
-            <div className="p-4 bg-slate-900 flex justify-center">
-              <img
-                src={previewImage}
-                alt="Bukti Transfer"
-                className="max-h-[70vh] object-contain rounded"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL TOLAK PEMBAYARAN */}
-      {rejectTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">Tolak Bukti Pembayaran</h3>
-            <p className="text-sm text-slate-500 mb-4">
-              Berikan alasan penolakan agar <span className="font-semibold">{rejectTarget.nama_penghuni}</span> dapat memperbaiki bukti transfernya.
-            </p>
-            <form onSubmit={handleTolakSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Catatan Penolakan
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Contoh: Nominal transfer kurang atau foto buram..."
-                  value={catatanPenolakan}
-                  onChange={(e) => setCatatanPenolakan(e.target.value)}
-                  className="w-full text-sm text-slate-700 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-red-500"
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRejectTarget(null)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isProcessing}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-red-400 rounded-lg transition cursor-pointer"
-                >
-                  {isProcessing ? 'Memproses...' : 'Tolak Pembayaran'}
-                </button>
-              </div>
-            </form>
+            <img
+              src={previewUrl}
+              alt="Bukti transfer"
+              className="w-full rounded-lg border border-slate-200"
+            />
           </div>
         </div>
       )}
