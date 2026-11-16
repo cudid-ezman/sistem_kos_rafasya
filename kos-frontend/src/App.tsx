@@ -5,6 +5,9 @@ import type { UserProfile } from './types/auth';
 
 // Komponen
 import Login from './pages/Login';
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import TagihanSaya from './pages/penghuni/TagihanSaya';
@@ -55,7 +58,7 @@ function App() {
   };
 
   if (isCheckingAuth) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-100">Memuat sistem...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-page text-ink-soft">Memuat sistem...</div>;
   }
 
   return (
@@ -65,6 +68,10 @@ function App() {
         path="/" 
         element={user ? <Navigate to="/dashboard" replace /> : <Login onLoginSuccess={handleLoginSuccess} />} 
       />
+
+      <Route path="/daftar" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
+      <Route path="/lupa-kata-sandi" element={user ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} />
+      <Route path="/atur-ulang-kata-sandi/:uid/:token" element={<ResetPassword />} />
 
       {/* Route Dilindungi (Wajib Login) */}
       <Route element={<ProtectedRoute user={user} />}>
