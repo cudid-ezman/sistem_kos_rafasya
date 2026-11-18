@@ -1,131 +1,52 @@
 """
-Membuat 1 akun penghuni contoh beserta tagihan & keluhan, khusus untuk melihat
-tampilan portal penghuni. Aman dijalankan berulang (data demo di-reset).
+Mengisi 45 kamar sesuai denah: Blok A (13), B (14), C (14), D (4).
+Aman dijalankan berulang: kamar yang sudah ada tidak diubah.
 
-    python manage.py seed_demo_penghuni
+    python manage.py seed_kamar
 
-Login:  username = demo   |   password = demo12345
+Semua kamar berstatus "tersedia". Kamar A12 dibuat bertipe berdua (Rp 750.000)
+agar cocok dengan penghuni demo; kamar lain bertipe individu (Rp 550.000).
+Ubah tipe/harga lewat menu Data Kamar atau edit konstanta di bawah.
 """
-import base64
-from datetime import date, timedelta
-
-from django.contrib.auth.models import User
-from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from administrasi.models import (
-    BuktiPembayaran, Kamar, KategoriKeluhan, Keluhan, Penghuni, ProfilUser, Tagihan,
-)
+from administrasi.models import Kamar
 
-BULAN = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
-]
+BLOK = {"A": 13, "B": 14, "C": 14, "D": 4}
 
-# PNG 1x1 piksel (sekadar berkas contoh untuk bukti pembayaran)
-PNG_KECIL = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
-)
+TIPE_DEFAULT = "individu"
+HARGA_DEFAULT = 550000
+FASILITAS = "Kasur, lemari, kamar mandi dalam"
 
-USERNAME = "demo"
-PASSWORD = "demo12345"
-NO_IDENTITAS = "1471010101010001"
-
-
-def geser_bulan(d: date, selisih: int) -> date:
-    """Geser tanggal d sebanyak `selisih` bulan, ambil tanggal 15."""
-    total = d.year * 12 + (d.month - 1) + selisih
-    return date(total // 12, total % 12 + 1, 15)
+# Pengecualian per kamar: nomor -> (tipe, harga)
+KHUSUS = {"A12": ("berdua", 750000)}
 
 
 class Command(BaseCommand):
-    help = "Buat penghuni demo (username: demo, password: demo12345) lengkap dengan tagihan & keluhan."
+    help = "Buat 45 kamar (Blok A 13, B 14, C 14, D 4) dengan status tersedia."
 
     @transaction.atomic
     def handle(self, *args, **options):
-        hari_ini = date.today()
+        dibuat = 0
+        for blok, jumlah in BLOK.items():
+            for n in range(1, jumlah + 1):
+                nomor = f"{blok}{n:02d}"
+                tipe, harga = KHUSUS.get(nomor, (TIPE_DEFAULT, HARGA_DEFAULT))
+                _, baru = Kamar.objects.get_or_create(
+                    nomor_kamar=nomor,
+                    defaults={
+                        "tipe": tipe,
+                        "harga_sewa": harga,
+                        "fasilitas": FASILITAS,
+                        "status": "tersedia",
+                    },
+                )
+                dibuat += int(baru)
 
-        # Kamar berdua A12 (pakai yang sudah ada jika nomor sama)
-        kamar, _ = Kamar.objects.get_or_create(
-            nomor_kamar="A12",
-            defaults={"tipe": "berdua", "harga_sewa": 750000, "fasilitas": "Kasur, lemari, kamar mandi dalam"},
-        )
-        kamar.status = "terisi"
-        kamar.save()
-
-        # Akun + profil + penghuni
-        user, _ = User.objects.get_or_create(username=USERNAME)
-        user.first_name = "Muhammad Fajar Pratama"
-        user.set_password(PASSWORD)
-        user.save()
-        ProfilUser.objects.update_or_create(user=user, defaults={"role": "penghuni"})
-        penghuni, _ = Penghuni.objects.update_or_create(
-            user=user,
-            defaults={
-                "kamar": kamar,
-                "no_identitas": NO_IDENTITAS,
-                "no_kontak": "081234567890",
-                "tanggal_masuk": hari_ini - timedelta(days=150),
-                "status_aktif": True,
-            },
-        )
-
-        # Reset data demo sebelumnya
-        Tagihan.objects.filter(penghuni=penghuni).delete()
-        Keluhan.objects.filter(penghuni=penghuni).delete()
-
-        nominal = kamar.harga_sewa / 2 if kamar.tipe == "berdua" else kamar.harga_sewa
-
-        # 3 tagihan lunas sebelumnya
-        for selisih in (-3, -2, -1):
-            tgl = geser_bulan(hari_ini, selisih)
-            t = Tagihan.objects.create(
-                penghuni=penghuni, periode=f"{BULAN[tgl.month - 1]} {tgl.year}",
-                nominal=nominal, jatuh_tempo=tgl, status="lunas",
-            )
-            b = BuktiPembayaran(
-                tagihan=t, tanggal_bayar=tgl - timedelta(days=5), status="diterima",
-                tanggal_verifikasi=tgl - timedelta(days=4),
-            )
-            b.berkas.save("bukti_demo.png", ContentFile(PNG_KECIL), save=False)
-            b.save()
-
-        # Tagihan terbaru: ditolak & sudah lewat jatuh tempo 4 hari (denda Rp 80.000)
-        tempo = hari_ini - timedelta(days=4)
-        t = Tagihan.objects.create(
-            penghuni=penghuni, periode=f"{BULAN[tempo.month - 1]} {tempo.year}",
-            nominal=nominal, jatuh_tempo=tempo, status="ditolak",
-        )
-        b = BuktiPembayaran(
-            tagihan=t, tanggal_bayar=tempo + timedelta(days=1), status="ditolak",
-            catatan_penolakan=(
-                "Bukti pembayaran buram dan nominal tidak sesuai. "
-                "Silakan bayar ulang sesuai total tagihan dan unggah bukti yang jelas."
-            ),
-            tanggal_verifikasi=hari_ini,
-        )
-        b.berkas.save("bukti_pembayaran_demo.png", ContentFile(PNG_KECIL), save=False)
-        b.save()
-
-        # Keluhan contoh (diterima / diproses / selesai)
-        kat = {n: KategoriKeluhan.objects.get_or_create(nama=n)[0] for n in ("Air", "Wi-Fi", "Listrik", "Lainnya")}
-        Keluhan.objects.create(
-            penghuni=penghuni, kategori=kat["Lainnya"], status="diterima",
-            deskripsi="Lampu koridor blok A padam sejak semalam.",
-        )
-        Keluhan.objects.create(
-            penghuni=penghuni, kategori=kat["Air"], status="diproses",
-            deskripsi="Kran air kamar mandi bocor dan menetes terus.",
-            catatan_tindak_lanjut="Teknisi akan memeriksa kran dalam waktu dekat. Mohon pastikan kamar dapat diakses.",
-        )
-        Keluhan.objects.create(
-            penghuni=penghuni, kategori=kat["Wi-Fi"], status="selesai",
-            deskripsi="Wi-Fi sering terputus di malam hari.",
-            catatan_tindak_lanjut="Router sudah diganti dan jaringan kembali stabil.",
-        )
-
-        self.stdout.write(self.style.SUCCESS("Penghuni demo siap."))
-        self.stdout.write(f"  Username : {USERNAME}")
-        self.stdout.write(f"  Password : {PASSWORD}")
-        self.stdout.write("  Isi      : 3 tagihan lunas, 1 tagihan ditolak (+denda), 3 keluhan")
+        total = Kamar.objects.count()
+        tersedia = Kamar.objects.filter(status="tersedia").count()
+        self.stdout.write(self.style.SUCCESS(f"Selesai: {dibuat} kamar baru dibuat."))
+        self.stdout.write(f"  Total kamar  : {total}")
+        self.stdout.write(f"  Tersedia     : {tersedia}")
+        self.stdout.write(f"  Terisi       : {total - tersedia}")
