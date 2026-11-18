@@ -39,3 +39,9 @@ body {
   from { opacity: 0; transform: translateY(-6px) scale(.98); }
   to { opacity: 1; transform: none; }
 }
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

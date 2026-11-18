@@ -39,6 +39,12 @@ export interface Tagihan {
   penghuni_id?: number;
 }
 
+/** Baris pada laporan keuangan pemilik: tagihan lunas + tanggal pembayaran (jika server mengirimnya). */
+export interface TransaksiLaporan extends Tagihan {
+  tanggal_bayar?: string | null;
+  tanggal_verifikasi?: string | null;
+}
+
 export interface BuktiPembayaran {
   id: number;
   tagihan: number;

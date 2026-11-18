@@ -195,8 +195,19 @@ class KeluhanUpdateAPI(generics.UpdateAPIView):
 def laporan_keuangan_api(request):
     tagihan_lunas = Tagihan.objects.filter(status='lunas').order_by('-id')
     total_pemasukan = tagihan_lunas.aggregate(Sum('nominal'))['nominal__sum'] or 0
-    serializer = TagihanSerializer(tagihan_lunas, many=True)
+
+    # Tanggal pembayaran diambil dari bukti yang diterima (jika ada beberapa, yang terbaru dipakai)
+    bukti_diterima = {}
+    for b in BuktiPembayaran.objects.filter(tagihan__in=tagihan_lunas, status='diterima').order_by('id'):
+        bukti_diterima[b.tagihan_id] = b
+
+    transaksi = TagihanSerializer(tagihan_lunas, many=True).data
+    for item in transaksi:
+        b = bukti_diterima.get(item['id'])
+        item['tanggal_bayar'] = b.tanggal_bayar if b else None
+        item['tanggal_verifikasi'] = b.tanggal_verifikasi if b else None
+
     return Response({
         'total_pemasukan': total_pemasukan,
-        'transaksi': serializer.data
+        'transaksi': transaksi
     })

@@ -3,11 +3,11 @@ import type { Tagihan } from '../types/kos';
 /** Denda keterlambatan per hari (Rp). Sesuaikan jika aturan kos berubah. */
 export const DENDA_PER_HARI = 20000;
 
-const BULAN = [
+export const BULAN = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
 ];
-const BULAN_PENDEK = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+export const BULAN_PENDEK = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
 export const rupiah = (n: number | string | null | undefined) =>
   'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID');
@@ -121,4 +121,9 @@ export function pecahKamar(nomorKamar: string) {
   const m = nomorKamar.trim().match(/^([A-Za-z]+)[\s-]*(\d+)$/);
   if (!m) return { blok: null as string | null, nomor: 0 };
   return { blok: m[1].toUpperCase(), nomor: Number(m[2]) };
+}
+
+/** Date -> "YYYY-MM-DD" (waktu lokal). */
+export function keISO(d: Date) {
+  return `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())}`;
 }

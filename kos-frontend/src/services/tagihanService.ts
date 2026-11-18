@@ -1,9 +1,9 @@
 import api from './api';
-import type { Tagihan, BuktiPembayaran } from '../types/kos';
+import type { Tagihan, BuktiPembayaran, TransaksiLaporan } from '../types/kos';
 
 export interface LaporanKeuanganResponse {
   total_pemasukan: number;
-  transaksi: Tagihan[];
+  transaksi: TransaksiLaporan[];
 }
 
 export const tagihanService = {
