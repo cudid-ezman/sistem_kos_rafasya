@@ -1,22 +1,24 @@
-import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import api from '../services/api';
-import type { LoginResponse, UserProfile } from '../types/auth';
-import AuthLayout from '../components/auth/AuthLayout';
-import Alert from '../components/auth/Alert';
-import Field from '../components/auth/Field';
-import SubmitButton from '../components/auth/SubmitButton';
-import { ArrowRightIcon, LockIcon, MailIcon } from '../components/auth/icons';
+import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import api from "../services/api";
+import type { LoginResponse, UserProfile } from "../types/auth";
+import AuthLayout from "../components/auth/AuthLayout";
+import Alert from "../components/auth/Alert";
+import Field from "../components/auth/Field";
+import SubmitButton from "../components/auth/SubmitButton";
+import { ArrowRightIcon, LockIcon, MailIcon } from "../components/auth/icons";
 
 interface LoginProps {
   onLoginSuccess: (user: UserProfile) => void;
 }
 
 export default function Login({ onLoginSuccess }: LoginProps) {
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<{ title: string; message: string } | null>(null);
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<{ title: string; message: string } | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -25,26 +27,26 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setIsLoading(true);
 
     try {
-      const loginRes = await api.post<LoginResponse>('/login/', {
+      const loginRes = await api.post<LoginResponse>("/login/", {
         username: identifier.trim(),
         password,
       });
 
-      localStorage.setItem('access_token', loginRes.data.access);
-      localStorage.setItem('refresh_token', loginRes.data.refresh);
+      localStorage.setItem("access_token", loginRes.data.access);
+      localStorage.setItem("refresh_token", loginRes.data.refresh);
 
-      const profileRes = await api.get<UserProfile>('/me/');
+      const profileRes = await api.get<UserProfile>("/me/");
       onLoginSuccess(profileRes.data);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setError({
-          title: 'Gagal Masuk',
-          message: 'Username, atau kata sandi salah.',
+          title: "Gagal Masuk",
+          message: "Username, atau kata sandi salah.",
         });
       } else {
         setError({
-          title: 'Gagal Masuk',
-          message: 'Tidak dapat terhubung ke server. Pastikan backend menyala.',
+          title: "Gagal Masuk",
+          message: "Tidak dapat terhubung ke server. Pastikan backend menyala.",
         });
       }
     } finally {
@@ -54,14 +56,20 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
   return (
     <AuthLayout showHelp={false}>
-      <h2 className="text-2xl font-bold tracking-tight text-kos-950">Masuk ke Sistem</h2>
+      <h2 className="text-2xl font-bold tracking-tight text-kos-950">
+        Masuk ke Sistem
+      </h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
         Silakan masukkan username, atau email beserta kata sandi Anda.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
         {error && (
-          <Alert variant="error" title={error.title} onClose={() => setError(null)}>
+          <Alert
+            variant="error"
+            title={error.title}
+            onClose={() => setError(null)}
+          >
             {error.message}
           </Alert>
         )}
@@ -108,8 +116,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       </form>
 
       <div className="mt-6 border-t border-slate-200 pt-5 text-center text-[13px] text-ink-soft">
-  Akun dibuat oleh pengelola kos. Gunakan email &amp; kata sandi yang diberikan.
-</div>
+        Akun dibuat oleh pengelola kos. Gunakan email &amp; kata sandi yang
+        diberikan.
+      </div>
     </AuthLayout>
   );
 }
