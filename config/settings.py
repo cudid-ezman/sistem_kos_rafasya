@@ -159,3 +159,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
+
+# Konfigurasi Pengiriman Email (Tampil di terminal saat development)
+DEFAULT_FROM_EMAIL = 'admin@kosrafasya.id'
+FRONTEND_URL = 'http://localhost:5173'

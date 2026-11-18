@@ -6,6 +6,8 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', views.data_diri, name='api_me'),
+    path('password-reset/', views.request_password_reset_api, name='api_password_reset'),
+    path('password-reset/confirm/', views.confirm_password_reset_api, name='api_password_reset_confirm'),
 
     path('kamar/', views.KamarListCreateAPI.as_view(), name='api_kamar'),
     path('kamar/<int:pk>/', views.KamarDetailAPI.as_view(), name='api_kamar_detail'),
