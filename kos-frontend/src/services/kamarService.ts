@@ -11,7 +11,9 @@ export interface CreateKamarPayload {
 
 export interface CreatePenghuniPayload {
   nama_lengkap: string;
-  no_identitas: string;
+  email: string;
+  password: string;
+  no_identitas?: string;
   no_kontak: string;
   kamar: number;
   tanggal_masuk: string;

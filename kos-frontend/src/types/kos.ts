@@ -11,6 +11,7 @@ export interface Penghuni {
   id: number;
   user: number;
   nama_lengkap: string;
+  email: string;
   kamar: number | null;
   nomor_kamar?: string;
   no_identitas: string;

@@ -108,11 +108,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       </form>
 
       <div className="mt-6 border-t border-slate-200 pt-5 text-center text-[13px] text-ink-soft">
-        Belum punya akun?{' '}
-        <Link to="/daftar" className="font-semibold text-kos-600 hover:text-kos-700 hover:underline">
-          Daftar
-        </Link>
-      </div>
+  Akun dibuat oleh pengelola kos. Gunakan email &amp; kata sandi yang diberikan.
+</div>
     </AuthLayout>
   );
 }

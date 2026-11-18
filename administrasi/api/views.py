@@ -14,13 +14,15 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from administrasi.models import (
     ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan
 )
 from .serializers import (
     KamarSerializer, PenghuniSerializer, TagihanSerializer,
-    BuktiPembayaranSerializer, KategoriKeluhanSerializer, KeluhanSerializer
+    BuktiPembayaranSerializer, KategoriKeluhanSerializer, KeluhanSerializer, 
+    CustomTokenObtainPairSerializer, AkunStaffSerializer
 )
 from .permissions import IsPengurus, IsPemilik
 
@@ -62,17 +64,34 @@ class PenghuniListCreateAPI(generics.ListCreateAPIView):
     permission_classes = [IsPengurus]
 
     def create(self, request, *args, **kwargs):
-        nama = request.data.get('nama_lengkap')
-        no_identitas = request.data.get('no_identitas')
-        no_kontak = request.data.get('no_kontak')
+        nama = (request.data.get('nama_lengkap') or '').strip()
+        email = (request.data.get('email') or '').strip().lower()
+        password = request.data.get('password') or ''
+        no_identitas = (request.data.get('no_identitas') or '').strip()
+        no_kontak = (request.data.get('no_kontak') or '').strip()
         kamar_id = request.data.get('kamar')
         tanggal_masuk = request.data.get('tanggal_masuk')
 
-        if User.objects.filter(username=no_identitas).exists():
-            return Response({'detail': 'NIK / Username sudah terdaftar.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not nama or not email or not password:
+            return Response(
+                {'detail': 'Nama lengkap, email, dan kata sandi awal wajib diisi.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if len(password) < 8:
+            return Response(
+                {'detail': 'Kata sandi awal minimal 8 karakter.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if User.objects.filter(email__iexact=email).exists() or User.objects.filter(username__iexact=email).exists():
+            return Response({'detail': 'Email sudah terdaftar di sistem.'}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            user_baru = User.objects.create_user(username=no_identitas, password='kos12345', first_name=nama)
+            user_baru = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password,
+                first_name=nama
+            )
             ProfilUser.objects.create(user=user_baru, role='penghuni')
 
             kamar = Kamar.objects.get(id=kamar_id)
@@ -80,8 +99,11 @@ class PenghuniListCreateAPI(generics.ListCreateAPIView):
             kamar.save()
 
             penghuni = Penghuni.objects.create(
-                user=user_baru, kamar=kamar, no_identitas=no_identitas,
-                no_kontak=no_kontak, tanggal_masuk=tanggal_masuk
+                user=user_baru,
+                kamar=kamar,
+                no_identitas=no_identitas or '-',
+                no_kontak=no_kontak,
+                tanggal_masuk=tanggal_masuk
             )
 
         serializer = self.get_serializer(penghuni)
@@ -97,6 +119,24 @@ class TagihanListCreateAPI(generics.ListCreateAPIView):
         if (hasattr(user, 'profiluser') and user.profiluser.role in ['pengurus', 'pemilik']) or user.is_superuser:
             return Tagihan.objects.all().order_by('-id')
         return Tagihan.objects.filter(penghuni__user=user).order_by('-id')
+class CustomLoginView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def ganti_password_api(request):
+    password_lama = request.data.get('password_lama', '')
+    password_baru = request.data.get('password_baru', '')
+
+    if not request.user.check_password(password_lama):
+        return Response({'detail': 'Kata sandi saat ini salah.'}, status=status.HTTP_400_BAD_REQUEST)
+    if len(password_baru) < 8:
+        return Response({'detail': 'Kata sandi baru minimal 8 karakter.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    request.user.set_password(password_baru)
+    request.user.save()
+    return Response({'detail': 'Kata sandi berhasil diperbarui.'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsPengurus])
@@ -262,3 +302,67 @@ def confirm_password_reset_api(request):
     user.save()
 
     return Response({'detail': 'Kata sandi berhasil diperbarui.'}, status=status.HTTP_200_OK)
+
+# --- KELOLA AKUN BERJENJANG (SUPERADMIN -> PEMILIK, PEMILIK -> PENGURUS) ---
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def kelola_akun_staff_api(request):
+    user = request.user
+    profil_role = getattr(getattr(user, 'profiluser', None), 'role', '')
+    role_pembuat = profil_role if profil_role else ('superadmin' if user.is_superuser else '')
+
+    if role_pembuat == 'superadmin':
+        target_role = 'pemilik'
+    elif role_pembuat == 'pemilik':
+        target_role = 'pengurus'
+    else:
+        return Response({'detail': 'Anda tidak memiliki izin mengelola akun.'}, status=status.HTTP_403_FORBIDDEN)
+
+    if request.method == 'GET':
+        users = User.objects.filter(profiluser__role=target_role).order_by('-date_joined')
+        return Response({
+            'target_role': target_role,
+            'akun': AkunStaffSerializer(users, many=True).data
+        })
+
+    # POST: Buat akun baru
+    nama = (request.data.get('nama_lengkap') or '').strip()
+    email = (request.data.get('email') or '').strip().lower()
+    password = request.data.get('password') or ''
+
+    if not nama or not email or not password:
+        return Response({'detail': 'Nama lengkap, email, dan kata sandi awal wajib diisi.'}, status=status.HTTP_400_BAD_REQUEST)
+    if len(password) < 8:
+        return Response({'detail': 'Kata sandi awal minimal 8 karakter.'}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(email__iexact=email).exists() or User.objects.filter(username__iexact=email).exists():
+        return Response({'detail': 'Email sudah digunakan oleh akun lain.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    with transaction.atomic():
+        akun_baru = User.objects.create_user(
+            username=email,
+            email=email,
+            password=password,
+            first_name=nama
+        )
+        ProfilUser.objects.create(user=akun_baru, role=target_role)
+
+    return Response(AkunStaffSerializer(akun_baru).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def hapus_akun_staff_api(request, user_id):
+    user = request.user
+    profil_role = getattr(getattr(user, 'profiluser', None), 'role', '')
+    role_pembuat = profil_role if profil_role else ('superadmin' if user.is_superuser else '')
+    target_role = 'pemilik' if role_pembuat == 'superadmin' else ('pengurus' if role_pembuat == 'pemilik' else '')
+
+    if not target_role:
+        return Response({'detail': 'Akses ditolak.'}, status=status.HTTP_403_FORBIDDEN)
+
+    target_user = User.objects.filter(id=user_id, profiluser__role=target_role).first()
+    if not target_user:
+        return Response({'detail': 'Akun tidak ditemukan.'}, status=status.HTTP_404_NOT_FOUND)
+
+    target_user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)

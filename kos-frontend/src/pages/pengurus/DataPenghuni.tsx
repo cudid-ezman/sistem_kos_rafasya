@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
 import { kamarService, type CreatePenghuniPayload } from '../../services/kamarService';
 import type { Kamar, Penghuni } from '../../types/kos';
 import { inisial, tglPendek } from '../../lib/format';
@@ -16,11 +17,12 @@ import EmptyState from '../../components/admin/EmptyState';
 import { inputCls, labelCls, tdCls, thCls } from '../../components/admin/styles';
 
 const PER_HALAMAN = 10;
-const PASSWORD_DEFAULT = 'kos12345';
 const hariIni = () => new Date().toISOString().split('T')[0];
 
 const formKosong = (kamar = 0): CreatePenghuniPayload => ({
   nama_lengkap: '',
+  email: '',
+  password: '',
   no_identitas: '',
   no_kontak: '',
   kamar,
@@ -40,7 +42,7 @@ export default function DataPenghuni() {
   const [formOpen, setFormOpen] = useState(params.get('tambah') === '1');
   const [form, setForm] = useState<CreatePenghuniPayload>(formKosong());
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [akunBaru, setAkunBaru] = useState<{ nama: string; username: string } | null>(null);
+  const [akunBaru, setAkunBaru] = useState<{ nama: string; email: string; password: string } | null>(null);
 
   const fetchData = async () => {
     try {
@@ -70,7 +72,8 @@ export default function DataPenghuni() {
     return penghuniList.filter(
       (p) =>
         p.nama_lengkap.toLowerCase().includes(q) ||
-        p.no_identitas.toLowerCase().includes(q) ||
+        (p.email || '').toLowerCase().includes(q) ||
+        (p.no_identitas || '').toLowerCase().includes(q) ||
         (p.nomor_kamar || '').toLowerCase().includes(q)
     );
   }, [penghuniList, cari]);
@@ -87,16 +90,25 @@ export default function DataPenghuni() {
       toast.error('Pilih kamar yang tersedia terlebih dahulu.');
       return;
     }
+    if (form.password.length < 8) {
+      toast.error('Kata sandi awal minimal 8 karakter.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       await kamarService.createPenghuni(form);
-      setAkunBaru({ nama: form.nama_lengkap, username: form.no_identitas });
+      setAkunBaru({
+        nama: form.nama_lengkap,
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
       tutupForm();
       setForm(formKosong());
       await fetchData();
     } catch (error) {
       console.error('Gagal menambah penghuni', error);
-      toast.error('Gagal menambah penghuni. Pastikan nomor identitas belum terdaftar.');
+      const msg = axios.isAxiosError(error) ? error.response?.data?.detail : undefined;
+      toast.error(msg || 'Gagal menambah penghuni. Pastikan email belum terdaftar.');
     } finally {
       setIsSubmitting(false);
     }
@@ -126,7 +138,7 @@ export default function DataPenghuni() {
       <PageHeader
         crumbs={[{ label: 'Beranda', to: '/dashboard' }, { label: 'Data Penghuni' }]}
         title="Daftar Penghuni Kos"
-        subtitle="Penambahan penghuni otomatis membuatkan akun login dan mengisi status kamar."
+        subtitle="Penambahan penghuni otomatis membuatkan akun login berbasis email dan mengisi status kamar."
         action={
           <button type="button" onClick={() => setFormOpen(true)} className={btnPrimary}>
             <PlusIcon size={17} /> Tambah Penghuni
@@ -145,7 +157,7 @@ export default function DataPenghuni() {
               setCari(v);
               setHalaman(1);
             }}
-            placeholder="Cari nama, identitas, atau kamar..."
+            placeholder="Cari nama, email, atau kamar..."
           />
         </div>
 
@@ -153,7 +165,7 @@ export default function DataPenghuni() {
           <EmptyState
             icon={<UsersIcon size={26} />}
             title={penghuniList.length === 0 ? 'Belum ada penghuni terdaftar' : 'Penghuni tidak ditemukan'}
-            text={penghuniList.length === 0 ? 'Tambahkan penghuni pertama, akun login dibuat otomatis.' : 'Coba kata kunci lain.'}
+            text={penghuniList.length === 0 ? 'Tambahkan penghuni pertama, akun login email akan dibuat otomatis.' : 'Coba kata kunci lain.'}
           />
         ) : (
           <div className="overflow-x-auto">
@@ -161,7 +173,7 @@ export default function DataPenghuni() {
               <thead className="bg-slate-50/70">
                 <tr>
                   <th className={thCls}>Nama Lengkap</th>
-                  <th className={thCls}>Username (No. Identitas)</th>
+                  <th className={thCls}>Email Akun</th>
                   <th className={thCls}>No. Kontak</th>
                   <th className={thCls}>Kamar</th>
                   <th className={thCls}>Tanggal Masuk</th>
@@ -179,7 +191,7 @@ export default function DataPenghuni() {
                         <span className="font-semibold">{p.nama_lengkap}</span>
                       </div>
                     </td>
-                    <td className={`${tdCls} font-mono text-xs text-ink-soft`}>{p.no_identitas}</td>
+                    <td className={`${tdCls} text-xs text-ink-soft`}>{p.email || p.no_identitas}</td>
                     <td className={tdCls}>{p.no_kontak}</td>
                     <td className={`${tdCls} font-semibold`}>Kamar {p.nomor_kamar || '-'}</td>
                     <td className={`${tdCls} whitespace-nowrap text-ink-soft`}>{tglPendek(p.tanggal_masuk)}</td>
@@ -195,7 +207,7 @@ export default function DataPenghuni() {
         <Pagination total={tersaring.length} page={halaman} perPage={PER_HALAMAN} onChange={setHalaman} />
       </section>
 
-      <Modal open={formOpen} onClose={tutupForm} title="Registrasi Penghuni Baru" description="Akun login dibuat otomatis dari nomor identitas.">
+      <Modal open={formOpen} onClose={tutupForm} title="Registrasi Penghuni Baru" description="Masukkan email penghuni dan tentukan kata sandi awal untuk login.">
         {kamarTersedia.length === 0 ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-relaxed text-rose-800">
             Semua kamar saat ini berstatus terisi. Tambahkan kamar baru atau ubah status kamar terlebih dahulu.
@@ -207,16 +219,27 @@ export default function DataPenghuni() {
           <form onSubmit={submit} className="space-y-4">
             <div>
               <label htmlFor="nama" className={labelCls}>Nama Lengkap</label>
-              <input id="nama" required placeholder="Nama sesuai identitas" value={form.nama_lengkap} onChange={(e) => setForm({ ...form, nama_lengkap: e.target.value })} className={inputCls} />
+              <input id="nama" required placeholder="Nama lengkap penghuni" value={form.nama_lengkap} onChange={(e) => setForm({ ...form, nama_lengkap: e.target.value })} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="identitas" className={labelCls}>No. Identitas</label>
-              <input id="identitas" required placeholder="Nomor identitas (mis. NIK)" value={form.no_identitas} onChange={(e) => setForm({ ...form, no_identitas: e.target.value })} className={inputCls} />
-              <p className="mt-1.5 text-xs text-ink-soft">Dipakai sebagai username login penghuni.</p>
+              <label htmlFor="email" className={labelCls}>Email Penghuni</label>
+              <input id="email" type="email" required placeholder="penghuni@email.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputCls} />
+              <p className="mt-1.5 text-xs text-ink-soft">Digunakan untuk login dan fitur lupa kata sandi.</p>
             </div>
             <div>
-              <label htmlFor="hp" className={labelCls}>No. HP / WhatsApp</label>
-              <input id="hp" required placeholder="0812xxxxxxxx" value={form.no_kontak} onChange={(e) => setForm({ ...form, no_kontak: e.target.value })} className={inputCls} />
+              <label htmlFor="password" className={labelCls}>Kata Sandi Awal</label>
+              <input id="password" type="text" required minLength={8} placeholder="Minimal 8 karakter" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className={inputCls} />
+              <p className="mt-1.5 text-xs text-ink-soft">Penghuni dapat mengganti kata sandi ini setelah berhasil masuk.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="hp" className={labelCls}>No. HP / WhatsApp</label>
+                <input id="hp" required placeholder="0812xxxxxxxx" value={form.no_kontak} onChange={(e) => setForm({ ...form, no_kontak: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label htmlFor="identitas" className={labelCls}>No. Identitas (Opsional)</label>
+                <input id="identitas" placeholder="NIK / KTM" value={form.no_identitas || ''} onChange={(e) => setForm({ ...form, no_identitas: e.target.value })} className={inputCls} />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -249,8 +272,8 @@ export default function DataPenghuni() {
         </div>
         <dl className="space-y-3">
           {[
-            ['Username', akunBaru?.username ?? ''],
-            ['Password', PASSWORD_DEFAULT],
+            ['Email Login', akunBaru?.email ?? ''],
+            ['Kata Sandi Awal', akunBaru?.password ?? ''],
           ].map(([k, v]) => (
             <div key={k} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-2.5">
               <div>
@@ -263,7 +286,7 @@ export default function DataPenghuni() {
             </div>
           ))}
         </dl>
-        <p className="mt-3 text-xs leading-relaxed text-ink-soft">Berikan data ini ke penghuni dan minta mereka segera mengganti kata sandi.</p>
+        <p className="mt-3 text-xs leading-relaxed text-ink-soft">Berikan kredensial ini ke penghuni dan minta mereka segera mengganti kata sandi setelah login.</p>
         <button type="button" onClick={() => setAkunBaru(null)} className={`${btnPrimary} mt-5 w-full`}>Selesai</button>
       </Modal>
     </div>
