@@ -15,12 +15,14 @@ export default function UbahPasswordModal({ open, onClose }: Props) {
   const [passwordLama, setPasswordLama] = useState("");
   const [passwordBaru, setPasswordBaru] = useState("");
   const [konfirmasi, setKonfirmasi] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
     setPasswordLama("");
     setPasswordBaru("");
     setKonfirmasi("");
+    setErrorMsg(null);
   };
 
   const handleClose = () => {
@@ -30,12 +32,18 @@ export default function UbahPasswordModal({ open, onClose }: Props) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
+
     if (passwordBaru.length < 8) {
-      toast.error("Kata sandi baru minimal 8 karakter.");
+      const msg = "Kata sandi baru minimal 8 karakter.";
+      setErrorMsg(msg);
+      toast.error(msg);
       return;
     }
     if (passwordBaru !== konfirmasi) {
-      toast.error("Konfirmasi kata sandi baru tidak sama.");
+      const msg = "Konfirmasi kata sandi baru tidak sama.";
+      setErrorMsg(msg);
+      toast.error(msg);
       return;
     }
 
@@ -45,7 +53,9 @@ export default function UbahPasswordModal({ open, onClose }: Props) {
       toast.success("Kata sandi berhasil diperbarui.");
       handleClose();
     } catch (err) {
-      toast.error(extractMessages(err, "Gagal memperbarui kata sandi.")[0]);
+      const msg = extractMessages(err, "Gagal memperbarui kata sandi.")[0];
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -60,6 +70,15 @@ export default function UbahPasswordModal({ open, onClose }: Props) {
       size="sm"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {errorMsg && (
+          <div
+            role="alert"
+            className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-medium text-rose-700"
+          >
+            {errorMsg}
+          </div>
+        )}
+
         <div>
           <label htmlFor="pw-lama" className={labelCls}>
             Kata Sandi Saat Ini
@@ -69,7 +88,10 @@ export default function UbahPasswordModal({ open, onClose }: Props) {
             type="password"
             required
             value={passwordLama}
-            onChange={(e) => setPasswordLama(e.target.value)}
+            onChange={(e) => {
+              setPasswordLama(e.target.value);
+              if (errorMsg) setErrorMsg(null);
+            }}
             placeholder="Masukkan kata sandi saat ini"
             className={inputCls}
           />
@@ -84,7 +106,10 @@ export default function UbahPasswordModal({ open, onClose }: Props) {
             required
             minLength={8}
             value={passwordBaru}
-            onChange={(e) => setPasswordBaru(e.target.value)}
+            onChange={(e) => {
+              setPasswordBaru(e.target.value);
+              if (errorMsg) setErrorMsg(null);
+            }}
             placeholder="Minimal 8 karakter"
             className={inputCls}
           />
@@ -98,7 +123,10 @@ export default function UbahPasswordModal({ open, onClose }: Props) {
             type="password"
             required
             value={konfirmasi}
-            onChange={(e) => setKonfirmasi(e.target.value)}
+            onChange={(e) => {
+              setKonfirmasi(e.target.value);
+              if (errorMsg) setErrorMsg(null);
+            }}
             placeholder="Ulangi kata sandi baru"
             className={inputCls}
           />
