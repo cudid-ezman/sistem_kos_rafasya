@@ -14,6 +14,7 @@ urlpatterns = [
     path('kamar/<int:pk>/', views.KamarDetailAPI.as_view(), name='api_kamar_detail'),
 
     path('penghuni/', views.PenghuniListCreateAPI.as_view(), name='api_penghuni'),
+    path('penghuni/<int:pk>/', views.PenghuniDetailAPI.as_view(), name='api_penghuni_detail'),
 
     path('tagihan/', views.TagihanListCreateAPI.as_view(), name='api_tagihan'),
     path('tagihan/generate/', views.generate_tagihan_bulanan, name='api_tagihan_generate'),
