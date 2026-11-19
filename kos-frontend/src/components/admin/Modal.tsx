@@ -1,5 +1,5 @@
-import { useEffect, useRef, type ReactNode } from 'react';
-import { XIcon } from '../portal/icons';
+import { useEffect, useRef, type ReactNode } from "react";
+import { XIcon } from "../portal/icons";
 
 interface ModalProps {
   open: boolean;
@@ -7,33 +7,47 @@ interface ModalProps {
   title: string;
   description?: string;
   children: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
-const SIZE = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-2xl' };
+const SIZE = { sm: "max-w-sm", md: "max-w-md", lg: "max-w-2xl" };
 
-export default function Modal({ open, onClose, title, description, children, size = 'md' }: ModalProps) {
+export default function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  size = "md",
+}: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    document.addEventListener('keydown', onKey);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current();
+    };
+    document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     panelRef.current?.focus();
     return () => {
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
   return (
     <div
       className="fixed inset-0 z-[80] flex items-end justify-center bg-kos-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      onMouseDown={(e) => e.target === e.currentTarget && onCloseRef.current()}
     >
       <div
         ref={panelRef}
@@ -46,11 +60,13 @@ export default function Modal({ open, onClose, title, description, children, siz
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-lg font-bold text-ink">{title}</h2>
-            {description && <p className="mt-1 text-sm text-ink-soft">{description}</p>}
+            {description && (
+              <p className="mt-1 text-sm text-ink-soft">{description}</p>
+            )}
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => onCloseRef.current()}
             aria-label="Tutup"
             className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl text-ink-soft transition hover:bg-slate-100"
           >

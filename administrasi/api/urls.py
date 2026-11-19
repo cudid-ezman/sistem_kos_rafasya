@@ -3,14 +3,20 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 
 urlpatterns = [
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', views.CustomLoginView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', views.data_diri, name='api_me'),
+    path('ganti-password/', views.ganti_password_api, name='api_ganti_password'),
+    path('password-reset/', views.request_password_reset_api, name='api_password_reset'),
+    path('password-reset/confirm/', views.confirm_password_reset_api, name='api_password_reset_confirm'),
+    path('kelola-akun/', views.kelola_akun_staff_api, name='api_kelola_akun'),
+    path('kelola-akun/<int:user_id>/', views.hapus_akun_staff_api, name='api_hapus_akun'),
 
     path('kamar/', views.KamarListCreateAPI.as_view(), name='api_kamar'),
     path('kamar/<int:pk>/', views.KamarDetailAPI.as_view(), name='api_kamar_detail'),
 
     path('penghuni/', views.PenghuniListCreateAPI.as_view(), name='api_penghuni'),
+    path('penghuni/<int:pk>/', views.PenghuniDetailAPI.as_view(), name='api_penghuni_detail'),
 
     path('tagihan/', views.TagihanListCreateAPI.as_view(), name='api_tagihan'),
     path('tagihan/generate/', views.generate_tagihan_bulanan, name='api_tagihan_generate'),

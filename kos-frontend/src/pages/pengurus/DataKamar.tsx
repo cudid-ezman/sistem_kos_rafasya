@@ -1,37 +1,65 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { kamarService, type CreateKamarPayload } from '../../services/kamarService';
-import type { Kamar } from '../../types/kos';
-import { rupiah } from '../../lib/format';
-import DenahKamar from './DenahKamar';
-import PageHeader from '../../components/portal/PageHeader';
-import StatusPill from '../../components/portal/StatusPill';
-import { Skeleton } from '../../components/portal/Skeleton';
-import { useToast } from '../../components/portal/toastContext';
-import { btnGhost, btnOutline, btnPrimary } from '../../components/portal/buttons';
-import { DoorIcon, GridIcon, ListIcon, PencilIcon, PlusIcon, TrashIcon } from '../../components/portal/icons';
-import Modal from '../../components/admin/Modal';
-import ConfirmDialog from '../../components/admin/ConfirmDialog';
-import Pagination from '../../components/admin/Pagination';
-import SearchInput from '../../components/admin/SearchInput';
-import EmptyState from '../../components/admin/EmptyState';
-import { inputCls, labelCls, tdCls, thCls } from '../../components/admin/styles';
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  kamarService,
+  type CreateKamarPayload,
+} from "../../services/kamarService";
+import type { Kamar } from "../../types/kos";
+import { rupiah } from "../../lib/format";
+import DenahKamar from "./DenahKamar";
+import PageHeader from "../../components/portal/PageHeader";
+import StatusPill from "../../components/portal/StatusPill";
+import { Skeleton } from "../../components/portal/Skeleton";
+import { useToast } from "../../components/portal/toastContext";
+import {
+  btnGhost,
+  btnOutline,
+  btnPrimary,
+} from "../../components/portal/buttons";
+import {
+  DoorIcon,
+  GridIcon,
+  ListIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+} from "../../components/portal/icons";
+import Modal from "../../components/admin/Modal";
+import ConfirmDialog from "../../components/admin/ConfirmDialog";
+import Pagination from "../../components/admin/Pagination";
+import SearchInput from "../../components/admin/SearchInput";
+import EmptyState from "../../components/admin/EmptyState";
+import {
+  inputCls,
+  labelCls,
+  tdCls,
+  thCls,
+} from "../../components/admin/styles";
 
-const KOSONG: CreateKamarPayload = { nomor_kamar: '', tipe: 'individu', harga_sewa: 550000, fasilitas: '', status: 'tersedia' };
+const KOSONG: CreateKamarPayload = {
+  nomor_kamar: "",
+  tipe: "individu",
+  harga_individu: 550000,
+  harga_berdua: 750000,
+  biaya_fasilitas: 0,
+  fasilitas: "",
+  status: "tersedia",
+};
 const PER_HALAMAN = 10;
 
 export default function DataKamar() {
   const toast = useToast();
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'denah' ? 'denah' : 'daftar';
+  const tab = params.get("tab") === "denah" ? "denah" : "daftar";
 
   const [kamarList, setKamarList] = useState<Kamar[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [cari, setCari] = useState('');
+  const [cari, setCari] = useState("");
   const [halaman, setHalaman] = useState(1);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingJumlahPenghuni, setEditingJumlahPenghuni] = useState<number>(0);
   const [form, setForm] = useState<CreateKamarPayload>(KOSONG);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hapus, setHapus] = useState<Kamar | null>(null);
@@ -42,8 +70,8 @@ export default function DataKamar() {
       const res = await kamarService.getAllKamar();
       setKamarList(res.data);
     } catch (error) {
-      console.error('Gagal mengambil data kamar', error);
-      toast.error('Data kamar belum bisa dimuat.');
+      console.error("Gagal mengambil data kamar", error);
+      toast.error("Data kamar belum bisa dimuat.");
     } finally {
       setIsLoading(false);
     }
@@ -58,29 +86,62 @@ export default function DataKamar() {
   const ringkas = useMemo(
     () => ({
       total: kamarList.length,
-      terisi: kamarList.filter((k) => k.status === 'terisi').length,
-      tersedia: kamarList.filter((k) => k.status === 'tersedia').length,
+      terisi: kamarList.filter((k) => k.status === "terisi").length,
+      tersedia: kamarList.filter((k) => k.status === "tersedia").length,
     }),
-    [kamarList]
+    [kamarList],
   );
 
   const tersaring = useMemo(
-    () => kamarList.filter((k) => k.nomor_kamar.toLowerCase().includes(cari.trim().toLowerCase())),
-    [kamarList, cari]
+    () =>
+      kamarList.filter((k) =>
+        k.nomor_kamar.toLowerCase().includes(cari.trim().toLowerCase()),
+      ),
+    [kamarList, cari],
   );
-  const baris = tersaring.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
+  const baris = tersaring.slice(
+    (halaman - 1) * PER_HALAMAN,
+    halaman * PER_HALAMAN,
+  );
 
   const bukaTambah = () => {
     setEditingId(null);
+    setEditingJumlahPenghuni(0);
     setForm(KOSONG);
     setFormOpen(true);
   };
 
   const bukaEdit = (k: Kamar) => {
     setEditingId(k.id);
-    setForm({ nomor_kamar: k.nomor_kamar, tipe: k.tipe, harga_sewa: k.harga_sewa, fasilitas: k.fasilitas, status: k.status });
+    setEditingJumlahPenghuni(
+      k.jumlah_penghuni ?? (k.status === "terisi" ? 1 : 0),
+    );
+    setForm({
+      nomor_kamar: k.nomor_kamar,
+      tipe: k.tipe,
+      harga_individu: k.harga_individu ?? 550000,
+      harga_berdua: k.harga_berdua ?? 750000,
+      biaya_fasilitas: k.biaya_fasilitas ?? 0,
+      fasilitas: k.fasilitas,
+      status: k.status,
+    });
     setFormOpen(true);
   };
+
+  const pratinjauHargaAktif = useMemo(() => {
+    const dasar =
+      editingJumlahPenghuni >= 2
+        ? Number(form.harga_berdua || 0)
+        : Number(form.harga_individu || 0);
+    const fas =
+      editingJumlahPenghuni === 0 ? 0 : Number(form.biaya_fasilitas || 0);
+    return dasar + fas;
+  }, [
+    editingJumlahPenghuni,
+    form.harga_individu,
+    form.harga_berdua,
+    form.biaya_fasilitas,
+  ]);
 
   const simpan = async (e: FormEvent) => {
     e.preventDefault();
@@ -88,16 +149,18 @@ export default function DataKamar() {
     try {
       if (editingId) {
         await kamarService.updateKamar(editingId, form);
-        toast.success('Data kamar berhasil diperbarui.');
+        toast.success("Data kamar berhasil diperbarui.");
       } else {
         await kamarService.createKamar(form);
-        toast.success('Kamar baru berhasil ditambahkan.');
+        toast.success("Kamar baru berhasil ditambahkan.");
       }
       setFormOpen(false);
       await fetchKamar();
     } catch (error) {
-      console.error('Gagal menyimpan data kamar', error);
-      toast.error('Gagal menyimpan kamar. Pastikan nomor kamar tidak duplikat.');
+      console.error("Gagal menyimpan data kamar", error);
+      toast.error(
+        "Gagal menyimpan kamar. Pastikan nomor kamar tidak duplikat.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -112,14 +175,17 @@ export default function DataKamar() {
       setHapus(null);
       await fetchKamar();
     } catch (error) {
-      console.error('Gagal menghapus kamar', error);
-      toast.error('Gagal menghapus kamar. Kamar yang masih dihuni tidak bisa dihapus.');
+      console.error("Gagal menghapus kamar", error);
+      toast.error(
+        "Gagal menghapus kamar. Kamar yang masih dihuni tidak bisa dihapus.",
+      );
     } finally {
       setMenghapus(false);
     }
   };
 
-  const pilihTab = (t: 'daftar' | 'denah') => setParams(t === 'denah' ? { tab: 'denah' } : {}, { replace: true });
+  const pilihTab = (t: "daftar" | "denah") =>
+    setParams(t === "denah" ? { tab: "denah" } : {}, { replace: true });
 
   if (isLoading) {
     return (
@@ -134,9 +200,12 @@ export default function DataKamar() {
   return (
     <div>
       <PageHeader
-        crumbs={[{ label: 'Beranda', to: '/dashboard' }, { label: 'Data Kamar' }]}
+        crumbs={[
+          { label: "Beranda", to: "/dashboard" },
+          { label: "Data Kamar" },
+        ]}
         title="Manajemen Data Kamar"
-        subtitle="Kelola daftar kamar, harga sewa, fasilitas, dan ketersediaan."
+        subtitle="Kelola tarif individu/berdua, tambahan biaya fasilitas, dan ketersediaan kamar."
         action={
           <button type="button" onClick={bukaTambah} className={btnPrimary}>
             <PlusIcon size={17} /> Tambah Kamar
@@ -144,11 +213,14 @@ export default function DataKamar() {
         }
       />
 
-      <div className="mb-5 inline-flex rounded-xl bg-slate-100 p-1 text-[13px] font-semibold" role="tablist">
+      <div
+        className="mb-5 inline-flex rounded-xl bg-slate-100 p-1 text-[13px] font-semibold"
+        role="tablist"
+      >
         {(
           [
-            ['daftar', 'Daftar Kamar', ListIcon],
-            ['denah', 'Denah Operasional', GridIcon],
+            ["daftar", "Daftar Kamar", ListIcon],
+            ["denah", "Denah Operasional", GridIcon],
           ] as const
         ).map(([key, label, Ikon]) => (
           <button
@@ -158,7 +230,9 @@ export default function DataKamar() {
             aria-selected={tab === key}
             onClick={() => pilihTab(key)}
             className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 transition ${
-              tab === key ? 'bg-white text-kos-700 shadow-sm' : 'text-ink-soft hover:text-ink'
+              tab === key
+                ? "bg-white text-kos-700 shadow-sm"
+                : "text-ink-soft hover:text-ink"
             }`}
           >
             <Ikon size={16} /> {label}
@@ -166,19 +240,26 @@ export default function DataKamar() {
         ))}
       </div>
 
-      {tab === 'denah' ? (
+      {tab === "denah" ? (
         <DenahKamar />
       ) : (
         <>
           <div className="mb-4 grid grid-cols-3 gap-3">
             {[
-              ['Total Kamar', ringkas.total, 'text-ink'],
-              ['Terisi', ringkas.terisi, 'text-sky-600'],
-              ['Tersedia', ringkas.tersedia, 'text-emerald-600'],
+              ["Total Kamar", ringkas.total, "text-ink"],
+              ["Terisi", ringkas.terisi, "text-sky-600"],
+              ["Tersedia", ringkas.tersedia, "text-emerald-600"],
             ].map(([label, nilai, warna]) => (
-              <div key={label as string} className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5">
+              <div
+                key={label as string}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5"
+              >
                 <p className="text-xs text-ink-soft">{label}</p>
-                <p className={`mt-0.5 text-2xl font-bold tabular-nums ${warna}`}>{nilai}</p>
+                <p
+                  className={`mt-0.5 text-2xl font-bold tabular-nums ${warna}`}
+                >
+                  {nilai}
+                </p>
               </div>
             ))}
           </div>
@@ -199,11 +280,23 @@ export default function DataKamar() {
             {tersaring.length === 0 ? (
               <EmptyState
                 icon={<DoorIcon size={26} />}
-                title={kamarList.length === 0 ? 'Belum ada data kamar' : 'Kamar tidak ditemukan'}
-                text={kamarList.length === 0 ? 'Tambahkan kamar pertama untuk mulai mengelola kos.' : 'Coba kata kunci lain.'}
+                title={
+                  kamarList.length === 0
+                    ? "Belum ada data kamar"
+                    : "Kamar tidak ditemukan"
+                }
+                text={
+                  kamarList.length === 0
+                    ? "Tambahkan kamar pertama untuk mulai mengelola kos."
+                    : "Coba kata kunci lain."
+                }
                 action={
                   kamarList.length === 0 && (
-                    <button type="button" onClick={bukaTambah} className={btnPrimary}>
+                    <button
+                      type="button"
+                      onClick={bukaTambah}
+                      className={btnPrimary}
+                    >
                       <PlusIcon size={17} /> Tambah Kamar
                     </button>
                   )
@@ -215,86 +308,228 @@ export default function DataKamar() {
                   <thead className="bg-slate-50/70">
                     <tr>
                       <th className={thCls}>No. Kamar</th>
-                      <th className={thCls}>Tipe</th>
-                      <th className={thCls}>Harga Sewa / Bulan</th>
+                      <th className={thCls}>Tipe Aktif</th>
+                      <th className={thCls}>Tarif Dasar (1 / 2 Org)</th>
+                      <th className={thCls}>Harga Aktif / Bulan</th>
                       <th className={thCls}>Fasilitas</th>
                       <th className={thCls}>Status</th>
                       <th className={`${thCls} text-right`}>Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {baris.map((k) => (
-                      <tr key={k.id} className="transition hover:bg-slate-50/70">
-                        <td className={`${tdCls} font-bold`}>{k.nomor_kamar}</td>
-                        <td className={`${tdCls} capitalize`}>{k.tipe}</td>
-                        <td className={`${tdCls} tabular-nums`}>{rupiah(k.harga_sewa)}</td>
-                        <td className={`${tdCls} max-w-xs truncate text-ink-soft`} title={k.fasilitas}>
-                          {k.fasilitas}
-                        </td>
-                        <td className={tdCls}>
-                          <StatusPill status={k.status} />
-                        </td>
-                        <td className={`${tdCls} text-right`}>
-                          <div className="inline-flex gap-1">
-                            <button type="button" onClick={() => bukaEdit(k)} aria-label={`Edit kamar ${k.nomor_kamar}`} className={`${btnGhost} h-9 w-9 !px-0`}>
-                              <PencilIcon size={17} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setHapus(k)}
-                              aria-label={`Hapus kamar ${k.nomor_kamar}`}
-                              className={`${btnGhost} h-9 w-9 !px-0 hover:!bg-rose-50 hover:!text-rose-600`}
-                            >
-                              <TrashIcon size={17} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {baris.map((k) => {
+                      const jml =
+                        k.jumlah_penghuni ?? (k.status === "terisi" ? 1 : 0);
+                      return (
+                        <tr
+                          key={k.id}
+                          className="transition hover:bg-slate-50/70"
+                        >
+                          <td className={`${tdCls} font-bold`}>
+                            {k.nomor_kamar}
+                          </td>
+                          <td className={tdCls}>
+                            <span className="capitalize">{k.tipe}</span>
+                            <span className="ml-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
+                              {jml}/2 org
+                            </span>
+                          </td>
+                          <td
+                            className={`${tdCls} text-xs text-ink-soft tabular-nums`}
+                          >
+                            <div>
+                              1 org:{" "}
+                              <span className="font-semibold text-ink">
+                                {rupiah(k.harga_individu ?? 550000)}
+                              </span>
+                            </div>
+                            <div>
+                              2 org:{" "}
+                              <span className="font-semibold text-ink">
+                                {rupiah(k.harga_berdua ?? 750000)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className={`${tdCls} tabular-nums`}>
+                            <div className="font-bold text-ink">
+                              {rupiah(k.harga_sewa)}
+                            </div>
+                            {(k.biaya_fasilitas ?? 0) > 0 && (
+                              <span className="text-[11px] font-medium text-kos-700">
+                                + {rupiah(k.biaya_fasilitas)} fasilitas
+                              </span>
+                            )}
+                          </td>
+                          <td
+                            className={`${tdCls} max-w-xs truncate text-ink-soft`}
+                            title={k.fasilitas}
+                          >
+                            {k.fasilitas || "-"}
+                          </td>
+                          <td className={tdCls}>
+                            <StatusPill status={k.status} />
+                          </td>
+                          <td className={`${tdCls} text-right`}>
+                            <div className="inline-flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => bukaEdit(k)}
+                                aria-label={`Edit kamar ${k.nomor_kamar}`}
+                                className={`${btnGhost} h-9 w-9 !px-0`}
+                              >
+                                <PencilIcon size={17} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setHapus(k)}
+                                aria-label={`Hapus kamar ${k.nomor_kamar}`}
+                                className={`${btnGhost} h-9 w-9 !px-0 hover:!bg-rose-50 hover:!text-rose-600`}
+                              >
+                                <TrashIcon size={17} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
-            <Pagination total={tersaring.length} page={halaman} perPage={PER_HALAMAN} onChange={setHalaman} />
+            <Pagination
+              total={tersaring.length}
+              page={halaman}
+              perPage={PER_HALAMAN}
+              onChange={setHalaman}
+            />
           </section>
         </>
       )}
 
-      <Modal open={formOpen} onClose={() => setFormOpen(false)} title={editingId ? 'Edit Data Kamar' : 'Tambah Kamar Baru'}>
+      <Modal
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        title={
+          editingId ? `Edit Kamar ${form.nomor_kamar}` : "Tambah Kamar Baru"
+        }
+        description="Tipe kamar (Individu/Berdua) & status otomatis menyesuaikan jumlah penghuni aktif (maks. 2 orang)."
+      >
         <form onSubmit={simpan} className="space-y-4">
           <div>
-            <label htmlFor="nomor" className={labelCls}>Nomor Kamar</label>
-            <input id="nomor" required placeholder="Contoh: A12" value={form.nomor_kamar} onChange={(e) => setForm({ ...form, nomor_kamar: e.target.value })} className={inputCls} />
-            <p className="mt-1.5 text-xs text-ink-soft">Huruf di depan menentukan blok di denah (A12 → Blok A).</p>
+            <label htmlFor="nomor" className={labelCls}>
+              Nomor Kamar
+            </label>
+            <input
+              id="nomor"
+              required
+              placeholder="Contoh: A12"
+              value={form.nomor_kamar}
+              onChange={(e) =>
+                setForm({ ...form, nomor_kamar: e.target.value })
+              }
+              className={inputCls}
+            />
+            <p className="mt-1.5 text-xs text-ink-soft">
+              Huruf di depan menentukan blok di denah (A12 → Blok A).
+            </p>
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="tipe" className={labelCls}>Tipe Kamar</label>
-              <select id="tipe" value={form.tipe} onChange={(e) => setForm({ ...form, tipe: e.target.value as 'individu' | 'berdua' })} className={inputCls}>
-                <option value="individu">Individu</option>
-                <option value="berdua">Berdua</option>
-              </select>
+              <label htmlFor="harga-individu" className={labelCls}>
+                Tarif Individu / 1 Org (Rp)
+              </label>
+              <input
+                id="harga-individu"
+                type="number"
+                required
+                min={0}
+                value={form.harga_individu}
+                onChange={(e) =>
+                  setForm({ ...form, harga_individu: Number(e.target.value) })
+                }
+                className={inputCls}
+              />
             </div>
             <div>
-              <label htmlFor="status" className={labelCls}>Status</label>
-              <select id="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'tersedia' | 'terisi' })} className={inputCls}>
-                <option value="tersedia">Tersedia</option>
-                <option value="terisi">Terisi</option>
-              </select>
+              <label htmlFor="harga-berdua" className={labelCls}>
+                Tarif Berdua / 2 Org (Rp)
+              </label>
+              <input
+                id="harga-berdua"
+                type="number"
+                required
+                min={0}
+                value={form.harga_berdua}
+                onChange={(e) =>
+                  setForm({ ...form, harga_berdua: Number(e.target.value) })
+                }
+                className={inputCls}
+              />
             </div>
           </div>
+
           <div>
-            <label htmlFor="harga" className={labelCls}>Harga Sewa (Rp)</label>
-            <input id="harga" type="number" required min={0} value={form.harga_sewa} onChange={(e) => setForm({ ...form, harga_sewa: Number(e.target.value) })} className={inputCls} />
-            {form.tipe === 'berdua' && <p className="mt-1.5 text-xs text-ink-soft">Kamar berdua: tagihan dibagi rata untuk 2 penghuni.</p>}
+            <label htmlFor="biaya-fasilitas" className={labelCls}>
+              Tambahan Biaya Fasilitas (Rp)
+            </label>
+            <input
+              id="biaya-fasilitas"
+              type="number"
+              min={0}
+              placeholder="0 (kosongkan jika tanpa fasilitas tambahan)"
+              value={form.biaya_fasilitas ?? 0}
+              onChange={(e) =>
+                setForm({ ...form, biaya_fasilitas: Number(e.target.value) })
+              }
+              className={inputCls}
+            />
+            <p className="mt-1.5 text-xs text-ink-soft">
+              Isi 0 jika tanpa fasilitas tambahan. Saat kamar kosong (0
+              penghuni), biaya fasilitas otomatis kembali ke 0.
+            </p>
           </div>
+
+          <div className="rounded-2xl border border-kos-200 bg-kos-50/70 px-4 py-3 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-ink-soft">
+                Estimasi Harga Aktif ({editingJumlahPenghuni} penghuni):
+              </span>
+              <span className="text-sm font-bold text-kos-700 tabular-nums">
+                {rupiah(pratinjauHargaAktif)} / bulan
+              </span>
+            </div>
+          </div>
+
           <div>
-            <label htmlFor="fasilitas" className={labelCls}>Fasilitas</label>
-            <textarea id="fasilitas" rows={3} required placeholder="Kasur, lemari, kamar mandi dalam, Wi-Fi..." value={form.fasilitas} onChange={(e) => setForm({ ...form, fasilitas: e.target.value })} className={inputCls} />
+            <label htmlFor="fasilitas" className={labelCls}>
+              Keterangan Fasilitas
+            </label>
+            <textarea
+              id="fasilitas"
+              rows={2}
+              placeholder="Kasur, lemari, kamar mandi dalam, AC, Wi-Fi..."
+              value={form.fasilitas}
+              onChange={(e) => setForm({ ...form, fasilitas: e.target.value })}
+              className={inputCls}
+            />
           </div>
+
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setFormOpen(false)} className={btnOutline}>Batal</button>
-            <button type="submit" disabled={isSubmitting} className={btnPrimary}>{isSubmitting ? 'Menyimpan...' : 'Simpan'}</button>
+            <button
+              type="button"
+              onClick={() => setFormOpen(false)}
+              className={btnOutline}
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={btnPrimary}
+            >
+              {isSubmitting ? "Menyimpan..." : "Simpan"}
+            </button>
           </div>
         </form>
       </Modal>
@@ -302,7 +537,7 @@ export default function DataKamar() {
       <ConfirmDialog
         open={!!hapus}
         title="Hapus kamar?"
-        message={`Kamar ${hapus?.nomor_kamar ?? ''} akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.`}
+        message={`Kamar ${hapus?.nomor_kamar ?? ""} akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.`}
         confirmLabel="Hapus"
         tone="danger"
         loading={menghapus}

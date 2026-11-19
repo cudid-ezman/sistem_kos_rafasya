@@ -1,31 +1,32 @@
-import { useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import api from './services/api';
-import type { UserProfile } from './types/auth';
+import { useEffect, useState } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import api from "./services/api";
+import type { UserProfile } from "./types/auth";
 
 // Komponen
-import Login from './pages/Login';
-import Register from './pages/auth/Register';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import ResetPassword from './pages/auth/ResetPassword';
-import DashboardLayout from './layouts/DashboardLayout';
-import PenghuniLayout from './layouts/PenghuniLayout';
-import ProtectedRoute from './components/ProtectedRoute';
-import TagihanSaya from './pages/penghuni/TagihanSaya';
-import RincianTagihan from './pages/penghuni/RincianTagihan';
-import UploadBukti from './pages/penghuni/UploadBukti';
-import PusatInformasi from './pages/penghuni/PusatInformasi';
-import DetailInformasi from './pages/penghuni/DetailInformasi';
-import KeluhanSaya from './pages/penghuni/KeluhanSaya';
-import BuatKeluhan from './pages/penghuni/BuatKeluhan';
-import DetailKeluhan from './pages/penghuni/DetailKeluhan';
-import VerifikasiPembayaran from './pages/pengurus/VerifikasiPembayaran';
-import DataKamar from './pages/pengurus/DataKamar';
-import DataPenghuni from './pages/pengurus/DataPenghuni';
-import DataTagihan from './pages/pengurus/DataTagihan';
-import DaftarKeluhan from './pages/pengurus/DaftarKeluhan';
-import Beranda from './pages/Beranda';
-import LaporanKeuangan from './pages/pemilik/LaporanKeuangan';
+import Login from "./pages/Login";
+import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import DashboardLayout from "./layouts/DashboardLayout";
+import PenghuniLayout from "./layouts/PenghuniLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import TagihanSaya from "./pages/penghuni/TagihanSaya";
+import RincianTagihan from "./pages/penghuni/RincianTagihan";
+import UploadBukti from "./pages/penghuni/UploadBukti";
+import PusatInformasi from "./pages/penghuni/PusatInformasi";
+import DetailInformasi from "./pages/penghuni/DetailInformasi";
+import KeluhanSaya from "./pages/penghuni/KeluhanSaya";
+import BuatKeluhan from "./pages/penghuni/BuatKeluhan";
+import DetailKeluhan from "./pages/penghuni/DetailKeluhan";
+import VerifikasiPembayaran from "./pages/pengurus/VerifikasiPembayaran";
+import DataKamar from "./pages/pengurus/DataKamar";
+import DataPenghuni from "./pages/pengurus/DataPenghuni";
+import DataTagihan from "./pages/pengurus/DataTagihan";
+import DaftarKeluhan from "./pages/pengurus/DaftarKeluhan";
+import Beranda from "./pages/Beranda";
+import LaporanKeuangan from "./pages/pemilik/LaporanKeuangan";
+import KelolaAkun from "./pages/pemilik/KelolaAkun";
 
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -34,17 +35,17 @@ function App() {
 
   useEffect(() => {
     const verifySession = async () => {
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem("access_token");
       if (!token) {
         setIsCheckingAuth(false);
         return;
       }
       try {
-        const res = await api.get<UserProfile>('/me/');
+        const res = await api.get<UserProfile>("/me/");
         setUser(res.data);
       } catch {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
       } finally {
         setIsCheckingAuth(false);
       }
@@ -54,53 +55,98 @@ function App() {
 
   const handleLoginSuccess = (userData: UserProfile) => {
     setUser(userData);
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     setUser(null);
-    navigate('/');
+    navigate("/");
   };
 
   if (isCheckingAuth) {
-    return <div className="min-h-screen flex items-center justify-center bg-page text-ink-soft">Memuat sistem...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-page text-ink-soft">
+        Memuat sistem...
+      </div>
+    );
   }
 
   return (
     <Routes>
       {/* Route Publik */}
-      <Route 
-        path="/" 
-        element={user ? <Navigate to="/dashboard" replace /> : <Login onLoginSuccess={handleLoginSuccess} />} 
+      <Route
+        path="/"
+        element={
+          user ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Login onLoginSuccess={handleLoginSuccess} />
+          )
+        }
       />
 
-      <Route path="/daftar" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
-      <Route path="/lupa-kata-sandi" element={user ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} />
-      <Route path="/atur-ulang-kata-sandi/:uid/:token" element={<ResetPassword />} />
+      <Route path="/daftar" element={<Navigate to="/" replace />} />
+      <Route
+        path="/lupa-kata-sandi"
+        element={
+          user ? <Navigate to="/dashboard" replace /> : <ForgotPassword />
+        }
+      />
+      <Route
+        path="/atur-ulang-kata-sandi/:uid/:token"
+        element={<ResetPassword />}
+      />
+      <Route
+        path="/atur-ulang-kata-sandi/*"
+        element={<Navigate to="/lupa-kata-sandi" replace />}
+      />
 
       {/* Portal Penghuni (layout & halaman khusus penghuni) */}
-      <Route element={<ProtectedRoute user={user} allowedRoles={['penghuni', 'Penghuni']} />}>
-        <Route element={<PenghuniLayout user={user!} onLogout={handleLogout} />}>
+      <Route
+        element={
+          <ProtectedRoute user={user} allowedRoles={["penghuni", "Penghuni"]} />
+        }
+      >
+        <Route
+          element={<PenghuniLayout user={user!} onLogout={handleLogout} />}
+        >
           <Route path="/dashboard/tagihan-saya" element={<TagihanSaya />} />
-          <Route path="/dashboard/tagihan-saya/:id" element={<RincianTagihan />} />
-          <Route path="/dashboard/tagihan-saya/:id/upload" element={<UploadBukti />} />
+          <Route
+            path="/dashboard/tagihan-saya/:id"
+            element={<RincianTagihan />}
+          />
+          <Route
+            path="/dashboard/tagihan-saya/:id/upload"
+            element={<UploadBukti />}
+          />
           <Route path="/dashboard/informasi" element={<PusatInformasi />} />
-          <Route path="/dashboard/informasi/:slug" element={<DetailInformasi />} />
+          <Route
+            path="/dashboard/informasi/:slug"
+            element={<DetailInformasi />}
+          />
           <Route path="/dashboard/keluhan-saya" element={<KeluhanSaya />} />
-          <Route path="/dashboard/keluhan-saya/baru" element={<BuatKeluhan />} />
-          <Route path="/dashboard/keluhan-saya/:id" element={<DetailKeluhan />} />
+          <Route
+            path="/dashboard/keluhan-saya/baru"
+            element={<BuatKeluhan />}
+          />
+          <Route
+            path="/dashboard/keluhan-saya/:id"
+            element={<DetailKeluhan />}
+          />
         </Route>
       </Route>
 
       {/* Route Dilindungi (Pengurus & Pemilik) */}
       <Route element={<ProtectedRoute user={user} />}>
-        <Route element={<DashboardLayout user={user!} onLogout={handleLogout} />}>
+        <Route
+          element={<DashboardLayout user={user!} onLogout={handleLogout} />}
+        >
           <Route
             path="/dashboard"
             element={
-              (user?.role || '').toLowerCase() === 'penghuni' ? (
+              (user?.role || "").toLowerCase() === "penghuni" ? (
                 <Navigate to="/dashboard/tagihan-saya" replace />
               ) : (
                 <Beranda user={user!} />
@@ -111,12 +157,16 @@ function App() {
           {/* Rute Pengurus */}
           <Route path="/dashboard/kamar" element={<DataKamar />} />
           <Route path="/dashboard/penghuni" element={<DataPenghuni />} />
-          <Route path="/dashboard/verifikasi" element={<VerifikasiPembayaran />} />
+          <Route
+            path="/dashboard/verifikasi"
+            element={<VerifikasiPembayaran />}
+          />
           <Route path="/dashboard/tagihan" element={<DataTagihan />} />
           <Route path="/dashboard/keluhan" element={<DaftarKeluhan />} />
 
           {/* Rute Pemilik */}
           <Route path="/dashboard/laporan" element={<LaporanKeuangan />} />
+          <Route path="/dashboard/kelola-akun" element={<KelolaAkun />} />
         </Route>
       </Route>
     </Routes>

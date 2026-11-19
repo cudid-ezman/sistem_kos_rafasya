@@ -159,3 +159,42 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
+
+# Muat variabel dari file .env jika ada
+env_path = os.path.join(BASE_DIR, '.env')
+if os.path.exists(env_path):
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                k, v = line.split('=', 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+# Konfigurasi Pengiriman Email (Django 6 MAILERS)
+_EMAIL_USER = os.environ.get('EMAIL_HOST_USER', '')
+_EMAIL_PASS = os.environ.get('EMAIL_HOST_PASSWORD', '')
+
+if _EMAIL_USER and _EMAIL_PASS:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+            'OPTIONS': {
+                'host': 'smtp.gmail.com',
+                'port': 465,
+                'use_ssl': True,
+                'username': _EMAIL_USER.strip(),
+                'password': _EMAIL_PASS.replace(' ', '').strip(),
+                'timeout': 15,
+            },
+        }
+    }
+    DEFAULT_FROM_EMAIL = f'Kos Rafasya <{_EMAIL_USER.strip()}>'
+else:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        }
+    }
+    DEFAULT_FROM_EMAIL = 'admin@kosrafasya.id'
+
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')

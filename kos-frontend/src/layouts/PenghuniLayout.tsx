@@ -1,11 +1,19 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
-import type { UserProfile } from '../types/auth';
-import { inisial } from '../lib/format';
-import PortalProvider from '../components/portal/PortalProvider';
-import ToastProvider from '../components/portal/ToastProvider';
-import NotificationBell from '../components/portal/NotificationBell';
-import { usePortal } from '../components/portal/portalContext';
-import { DoorIcon, InfoCircleIcon, LogoutIcon, ReceiptIcon, WarningIcon } from '../components/portal/icons';
+import { useState } from "react";
+import { Link, NavLink, Outlet } from "react-router-dom";
+import type { UserProfile } from "../types/auth";
+import { inisial } from "../lib/format";
+import PortalProvider from "../components/portal/PortalProvider";
+import ToastProvider from "../components/portal/ToastProvider";
+import NotificationBell from "../components/portal/NotificationBell";
+import UbahPasswordModal from "../components/portal/UbahPasswordModal";
+import { usePortal } from "../components/portal/portalContext";
+import {
+  DoorIcon,
+  InfoCircleIcon,
+  LogoutIcon,
+  ReceiptIcon,
+  WarningIcon,
+} from "../components/portal/icons";
 
 interface Props {
   user: UserProfile;
@@ -14,14 +22,34 @@ interface Props {
 
 function Shell({ onLogout }: { onLogout: () => void }) {
   const { user, kamar, tagihan, keluhan } = usePortal();
-
-  const perluBayar = tagihan.filter((t) => ['belum_dibayar', 'ditolak', 'terlambat'].includes(t.status)).length;
-  const keluhanAktif = keluhan.filter((k) => k.status !== 'selesai').length;
+  const [ubahPwOpen, setUbahPwOpen] = useState(false);
+  const perluBayar = tagihan.filter((t) =>
+    ["belum_dibayar", "ditolak", "terlambat"].includes(t.status),
+  ).length;
+  const keluhanAktif = keluhan.filter((k) => k.status !== "selesai").length;
 
   const nav = [
-    { to: '/dashboard/tagihan-saya', label: 'Tagihan Saya', short: 'Tagihan', icon: ReceiptIcon, badge: perluBayar },
-    { to: '/dashboard/informasi', label: 'Pusat Informasi', short: 'Informasi', icon: InfoCircleIcon, badge: 0 },
-    { to: '/dashboard/keluhan-saya', label: 'Keluhan', short: 'Keluhan', icon: WarningIcon, badge: keluhanAktif },
+    {
+      to: "/dashboard/tagihan-saya",
+      label: "Tagihan Saya",
+      short: "Tagihan",
+      icon: ReceiptIcon,
+      badge: perluBayar,
+    },
+    {
+      to: "/dashboard/informasi",
+      label: "Pusat Informasi",
+      short: "Informasi",
+      icon: InfoCircleIcon,
+      badge: 0,
+    },
+    {
+      to: "/dashboard/keluhan-saya",
+      label: "Keluhan",
+      short: "Keluhan",
+      icon: WarningIcon,
+      badge: keluhanAktif,
+    },
   ];
 
   const nama = user.nama_lengkap || user.username;
@@ -38,13 +66,20 @@ function Shell({ onLogout }: { onLogout: () => void }) {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 lg:px-6">
-          <Link to="/dashboard/tagihan-saya" className="flex items-center gap-3">
+          <Link
+            to="/dashboard/tagihan-saya"
+            className="flex items-center gap-3"
+          >
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-kos-600 text-lg font-bold text-white shadow-sm shadow-kos-600/30">
               R
             </span>
             <span className="leading-tight">
-              <span className="block text-[15px] font-bold text-kos-950">Kos Rafasya</span>
-              <span className="block text-xs text-ink-soft">Portal Penghuni</span>
+              <span className="block text-[15px] font-bold text-kos-950">
+                Kos Rafasya
+              </span>
+              <span className="block text-xs text-ink-soft">
+                Portal Penghuni
+              </span>
             </span>
           </Link>
 
@@ -56,12 +91,24 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                 {inisial(nama)}
               </span>
               <span className="hidden leading-tight sm:block">
-                <span className="block max-w-[180px] truncate text-sm font-semibold text-ink">{nama}</span>
+                <span className="block max-w-[180px] truncate text-sm font-semibold text-ink">
+                  {nama}
+                </span>
                 <span className="block text-xs text-ink-soft">
-                  Penghuni{kamar ? ` • Kamar ${kamar.nomor}` : ''}
+                  Penghuni{kamar ? ` • Kamar ${kamar.nomor}` : ""}
                 </span>
               </span>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setUbahPwOpen(true)}
+              className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-ink transition hover:bg-slate-50"
+            >
+              <span className="hidden sm:inline">Ubah Sandi</span>
+              <span className="sm:hidden">Sandi</span>
+            </button>
+
             <button
               type="button"
               onClick={onLogout}
@@ -86,11 +133,15 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                 <DoorIcon />
               </span>
               <div className="leading-tight">
-                <p className="text-lg font-bold">{kamar ? `Kamar ${kamar.nomor}` : 'Kamar Anda'}</p>
+                <p className="text-lg font-bold">
+                  {kamar ? `Kamar ${kamar.nomor}` : "Kamar Anda"}
+                </p>
                 <p className="mt-0.5 text-xs text-white/70">
                   {kamar
-                    ? [kamar.blok && `Blok ${kamar.blok}`, kamar.tipe].filter(Boolean).join(' • ') || 'Penghuni aktif'
-                    : 'Data kamar belum tersedia'}
+                    ? [kamar.blok && `Blok ${kamar.blok}`, kamar.tipe]
+                        .filter(Boolean)
+                        .join(" • ") || "Penghuni aktif"
+                    : "Data kamar belum tersedia"}
                 </p>
               </div>
             </div>
@@ -104,8 +155,8 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                 className={({ isActive }) =>
                   `group flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition ${
                     isActive
-                      ? 'bg-kos-600 text-white shadow-md shadow-kos-600/25'
-                      : 'text-ink-soft hover:bg-white hover:text-ink hover:shadow-sm'
+                      ? "bg-kos-600 text-white shadow-md shadow-kos-600/25"
+                      : "text-ink-soft hover:bg-white hover:text-ink hover:shadow-sm"
                   }`
                 }
               >
@@ -116,7 +167,9 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                     {n.badge > 0 && (
                       <span
                         className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                          isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-amber-100 text-amber-800"
                         }`}
                       >
                         {n.badge}
@@ -129,11 +182,15 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           </nav>
 
           <p className="mt-auto rounded-2xl border border-dashed border-slate-300 p-4 text-xs leading-relaxed text-ink-soft">
-            Butuh bantuan? Hubungi pengurus kos atau kirim laporan lewat menu Keluhan.
+            Butuh bantuan? Hubungi pengurus kos atau kirim laporan lewat menu
+            Keluhan.
           </p>
         </aside>
 
-        <main id="konten" className="min-w-0 flex-1 px-4 pb-28 pt-6 lg:px-8 lg:pb-12 lg:pt-8">
+        <main
+          id="konten"
+          className="min-w-0 flex-1 px-4 pb-28 pt-6 lg:px-8 lg:pb-12 lg:pt-8"
+        >
           <Outlet />
         </main>
       </div>
@@ -149,7 +206,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
             to={n.to}
             className={({ isActive }) =>
               `relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 text-[11px] font-semibold transition ${
-                isActive ? 'bg-kos-600 text-white' : 'text-ink-soft'
+                isActive ? "bg-kos-600 text-white" : "text-ink-soft"
               }`
             }
           >
@@ -163,6 +220,10 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           </NavLink>
         ))}
       </nav>
+      <UbahPasswordModal
+        open={ubahPwOpen}
+        onClose={() => setUbahPwOpen(false)}
+      />
     </div>
   );
 }
