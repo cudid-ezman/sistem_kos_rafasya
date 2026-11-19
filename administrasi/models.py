@@ -21,7 +21,7 @@ class Kamar(models.Model):
     nomor_kamar = models.CharField(max_length=10, unique=True)
     tipe = models.CharField(max_length=20, choices=TIPE_CHOICES, default='individu')
     harga_individu = models.FloatField(default=550000)
-    harga_berdua = models.FloatField(default=750000)
+    harga_berdua = models.FloatField(default=800000)
     biaya_fasilitas = models.FloatField(default=0)
     harga_sewa = models.FloatField(default=550000)
     fasilitas = models.TextField(blank=True, default='')

@@ -40,7 +40,7 @@ const KOSONG: CreateKamarPayload = {
   nomor_kamar: "",
   tipe: "individu",
   harga_individu: 550000,
-  harga_berdua: 750000,
+  harga_berdua: 800000,
   biaya_fasilitas: 0,
   fasilitas: "",
   status: "tersedia",
@@ -120,7 +120,7 @@ export default function DataKamar() {
       nomor_kamar: k.nomor_kamar,
       tipe: k.tipe,
       harga_individu: k.harga_individu ?? 550000,
-      harga_berdua: k.harga_berdua ?? 750000,
+      harga_berdua: k.harga_berdua ?? 800000,
       biaya_fasilitas: k.biaya_fasilitas ?? 0,
       fasilitas: k.fasilitas,
       status: k.status,
@@ -129,12 +129,14 @@ export default function DataKamar() {
   };
 
   const pratinjauHargaAktif = useMemo(() => {
-    const dasar =
-      editingJumlahPenghuni >= 2
-        ? Number(form.harga_berdua || 0)
-        : Number(form.harga_individu || 0);
-    const fas =
-      editingJumlahPenghuni === 0 ? 0 : Number(form.biaya_fasilitas || 0);
+    const pakaiFasilitas = Number(form.biaya_fasilitas || 0) > 0;
+    if (editingJumlahPenghuni >= 2) {
+      const dasar = Number(form.harga_berdua || 800000);
+      const fas = pakaiFasilitas ? 310000 : 0;
+      return dasar + fas;
+    }
+    const dasar = Number(form.harga_individu || 550000);
+    const fas = editingJumlahPenghuni === 0 || !pakaiFasilitas ? 0 : 200000;
     return dasar + fas;
   }, [
     editingJumlahPenghuni,
@@ -346,7 +348,7 @@ export default function DataKamar() {
                             <div>
                               2 org:{" "}
                               <span className="font-semibold text-ink">
-                                {rupiah(k.harga_berdua ?? 750000)}
+                                {rupiah(k.harga_berdua ?? 800000)}
                               </span>
                             </div>
                           </td>
@@ -470,23 +472,33 @@ export default function DataKamar() {
           </div>
 
           <div>
-            <label htmlFor="biaya-fasilitas" className={labelCls}>
-              Tambahan Biaya Fasilitas (Rp)
+            <label htmlFor="status-fasilitas" className={labelCls}>
+              Paket Fasilitas Tambahan
             </label>
-            <input
-              id="biaya-fasilitas"
-              type="number"
-              min={0}
-              placeholder="0 (kosongkan jika tanpa fasilitas tambahan)"
-              value={form.biaya_fasilitas ?? 0}
-              onChange={(e) =>
-                setForm({ ...form, biaya_fasilitas: Number(e.target.value) })
-              }
+            <select
+              id="status-fasilitas"
+              value={(form.biaya_fasilitas ?? 0) > 0 ? "pakai" : "tanpa"}
+              onChange={(e) => {
+                const pakai = e.target.value === "pakai";
+                const nominal = !pakai
+                  ? 0
+                  : editingJumlahPenghuni >= 2
+                    ? 310000
+                    : 200000;
+                setForm({ ...form, biaya_fasilitas: nominal });
+              }}
               className={inputCls}
-            />
+            >
+              <option value="tanpa">
+                Tanpa Fasilitas (Sendiri Rp550.000 / Berdua Rp800.000)
+              </option>
+              <option value="pakai">
+                Pakai Fasilitas (Sendiri Rp750.000 / Berdua Rp1.110.000)
+              </option>
+            </select>
             <p className="mt-1.5 text-xs text-ink-soft">
-              Isi 0 jika tanpa fasilitas tambahan. Saat kamar kosong (0
-              penghuni), biaya fasilitas otomatis kembali ke 0.
+              Tarif otomatis menyesuaikan kapasitas penghuni aktif. Saat kamar
+              kosong (0 penghuni), status kembali ke tanpa fasilitas.
             </p>
           </div>
 
