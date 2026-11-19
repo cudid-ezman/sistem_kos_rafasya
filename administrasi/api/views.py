@@ -411,13 +411,18 @@ def laporan_keuangan_api(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def request_password_reset_api(request):
-    email = (request.data.get('email') or '').strip()
+    email = (request.data.get('email') or '').strip().lower()
     if not email:
         return Response({'detail': 'Email wajib diisi.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.filter(email__iexact=email).first()
+    user = (
+        User.objects.filter(email__iexact=email).first()
+        or User.objects.filter(username__iexact=email).first()
+    )
     if not user:
         return Response({'detail': 'Email tidak terdaftar.'}, status=status.HTTP_404_NOT_FOUND)
+    if not user.is_active:
+        return Response({'detail': 'Akun ini sudah dinonaktifkan (checkout). Hubungi pengurus.'}, status=status.HTTP_400_BAD_REQUEST)
 
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
