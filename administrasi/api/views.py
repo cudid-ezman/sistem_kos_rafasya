@@ -124,6 +124,7 @@ def _sinkron_status_kamar(kamar):
     if not kamar:
         return
     jumlah_aktif = Penghuni.objects.filter(kamar=kamar, status_aktif=True).count()
+    pakai_fasilitas = (kamar.biaya_fasilitas or 0) > 0
 
     if jumlah_aktif == 0:
         kamar.status = 'tersedia'
@@ -133,10 +134,14 @@ def _sinkron_status_kamar(kamar):
     elif jumlah_aktif == 1:
         kamar.status = 'terisi'
         kamar.tipe = 'individu'
+        if pakai_fasilitas:
+            kamar.biaya_fasilitas = 200000
         kamar.harga_sewa = kamar.harga_individu + kamar.biaya_fasilitas
     else:
         kamar.status = 'terisi'
         kamar.tipe = 'berdua'
+        if pakai_fasilitas:
+            kamar.biaya_fasilitas = 310000
         kamar.harga_sewa = kamar.harga_berdua + kamar.biaya_fasilitas
 
     kamar.save(update_fields=['status', 'tipe', 'biaya_fasilitas', 'harga_sewa'])

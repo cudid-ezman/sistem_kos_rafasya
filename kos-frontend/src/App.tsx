@@ -5,7 +5,6 @@ import type { UserProfile } from "./types/auth";
 
 // Komponen
 import Login from "./pages/Login";
-import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import DashboardLayout from "./layouts/DashboardLayout";
