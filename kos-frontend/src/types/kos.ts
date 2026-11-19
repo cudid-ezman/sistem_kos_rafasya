@@ -1,10 +1,14 @@
 export interface Kamar {
   id: number;
   nomor_kamar: string;
-  tipe: 'individu' | 'berdua';
+  tipe: "individu" | "berdua";
+  harga_individu: number;
+  harga_berdua: number;
+  biaya_fasilitas: number;
   harga_sewa: number;
   fasilitas: string;
-  status: 'tersedia' | 'terisi';
+  status: "tersedia" | "terisi";
+  jumlah_penghuni?: number;
 }
 
 export interface Penghuni {
@@ -25,7 +29,12 @@ export interface Tagihan {
   periode: string;
   nominal: number;
   jatuh_tempo: string;
-  status: 'belum_dibayar' | 'menunggu_verifikasi' | 'lunas' | 'ditolak' | 'terlambat';
+  status:
+    | "belum_dibayar"
+    | "menunggu_verifikasi"
+    | "lunas"
+    | "ditolak"
+    | "terlambat";
   catatan?: string | null;
   nama_penghuni?: string;
   nomor_kamar?: string;
@@ -33,7 +42,7 @@ export interface Tagihan {
     nama_lengkap?: string;
     kamar?: {
       nomor_kamar?: string;
-      tipe?: 'individu' | 'berdua';
+      tipe?: "individu" | "berdua";
       harga_sewa?: number;
     };
   };
@@ -50,7 +59,7 @@ export interface BuktiPembayaran {
   berkas: string;
   tanggal_bayar: string;
   waktu_unggah: string;
-  status: 'menunggu_verifikasi' | 'diterima' | 'ditolak';
+  status: "menunggu_verifikasi" | "diterima" | "ditolak";
   catatan_penolakan?: string | null;
   tanggal_verifikasi?: string | null;
 }
@@ -69,7 +78,7 @@ export interface Keluhan {
   nama_kategori?: string;
   deskripsi: string;
   foto: string | null;
-  status: 'diterima' | 'diproses' | 'selesai';
+  status: "diterima" | "diproses" | "selesai";
   catatan_tindak_lanjut: string | null;
   tanggal_kirim: string;
 }

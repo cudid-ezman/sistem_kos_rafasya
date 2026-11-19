@@ -15,6 +15,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
+import calendar
 
 from administrasi.models import (
     ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan
@@ -52,10 +53,19 @@ class KamarListCreateAPI(generics.ListCreateAPIView):
     serializer_class = KamarSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        kamar = serializer.save()
+        _sinkron_status_kamar(kamar)
+
+
 class KamarDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Kamar.objects.all()
     serializer_class = KamarSerializer
     permission_classes = [IsPengurus]
+
+    def perform_update(self, serializer):
+        kamar = serializer.save()
+        _sinkron_status_kamar(kamar)
 
 # --- PENGHUNI (Otomatis Buat User & Update Status Kamar) ---
 class PenghuniListCreateAPI(generics.ListCreateAPIView):
@@ -95,8 +105,8 @@ class PenghuniListCreateAPI(generics.ListCreateAPIView):
             ProfilUser.objects.create(user=user_baru, role='penghuni')
 
             kamar = Kamar.objects.get(id=kamar_id)
-            kamar.status = 'terisi'
-            kamar.save()
+            if Penghuni.objects.filter(kamar=kamar, status_aktif=True).count() >= 2:
+                return Response({'detail': 'Kamar ini sudah terisi penuh (maksimal 2 orang).'}, status=status.HTTP_400_BAD_REQUEST)
 
             penghuni = Penghuni.objects.create(
                 user=user_baru,
@@ -105,9 +115,108 @@ class PenghuniListCreateAPI(generics.ListCreateAPIView):
                 no_kontak=no_kontak,
                 tanggal_masuk=tanggal_masuk
             )
+            _sinkron_status_kamar(kamar)
 
         serializer = self.get_serializer(penghuni)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+def _sinkron_status_kamar(kamar):
+    if not kamar:
+        return
+    jumlah_aktif = Penghuni.objects.filter(kamar=kamar, status_aktif=True).count()
+
+    if jumlah_aktif == 0:
+        kamar.status = 'tersedia'
+        kamar.tipe = 'individu'
+        kamar.biaya_fasilitas = 0
+        kamar.harga_sewa = kamar.harga_individu
+    elif jumlah_aktif == 1:
+        kamar.status = 'terisi'
+        kamar.tipe = 'individu'
+        kamar.harga_sewa = kamar.harga_individu + kamar.biaya_fasilitas
+    else:
+        kamar.status = 'terisi'
+        kamar.tipe = 'berdua'
+        kamar.harga_sewa = kamar.harga_berdua + kamar.biaya_fasilitas
+
+    kamar.save(update_fields=['status', 'tipe', 'biaya_fasilitas', 'harga_sewa'])
+
+
+class PenghuniDetailAPI(generics.RetrieveUpdateAPIView):
+    queryset = Penghuni.objects.select_related('user', 'kamar').all()
+    serializer_class = PenghuniSerializer
+    permission_classes = [IsPengurus]
+
+    def patch(self, request, *args, **kwargs):
+        penghuni = self.get_object()
+        user = penghuni.user
+        kamar_lama = penghuni.kamar
+
+        nama = request.data.get('nama_lengkap')
+        email = request.data.get('email')
+        no_identitas = request.data.get('no_identitas')
+        no_kontak = request.data.get('no_kontak')
+        tanggal_masuk = request.data.get('tanggal_masuk')
+        aksi = request.data.get('aksi')  # opsional: 'checkout' | 'aktifkan'
+
+        with transaction.atomic():
+            # 1. Validasi & update email jika diubah
+            if email is not None:
+                email_bersih = email.strip().lower()
+                if not email_bersih:
+                    return Response({'detail': 'Email tidak boleh kosong.'}, status=status.HTTP_400_BAD_REQUEST)
+                if User.objects.filter(email__iexact=email_bersih).exclude(pk=user.pk).exists():
+                    return Response({'detail': 'Email sudah digunakan oleh akun lain.'}, status=status.HTTP_400_BAD_REQUEST)
+                user.email = email_bersih
+                user.username = email_bersih
+
+            if nama is not None:
+                nama_bersih = nama.strip()
+                if not nama_bersih:
+                    return Response({'detail': 'Nama lengkap tidak boleh kosong.'}, status=status.HTTP_400_BAD_REQUEST)
+                user.first_name = nama_bersih
+
+            # 2. Proses Checkout / Aktifkan kembali / Pindah Kamar
+            if aksi == 'checkout':
+                penghuni.status_aktif = False
+                penghuni.kamar = None
+                user.is_active = False
+            else:
+                if aksi == 'aktifkan':
+                    penghuni.status_aktif = True
+                    user.is_active = True
+
+                if 'kamar' in request.data:
+                    kamar_baru_id = request.data.get('kamar')
+                    if kamar_baru_id:
+                        try:
+                            kamar_baru = Kamar.objects.get(pk=kamar_baru_id)
+                        except Kamar.DoesNotExist:
+                            return Response({'detail': 'Kamar tujuan tidak ditemukan.'}, status=status.HTTP_404_NOT_FOUND)
+
+                        if kamar_lama != kamar_baru and Penghuni.objects.filter(kamar=kamar_baru, status_aktif=True).count() >= 2:
+                            return Response({'detail': 'Kamar tujuan sudah terisi penuh (maksimal 2 orang).'}, status=status.HTTP_400_BAD_REQUEST)
+                        penghuni.kamar = kamar_baru
+                    elif penghuni.status_aktif:
+                        return Response({'detail': 'Penghuni aktif harus menempati kamar.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if no_identitas is not None:
+                penghuni.no_identitas = no_identitas.strip() or '-'
+            if no_kontak is not None:
+                penghuni.no_kontak = no_kontak.strip()
+            if tanggal_masuk is not None:
+                penghuni.tanggal_masuk = tanggal_masuk
+
+            user.save()
+            penghuni.save()
+
+            # 3. Sinkronkan status kamar lama & kamar baru
+            _sinkron_status_kamar(kamar_lama)
+            if penghuni.kamar and penghuni.kamar != kamar_lama:
+                _sinkron_status_kamar(penghuni.kamar)
+
+        serializer = self.get_serializer(penghuni)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # --- TAGIHAN & GENERATE TAGIHAN BULANAN ---
 class TagihanListCreateAPI(generics.ListCreateAPIView):
@@ -118,7 +227,13 @@ class TagihanListCreateAPI(generics.ListCreateAPIView):
         user = self.request.user
         if (hasattr(user, 'profiluser') and user.profiluser.role in ['pengurus', 'pemilik']) or user.is_superuser:
             return Tagihan.objects.all().order_by('-id')
-        return Tagihan.objects.filter(penghuni__user=user).order_by('-id')
+        penghuni = Penghuni.objects.filter(user=user).first()
+        if not penghuni:
+            return Tagihan.objects.none()
+        if penghuni.kamar:
+            return Tagihan.objects.filter(penghuni__kamar=penghuni.kamar).order_by('-id')
+        return Tagihan.objects.filter(penghuni=penghuni).order_by('-id')
+    
 class CustomLoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -138,27 +253,73 @@ def ganti_password_api(request):
     request.user.save()
     return Response({'detail': 'Kata sandi berhasil diperbarui.'}, status=status.HTTP_200_OK)
 
+def _jatuh_tempo_siklus_masuk(tanggal_masuk, tanggal_acuan):
+    """Menentukan tanggal jatuh tempo berdasarkan hari dari tanggal_masuk penghuni."""
+    tahun = tanggal_acuan.year
+    bulan = tanggal_acuan.month
+    hari_maks_bulan_ini = calendar.monthrange(tahun, bulan)[1]
+    hari_target = min(tanggal_masuk.day, hari_maks_bulan_ini)
+    kandidat = tanggal_acuan.replace(day=hari_target)
+
+    if kandidat < tanggal_acuan - timedelta(days=7):
+        if bulan == 12:
+            tahun += 1
+            bulan = 1
+        else:
+            bulan += 1
+        hari_maks_berikut = calendar.monthrange(tahun, bulan)[1]
+        kandidat = kandidat.replace(year=tahun, month=bulan, day=min(tanggal_masuk.day, hari_maks_berikut))
+
+    return kandidat
+
+
 @api_view(['POST'])
 @permission_classes([IsPengurus])
 def generate_tagihan_bulanan(request):
-    periode = request.data.get('periode')
+    periode = (request.data.get('periode') or '').strip()
     if not periode:
         return Response({'detail': 'Periode wajib diisi.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    penghuni_aktif = Penghuni.objects.filter(status_aktif=True, kamar__isnull=False)
+    kamar_terisi = Kamar.objects.filter(penghuni__status_aktif=True).distinct().order_by('nomor_kamar')
     created_count = 0
+    skipped_count = 0
+    hari_ini = now().date()
 
     with transaction.atomic():
-        for p in penghuni_aktif:
-            nominal = p.kamar.harga_sewa / 2 if p.kamar.tipe == 'berdua' else p.kamar.harga_sewa
-            jatuh_tempo = now().date() + timedelta(days=10)
+        for kamar in kamar_terisi:
+            # Cegah tagihan ganda untuk kamar & periode yang sama
+            sudah_ada = Tagihan.objects.filter(
+                penghuni__kamar=kamar,
+                periode__iexact=periode
+            ).exists()
+            if sudah_ada:
+                skipped_count += 1
+                continue
+
+            # Ambil penghuni utama (pertama masuk) sebagai perwakilan tagihan kamar
+            penghuni_utama = (
+                Penghuni.objects.filter(kamar=kamar, status_aktif=True)
+                .order_by('tanggal_masuk', 'id')
+                .first()
+            )
+            if not penghuni_utama:
+                continue
+
+            nominal = kamar.harga_sewa
+            jatuh_tempo = _jatuh_tempo_siklus_masuk(penghuni_utama.tanggal_masuk, hari_ini)
             Tagihan.objects.create(
-                penghuni=p, periode=periode, nominal=nominal,
-                jatuh_tempo=jatuh_tempo, status='belum_dibayar'
+                penghuni=penghuni_utama,
+                periode=periode,
+                nominal=nominal,
+                jatuh_tempo=jatuh_tempo,
+                status='belum_dibayar'
             )
             created_count += 1
 
-    return Response({'detail': f'{created_count} tagihan berhasil dibuat untuk periode {periode}.'})
+    pesan = f'{created_count} tagihan kamar berhasil dibuat untuk periode {periode}.'
+    if skipped_count:
+        pesan += f' ({skipped_count} kamar dilewati karena sudah memiliki tagihan periode ini.)'
+    return Response({'detail': pesan})
 
 # --- BUKTI PEMBAYARAN & VERIFIKASI PENGURUS ---
 class BuktiPembayaranListCreateAPI(generics.ListCreateAPIView):

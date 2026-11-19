@@ -6,9 +6,14 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class KamarSerializer(serializers.ModelSerializer):
+    jumlah_penghuni = serializers.SerializerMethodField()
+
     class Meta:
         model = Kamar
         fields = '__all__'
+
+    def get_jumlah_penghuni(self, obj):
+        return obj.penghuni_set.filter(status_aktif=True).count()
 
 class PenghuniSerializer(serializers.ModelSerializer):
     nama_lengkap = serializers.CharField(source='user.first_name', read_only=True)
