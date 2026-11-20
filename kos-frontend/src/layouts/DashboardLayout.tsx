@@ -3,12 +3,12 @@ import { Link, Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import type { UserProfile } from "../types/auth";
 import { tagihanService } from "../services/tagihanService";
 import { keluhanService } from "../services/keluhanService";
-import { inisial } from "../lib/format";
 import ToastProvider from "../components/portal/ToastProvider";
 import UbahPasswordModal from "../components/portal/UbahPasswordModal";
 import {
   ChartIcon,
   DoorIcon,
+  InfoCircleIcon,
   LogoutIcon,
   MenuHomeIcon,
   MenuIcon,
@@ -18,6 +18,8 @@ import {
   WarningIcon,
   XIcon,
 } from "../components/portal/icons";
+import type { BuktiPembayaran, Keluhan, Tagihan } from "../types/kos";
+import AdminNotificationBell from "../components/admin/AdminNotificationBell";
 
 interface Props {
   user: UserProfile;
@@ -39,6 +41,7 @@ const JUDUL: Record<string, string> = {
   "/dashboard/tagihan": "Data Tagihan",
   "/dashboard/verifikasi": "Verifikasi Pembayaran",
   "/dashboard/keluhan": "Keluhan Penghuni",
+  "/dashboard/informasi-kelola": "Pusat Informasi",
   "/dashboard/laporan": "Laporan Keuangan",
   "/dashboard/kelola-akun": "Kelola Akun",
 };
@@ -52,28 +55,37 @@ export default function DashboardLayout({ user, onLogout }: Props) {
 
   const [drawer, setDrawer] = useState(false);
   const [ubahPwOpen, setUbahPwOpen] = useState(false);
-  const [antrean, setAntrean] = useState(0);
-  const [keluhanAktif, setKeluhanAktif] = useState(0);
+  const [tagihanList, setTagihanList] = useState<Tagihan[]>([]);
+  const [buktiList, setBuktiList] = useState<BuktiPembayaran[]>([]);
+  const [keluhanList, setKeluhanList] = useState<Keluhan[]>([]);
 
-  // Badge menu (khusus pengurus): diperbarui setiap pindah halaman
+  const antrean = buktiList.filter(
+    (x) => x.status === "menunggu_verifikasi",
+  ).length;
+  const keluhanAktif = keluhanList.filter((x) => x.status !== "selesai").length;
+
+  // Data notifikasi & badge menu (pengurus & pemilik): diperbarui setiap pindah halaman
   useEffect(() => {
-    if (isSuperadmin || isPemilik || isPenghuni) return;
+    if (isSuperadmin || isPenghuni) return;
     let batal = false;
-    Promise.all([tagihanService.getBuktiPembayaran(), keluhanService.getAll()])
-      .then(([b, k]) => {
+    Promise.all([
+      tagihanService.getAll(),
+      tagihanService.getBuktiPembayaran(),
+      keluhanService.getAll(),
+    ])
+      .then(([t, b, k]) => {
         if (batal) return;
-        setAntrean(
-          b.data.filter((x) => x.status === "menunggu_verifikasi").length,
-        );
-        setKeluhanAktif(k.data.filter((x) => x.status !== "selesai").length);
+        setTagihanList(t.data);
+        setBuktiList(b.data);
+        setKeluhanList(k.data);
       })
       .catch(() => {
-        /* badge opsional, abaikan jika gagal */
+        /* notifikasi & badge opsional, abaikan jika gagal */
       });
     return () => {
       batal = true;
     };
-  }, [location.pathname, isSuperadmin, isPemilik, isPenghuni]);
+  }, [location.pathname, isSuperadmin, isPenghuni]);
 
   // Penghuni memakai portalnya sendiri
   if (isPenghuni) return <Navigate to="/dashboard/tagihan-saya" replace />;
@@ -159,6 +171,11 @@ export default function DashboardLayout({ user, onLogout }: Props) {
                 label: "Keluhan",
                 icon: WarningIcon,
                 badge: keluhanAktif,
+              },
+              {
+                to: "/dashboard/informasi-kelola",
+                label: "Pusat Informasi",
+                icon: InfoCircleIcon,
               },
             ],
           },
@@ -262,11 +279,17 @@ export default function DashboardLayout({ user, onLogout }: Props) {
               </h1>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
+              <AdminNotificationBell
+                user={user}
+                tagihan={tagihanList}
+                bukti={buktiList}
+                keluhan={keluhanList}
+              />
+              {!isSuperadmin && (
+                <span className="hidden h-7 w-px bg-slate-200 sm:block" />
+              )}
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-kos-600 text-xs font-bold text-white">
-                  {inisial(nama)}
-                </span>
                 <span className="hidden leading-tight sm:block">
                   <span className="block max-w-[180px] truncate text-sm font-semibold text-ink">
                     {nama}

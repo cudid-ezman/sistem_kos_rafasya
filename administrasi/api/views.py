@@ -18,12 +18,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 import calendar
 
 from administrasi.models import (
-    ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan
+    ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan, RiwayatStatusKeluhan, Informasi
 )
 from .serializers import (
     KamarSerializer, PenghuniSerializer, TagihanSerializer,
     BuktiPembayaranSerializer, KategoriKeluhanSerializer, KeluhanSerializer, 
-    CustomTokenObtainPairSerializer, AkunStaffSerializer
+    CustomTokenObtainPairSerializer, AkunStaffSerializer, InformasiSerializer
 )
 from .permissions import IsPengurus, IsPemilik
 
@@ -40,11 +40,24 @@ def data_diri(request):
     elif user.is_superuser:
         role = 'superadmin'
 
+    kamar_data = None
+    penghuni = Penghuni.objects.select_related('kamar').filter(user=user).first()
+    if penghuni and penghuni.kamar:
+        kamar_data = {
+            'id': penghuni.kamar.id,
+            'nomor_kamar': penghuni.kamar.nomor_kamar,
+            'tipe': penghuni.kamar.tipe,
+            'harga_sewa': penghuni.kamar.harga_sewa,
+            'fasilitas': penghuni.kamar.fasilitas,
+            'status': penghuni.kamar.status,
+        }
+
     return Response({
         'id': user.id,
         'username': user.username,
         'nama_lengkap': user.first_name,
-        'role': role
+        'role': role,
+        'kamar': kamar_data,
     })
 
 # --- KAMAR (CRUD Pengurus) ---
@@ -116,6 +129,7 @@ class PenghuniListCreateAPI(generics.ListCreateAPIView):
                 tanggal_masuk=tanggal_masuk
             )
             _sinkron_status_kamar(kamar)
+            _pastikan_tagihan_kamar_aktif(kamar, penghuni)
 
         serializer = self.get_serializer(penghuni)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -146,6 +160,42 @@ def _sinkron_status_kamar(kamar):
 
     kamar.save(update_fields=['status', 'tipe', 'biaya_fasilitas', 'harga_sewa'])
 
+NAMA_BULAN_ID = [
+    '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+]
+
+def _pastikan_tagihan_kamar_aktif(kamar, penghuni_referensi=None):
+    if not kamar:
+        return
+    penghuni_utama = (
+        Penghuni.objects.filter(kamar=kamar, status_aktif=True)
+        .order_by('tanggal_masuk', 'id')
+        .first()
+    ) or penghuni_referensi
+    if not penghuni_utama:
+        return
+
+    hari_ini = now().date()
+    periode_ini = f"{NAMA_BULAN_ID[hari_ini.month]} {hari_ini.year}"
+
+    tagihan_bulan_ini = Tagihan.objects.filter(
+        penghuni__kamar=kamar,
+        periode__iexact=periode_ini
+    ).first()
+
+    if not tagihan_bulan_ini:
+        jatuh_tempo = _jatuh_tempo_siklus_masuk(penghuni_utama.tanggal_masuk, hari_ini)
+        Tagihan.objects.create(
+            penghuni=penghuni_utama,
+            periode=periode_ini,
+            nominal=kamar.harga_sewa,
+            jatuh_tempo=jatuh_tempo,
+            status='belum_dibayar'
+        )
+    elif tagihan_bulan_ini.status in ['belum_dibayar', 'terlambat', 'ditolak']:
+        tagihan_bulan_ini.nominal = kamar.harga_sewa
+        tagihan_bulan_ini.save(update_fields=['nominal'])
 
 class PenghuniDetailAPI(generics.RetrieveUpdateAPIView):
     queryset = Penghuni.objects.select_related('user', 'kamar').all()
@@ -218,7 +268,9 @@ class PenghuniDetailAPI(generics.RetrieveUpdateAPIView):
             # 3. Sinkronkan status kamar lama & kamar baru
             _sinkron_status_kamar(kamar_lama)
             if penghuni.kamar and penghuni.kamar != kamar_lama:
-                _sinkron_status_kamar(penghuni.kamar)
+             _sinkron_status_kamar(penghuni.kamar)
+            if penghuni.status_aktif and penghuni.kamar:
+             _pastikan_tagihan_kamar_aktif(penghuni.kamar, penghuni)
 
         serializer = self.get_serializer(penghuni)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -388,18 +440,37 @@ class KeluhanListCreateAPI(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if (hasattr(user, 'profiluser') and user.profiluser.role == 'pengurus') or user.is_superuser:
+        if (hasattr(user, 'profiluser') and user.profiluser.role in ['pengurus', 'pemilik']) or user.is_superuser:
             return Keluhan.objects.all().order_by('-tanggal_kirim')
-        return Keluhan.objects.filter(penghuni__user=user).order_by('-tanggal_kirim')
+        penghuni = Penghuni.objects.filter(user=user).first()
+        if not penghuni:
+            return Keluhan.objects.none()
+        if penghuni.kamar:
+            return Keluhan.objects.filter(penghuni__kamar=penghuni.kamar).order_by('-tanggal_kirim')
+        return Keluhan.objects.filter(penghuni=penghuni).order_by('-tanggal_kirim')
 
     def perform_create(self, serializer):
         penghuni = Penghuni.objects.get(user=self.request.user)
-        serializer.save(penghuni=penghuni)
+        keluhan = serializer.save(penghuni=penghuni)
+        RiwayatStatusKeluhan.objects.create(
+            keluhan=keluhan,
+            status=keluhan.status,
+            catatan='Keluhan dikirim oleh penghuni.'
+        )
+
 
 class KeluhanUpdateAPI(generics.UpdateAPIView):
     queryset = Keluhan.objects.all()
     serializer_class = KeluhanSerializer
     permission_classes = [IsPengurus]
+
+    def perform_update(self, serializer):
+        keluhan = serializer.save()
+        RiwayatStatusKeluhan.objects.create(
+            keluhan=keluhan,
+            status=keluhan.status,
+            catatan=(keluhan.catatan_tindak_lanjut or '').strip() or None
+        )
 
 # --- LAPORAN KEUANGAN (PEMILIK) ---
 @api_view(['GET'])
@@ -548,3 +619,22 @@ def hapus_akun_staff_api(request, user_id):
 
     target_user.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+class InformasiListCreateAPI(generics.ListCreateAPIView):
+    queryset = Informasi.objects.all().order_by('id')
+    serializer_class = InformasiSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsPengurus()]
+        return [IsAuthenticated()]
+
+
+class InformasiDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Informasi.objects.all()
+    serializer_class = InformasiSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsPengurus()]
+        return [IsAuthenticated()]

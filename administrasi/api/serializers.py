@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from administrasi.models import (
-    Kamar, Penghuni, Tagihan, BuktiPembayaran, Keluhan, KategoriKeluhan
+    Kamar, Penghuni, Tagihan, BuktiPembayaran, Keluhan, KategoriKeluhan, RiwayatStatusKeluhan, Informasi
 )
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -57,19 +57,34 @@ class KategoriKeluhanSerializer(serializers.ModelSerializer):
         model = KategoriKeluhan
         fields = ['id', 'nama']
 
+class RiwayatStatusKeluhanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RiwayatStatusKeluhan
+        fields = ['id', 'status', 'catatan', 'waktu']
+
+
 class KeluhanSerializer(serializers.ModelSerializer):
     nama_kategori = serializers.CharField(source='kategori.nama', read_only=True)
     nama_penghuni = serializers.CharField(source='penghuni.user.first_name', read_only=True)
     nomor_kamar = serializers.CharField(source='penghuni.kamar.nomor_kamar', read_only=True)
+    riwayat_status = RiwayatStatusKeluhanSerializer(
+        source='riwayatstatuskeluhan_set', many=True, read_only=True
+    )
+    tanggal_diperbarui = serializers.SerializerMethodField()
 
     class Meta:
         model = Keluhan
         fields = [
             'id', 'penghuni', 'nama_penghuni', 'nomor_kamar',
             'kategori', 'nama_kategori', 'deskripsi', 'foto',
-            'status', 'catatan_tindak_lanjut', 'tanggal_kirim'
+            'status', 'catatan_tindak_lanjut', 'tanggal_kirim',
+            'tanggal_diperbarui', 'riwayat_status'
         ]
         read_only_fields = ['penghuni', 'tanggal_kirim']
+
+    def get_tanggal_diperbarui(self, obj):
+        terakhir = obj.riwayatstatuskeluhan_set.order_by('-waktu', '-id').first()
+        return terakhir.waktu if terakhir else None
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Mengizinkan login menggunakan Email, Username, maupun Nama Lengkap (case-insensitive)."""
@@ -99,3 +114,9 @@ class AkunStaffSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'nama_lengkap', 'role', 'date_joined']
+
+class InformasiSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Informasi
+        fields = ['id', 'kategori', 'ringkasan', 'isi', 'ikon', 'tanggal_pembaruan']
+        read_only_fields = ['tanggal_pembaruan']

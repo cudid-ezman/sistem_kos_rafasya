@@ -75,6 +75,13 @@ export interface KategoriKeluhan {
   nama: string;
 }
 
+export interface RiwayatStatusKeluhan {
+  id: number;
+  status: "diterima" | "diproses" | "selesai";
+  catatan: string | null;
+  waktu: string;
+}
+
 export interface Keluhan {
   id: number;
   penghuni: number;
@@ -87,4 +94,15 @@ export interface Keluhan {
   status: "diterima" | "diproses" | "selesai";
   catatan_tindak_lanjut: string | null;
   tanggal_kirim: string;
+  tanggal_diperbarui?: string | null;
+  riwayat_status?: RiwayatStatusKeluhan[];
+}
+
+export interface InformasiItem {
+  id: number;
+  kategori: string;
+  ringkasan: string;
+  isi: string;
+  ikon: "aturan-kos" | "jadwal-gerbang" | "wifi" | string;
+  tanggal_pembaruan: string;
 }
