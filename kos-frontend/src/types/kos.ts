@@ -91,3 +91,12 @@ export interface Keluhan {
   tanggal_diperbarui?: string | null;
   riwayat_status?: RiwayatStatusKeluhan[];
 }
+
+export interface InformasiItem {
+  id: number;
+  kategori: string;
+  ringkasan: string;
+  isi: string;
+  ikon: "aturan-kos" | "jadwal-gerbang" | "wifi" | string;
+  tanggal_pembaruan: string;
+}

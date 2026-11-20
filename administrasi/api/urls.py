@@ -29,4 +29,6 @@ urlpatterns = [
     path('keluhan/<int:pk>/', views.KeluhanUpdateAPI.as_view(), name='api_keluhan_update'),
 
     path('laporan-keuangan/', views.laporan_keuangan_api, name='api_laporan_keuangan'),
+    path('informasi/', views.InformasiListCreateAPI.as_view(), name='api_informasi'),
+    path('informasi/<int:pk>/', views.InformasiDetailAPI.as_view(), name='api_informasi_detail'),
 ]

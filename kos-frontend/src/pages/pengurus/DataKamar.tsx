@@ -129,14 +129,12 @@ export default function DataKamar() {
   };
 
   const pratinjauHargaAktif = useMemo(() => {
-    const pakaiFasilitas = Number(form.biaya_fasilitas || 0) > 0;
-    if (editingJumlahPenghuni >= 2) {
-      const dasar = Number(form.harga_berdua || 800000);
-      const fas = pakaiFasilitas ? 310000 : 0;
-      return dasar + fas;
-    }
-    const dasar = Number(form.harga_individu || 550000);
-    const fas = editingJumlahPenghuni === 0 || !pakaiFasilitas ? 0 : 200000;
+    const dasar =
+      editingJumlahPenghuni >= 2
+        ? Number(form.harga_berdua || 0)
+        : Number(form.harga_individu || 0);
+    const fas =
+      editingJumlahPenghuni === 0 ? 0 : Number(form.biaya_fasilitas || 0);
     return dasar + fas;
   }, [
     editingJumlahPenghuni,
@@ -435,11 +433,10 @@ export default function DataKamar() {
               Huruf di depan menentukan blok di denah (A12 → Blok A).
             </p>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="harga-individu" className={labelCls}>
-                Tarif Individu / 1 Org (Rp)
+                Tarif Dasar Sendiri (Rp)
               </label>
               <input
                 id="harga-individu"
@@ -455,7 +452,7 @@ export default function DataKamar() {
             </div>
             <div>
               <label htmlFor="harga-berdua" className={labelCls}>
-                Tarif Berdua / 2 Org (Rp)
+                Tarif Dasar Berdua (Rp)
               </label>
               <input
                 id="harga-berdua"
@@ -472,33 +469,35 @@ export default function DataKamar() {
           </div>
 
           <div>
-            <label htmlFor="status-fasilitas" className={labelCls}>
-              Paket Fasilitas Tambahan
+            <label htmlFor="paket-fasilitas" className={labelCls}>
+              Paket Fasilitas Kamar
             </label>
             <select
-              id="status-fasilitas"
-              value={(form.biaya_fasilitas ?? 0) > 0 ? "pakai" : "tanpa"}
+              id="paket-fasilitas"
+              value={(form.biaya_fasilitas ?? 0) > 0 ? "fasilitas" : "standar"}
               onChange={(e) => {
-                const pakai = e.target.value === "pakai";
-                const nominal = !pakai
+                const pakaiFasilitas = e.target.value === "fasilitas";
+                const tambahan = !pakaiFasilitas
                   ? 0
                   : editingJumlahPenghuni >= 2
                     ? 310000
                     : 200000;
-                setForm({ ...form, biaya_fasilitas: nominal });
+                setForm({ ...form, biaya_fasilitas: tambahan });
               }}
               className={inputCls}
             >
-              <option value="tanpa">
-                Tanpa Fasilitas (Sendiri Rp550.000 / Berdua Rp800.000)
+              <option value="standar">
+                Tanpa Fasilitas Tambahan (Sendiri Rp550.000 · Berdua Rp800.000)
               </option>
-              <option value="pakai">
-                Pakai Fasilitas (Sendiri Rp750.000 / Berdua Rp1.110.000)
+              <option value="fasilitas">
+                Pakai Fasilitas Tambahan (Sendiri Rp750.000 · Berdua
+                Rp1.110.000)
               </option>
             </select>
             <p className="mt-1.5 text-xs text-ink-soft">
-              Tarif otomatis menyesuaikan kapasitas penghuni aktif. Saat kamar
-              kosong (0 penghuni), status kembali ke tanpa fasilitas.
+              Tarif fasilitas otomatis menyesuaikan kapasitas kamar (+Rp200.000
+              sendiri, +Rp310.000 berdua). Saat kamar kosong (0 penghuni), biaya
+              fasilitas otomatis kembali ke 0.
             </p>
           </div>
 
@@ -508,11 +507,22 @@ export default function DataKamar() {
                 Estimasi Harga Aktif ({editingJumlahPenghuni} penghuni):
               </span>
               <span className="text-sm font-bold text-kos-700 tabular-nums">
-                {rupiah(pratinjauHargaAktif)} / bulan
+                {rupiah(
+                  (editingJumlahPenghuni >= 2
+                    ? Number(form.harga_berdua || 800000)
+                    : Number(form.harga_individu || 550000)) +
+                    (editingJumlahPenghuni === 0
+                      ? 0
+                      : (form.biaya_fasilitas ?? 0) > 0
+                        ? editingJumlahPenghuni >= 2
+                          ? 310000
+                          : 200000
+                        : 0),
+                )}{" "}
+                / bulan
               </span>
             </div>
           </div>
-
           <div>
             <label htmlFor="fasilitas" className={labelCls}>
               Keterangan Fasilitas
