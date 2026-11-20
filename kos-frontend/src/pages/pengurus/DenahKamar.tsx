@@ -45,8 +45,8 @@ const SUSUNAN: Elemen[] = [
   { tipe: 'grup', bloks: ['D'] },
 ];
 
-const TINGGI_SEL = 34;
-const JARAK_SEL = 6;
+const TINGGI_SEL = 44;
+const JARAK_SEL = 4;
 const LEBAR_SEL = 84;
 const TINGGI_CATATAN = 28;
 const TINGGI_HEADER = 30;
@@ -101,6 +101,43 @@ function statusDariTagihan(t: Tagihan): StatusDenah {
   if (s === 'menunggu_verifikasi') return 'menunggu';
   if (s === 'terlambat') return 'terlambat';
   return 'belum';
+}
+
+const RUMAH_ISI: Record<StatusDenah, string> = {
+  lunas: 'fill-emerald-50',
+  menunggu: 'fill-blue-50',
+  belum: 'fill-amber-50',
+  terlambat: 'fill-orange-50',
+  tanpa_tagihan: 'fill-white',
+  kosong: 'fill-slate-100',
+};
+const RUMAH_GARIS: Record<StatusDenah, string> = {
+  lunas: 'stroke-emerald-400',
+  menunggu: 'stroke-blue-300',
+  belum: 'stroke-amber-400',
+  terlambat: 'stroke-orange-400',
+  tanpa_tagihan: 'stroke-slate-300',
+  kosong: 'stroke-slate-300',
+};
+
+/** Siluet rumah (atap segitiga + badan) sebagai pengganti kotak kamar. */
+function RumahShape({ tone, dashed = false, tebal = false }: { tone: string; dashed?: boolean; tebal?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 84 44"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      className={`pointer-events-none absolute inset-0 h-full w-full overflow-visible ${tone}`}
+    >
+      <path
+        d="M3 18 42 3l39 15v23H3Z"
+        strokeWidth={tebal ? 2.5 : 1.5}
+        strokeLinejoin="round"
+        strokeDasharray={dashed ? '3 3' : undefined}
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
 }
 
 /* ───────────── Komponen ───────────── */
@@ -376,13 +413,8 @@ export default function DenahKamar() {
                                 {kol.slots.map((s, si) => {
                                   if (s.nomor === null) {
                                     return (
-                                      <div
-                                        key={si}
-                                        aria-hidden="true"
-                                        style={{ height: TINGGI_SEL }}
-                                        className="flex items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/40 text-[10px] text-slate-300"
-                                      >
-                                        {kol.rata === 'bawah' ? '-' : ''}
+                                      <div key={si} aria-hidden="true" style={{ height: TINGGI_SEL }} className="relative">
+                                        <RumahShape tone="fill-slate-50/40 stroke-slate-200" dashed />
                                       </div>
                                     );
                                   }
@@ -393,9 +425,10 @@ export default function DenahKamar() {
                                         key={si}
                                         title="Belum terdaftar di Data Kamar"
                                         style={{ height: TINGGI_SEL }}
-                                        className="flex items-center justify-center rounded-lg border border-dashed border-slate-200 text-[11px] font-semibold text-slate-300"
+                                        className="relative flex items-center justify-center pt-3.5 text-[11px] font-semibold text-slate-300"
                                       >
-                                        {kode}
+                                        <RumahShape tone="fill-transparent stroke-slate-200" dashed />
+                                        <span className="relative">{kode}</span>
                                       </div>
                                     );
                                   }
@@ -410,13 +443,18 @@ export default function DenahKamar() {
                                       aria-pressed={aktif}
                                       aria-label={`Kamar ${kode}, ${st.label}${s.item.keluhanAktif.length ? ', ada keluhan aktif' : ''}`}
                                       style={{ height: TINGGI_SEL }}
-                                      className={`relative flex cursor-pointer flex-col items-center justify-center rounded-lg border leading-none transition ${st.box} ${
-                                        aktif ? '!border-2 !border-kos-600 shadow-md' : 'hover:-translate-y-px hover:shadow-sm'
+                                      className={`relative flex cursor-pointer flex-col items-center justify-center pt-3.5 leading-none transition ${
+                                        aktif ? '' : 'hover:-translate-y-px'
                                       } ${redup ? 'opacity-25' : ''}`}
                                     >
-                                      {s.item.keluhanAktif.length > 0 && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500" />}
-                                      <span className="text-[11px] font-bold text-ink">{kode}</span>
-                                      <span className={`mt-[3px] text-[8.5px] font-semibold ${st.teks}`}>{st.label}</span>
+                                      <RumahShape
+                                        tone={`${RUMAH_ISI[s.item.status]} ${aktif ? 'stroke-kos-600 drop-shadow-md' : RUMAH_GARIS[s.item.status]}`}
+                                        dashed={s.item.status === 'kosong'}
+                                        tebal={aktif}
+                                      />
+                                      {s.item.keluhanAktif.length > 0 && <span className="absolute right-0 top-2 z-10 h-2.5 w-2.5 rounded-full bg-red-500" />}
+                                      <span className="relative text-[11px] font-bold text-ink">{kode}</span>
+                                      <span className={`relative mt-[3px] text-[8.5px] font-semibold ${st.teks}`}>{st.label}</span>
                                       {aktif && (
                                         <span className="absolute -bottom-[7px] rounded-full bg-kos-600 px-1.5 py-px text-[7px] font-bold tracking-wide text-white">PILIH</span>
                                       )}

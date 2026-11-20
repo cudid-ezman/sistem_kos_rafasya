@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { BrandLockup } from '../brand/BrandLogo';
+import KosIllustration from './KosIllustration';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -8,55 +10,47 @@ interface AuthLayoutProps {
   showHelp?: boolean;
 }
 
-function Brand({ className = '' }: { className?: string }) {
-  return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-kos-100 text-xl font-bold text-kos-950">
-        R
-      </div>
-      <span className="text-lg font-semibold">Kos Rafasya</span>
-    </div>
-  );
-}
-
 export default function AuthLayout({ children, wide = false, showHelp = true }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen bg-page p-0 lg:flex lg:gap-6 lg:p-6">
+    <div className="min-h-screen bg-page lg:flex">
       {/* Panel kiri */}
-      <aside className="relative hidden min-h-[calc(100vh-3rem)] w-[38%] max-w-[560px] shrink-0 overflow-hidden rounded-[28px] border-l-[6px] border-kos-400 bg-kos-950 p-10 text-white lg:block">
-        <Brand className="text-white" />
+      <aside
+        className="relative hidden overflow-hidden text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[55%] lg:flex-col"
+        style={{
+          background:
+            'radial-gradient(60% 28% at 50% 88%, rgba(196,170,60,.16), transparent 70%), linear-gradient(180deg,#092b28 0%,#0f3d36 38%,#17342b 72%,#1c2a1f 100%)',
+        }}
+      >
+        <span className="absolute bottom-4 left-3 top-8 w-[3px] rounded-full bg-kos-100/60" aria-hidden="true" />
 
-        <div className="mt-[150px]">
-          <h1 className="text-[34px] font-semibold leading-[1.2] tracking-tight">
+        <div className="px-14 pt-10">
+          <BrandLockup tone="onDark" />
+        </div>
+
+        <div className="mt-14 px-14">
+          <h1 className="text-[34px] font-bold leading-[1.2] tracking-tight">
             Sistem Manajemen &amp;
             <br />
             Administrasi Kos
           </h1>
-          <div className="mt-14 h-[3px] w-16 rounded-full bg-kos-400" />
+          <div className="mt-5 h-[2px] w-12 rounded-full bg-white/80" />
+          <p className="mt-4 text-[15px] text-white/75">
+            Pantau kamar, penghuni, dan tagihan dalam satu tempat.
+          </p>
         </div>
 
-        {/* Dekorasi kartu */}
-        <div className="pointer-events-none absolute inset-x-10 bottom-0 h-[290px]" aria-hidden="true">
-          <div className="absolute bottom-0 left-0 h-[270px] w-[210px] rounded-t-[28px] border border-b-0 border-white/15" />
-          <div className="absolute bottom-0 left-20 h-[232px] w-[210px] rounded-t-[28px] border border-b-0 border-white/15" />
-          <div className="absolute bottom-0 left-40 h-[196px] w-[210px] rounded-t-[28px] border border-b-0 border-white/15" />
-          <div className="absolute bottom-6 left-0 flex h-[88px] w-[230px] items-center gap-4 rounded-2xl bg-kos-900 px-5">
-            <div className="h-10 w-[3px] rounded-full bg-kos-400" />
-            <div className="flex-1 space-y-2.5">
-              <div className="h-[3px] w-full rounded-full bg-kos-400/70" />
-              <div className="h-[3px] w-3/4 rounded-full bg-kos-400/70" />
-            </div>
-          </div>
+        <div className="mt-auto px-8 pb-8">
+          <KosIllustration className="mx-auto w-full max-w-[600px]" />
         </div>
       </aside>
 
       {/* Panel kanan */}
-      <main className="flex min-h-screen flex-1 flex-col items-center px-4 py-8 lg:min-h-[calc(100vh-3rem)] lg:py-0">
-        <Brand className="mb-8 text-kos-950 lg:hidden" />
+      <main className="flex min-h-screen flex-1 flex-col items-center px-4 py-8 lg:py-6">
+        <BrandLockup tone="onLight" className="mb-8 lg:hidden" />
 
         <div className="flex w-full flex-1 items-center justify-center">
           <div
-            className={`w-full rounded-3xl border border-slate-200/80 bg-white p-8 ${
+            className={`w-full rounded-3xl border border-slate-200/70 bg-white p-8 shadow-[0_24px_60px_-24px_rgba(15,61,54,0.22)] sm:p-10 ${
               wide ? 'max-w-[520px]' : 'max-w-[460px]'
             }`}
           >
@@ -64,9 +58,9 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
           </div>
         </div>
 
-        <footer className="mt-8 text-center text-xs text-ink-soft lg:pb-2">
+        <footer className="mt-8 text-center text-xs text-ink-soft">
           {showHelp && <p className="mb-1">Butuh bantuan? Hubungi pengurus kos.</p>}
-          <p>© 2026 Kos Rafasya</p>
+          <p>© 2026 Kost Putra Raffasya</p>
         </footer>
       </main>
     </div>

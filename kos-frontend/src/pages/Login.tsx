@@ -7,7 +7,14 @@ import AuthLayout from "../components/auth/AuthLayout";
 import Alert from "../components/auth/Alert";
 import Field from "../components/auth/Field";
 import SubmitButton from "../components/auth/SubmitButton";
-import { ArrowRightIcon, LockIcon, MailIcon } from "../components/auth/icons";
+import AuthIconBadge from "../components/auth/AuthIconBadge";
+import {
+  ArrowRightIcon,
+  LockIcon,
+  LoginIcon,
+  MailIcon,
+  InfoIcon,
+} from "../components/auth/icons";
 
 interface LoginProps {
   onLoginSuccess: (user: UserProfile) => void;
@@ -56,6 +63,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
   return (
     <AuthLayout showHelp={false}>
+      <AuthIconBadge icon={<LoginIcon size={20} />} />
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">
         Masuk ke Sistem
       </h2>
@@ -93,6 +101,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             onChange={setPassword}
             placeholder="Masukkan kata sandi"
             autoComplete="current-password"
+            invalid={!!error}
             disabled={isLoading}
           />
           <div className="mt-3 text-right">
@@ -107,17 +116,21 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
         <SubmitButton
           loading={isLoading}
+          tone={error ? "dark" : "primary"}
           loadingText="Memverifikasi..."
           disabled={!identifier.trim() || !password}
           icon={<ArrowRightIcon size={16} />}
         >
-          Masuk
+          {error ? "Coba Lagi" : "Masuk"}
         </SubmitButton>
       </form>
 
-      <div className="mt-6 border-t border-slate-200 pt-5 text-center text-[13px] text-ink-soft">
-        Akun dibuat oleh pengelola kos. Gunakan email &amp; kata sandi yang
-        diberikan.
+      <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[13px] leading-relaxed text-ink-soft">
+        <InfoIcon size={16} className="mt-0.5 shrink-0" />
+        <span>
+          Akun dibuat oleh pengelola kos. Gunakan email &amp; kata sandi yang
+          diberikan.
+        </span>
       </div>
     </AuthLayout>
   );

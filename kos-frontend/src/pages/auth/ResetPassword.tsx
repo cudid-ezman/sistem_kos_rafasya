@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import AuthLayout from '../../components/auth/AuthLayout';
+import AuthIconBadge from '../../components/auth/AuthIconBadge';
 import Alert from '../../components/auth/Alert';
 import Field from '../../components/auth/Field';
 import SubmitButton from '../../components/auth/SubmitButton';
@@ -57,6 +58,7 @@ export default function ResetPassword() {
 
   return (
     <AuthLayout>
+      <AuthIconBadge icon={<LockResetIcon size={20} />} />
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">Atur Ulang Kata Sandi</h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
         Masukkan kata sandi baru untuk akun Anda. Pastikan kata sandi kuat dan aman.

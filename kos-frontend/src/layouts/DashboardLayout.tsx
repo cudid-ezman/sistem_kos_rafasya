@@ -20,6 +20,7 @@ import {
 } from "../components/portal/icons";
 import type { BuktiPembayaran, Keluhan, Tagihan } from "../types/kos";
 import AdminNotificationBell from "../components/admin/AdminNotificationBell";
+import { BrandName, LogoMark } from "../components/brand/BrandLogo";
 
 interface Props {
   user: UserProfile;
@@ -261,13 +262,9 @@ export default function DashboardLayout({ user, onLogout }: Props) {
                 <MenuIcon />
               </button>
               <Link to="/dashboard" className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-kos-600 text-lg font-bold text-white shadow-sm shadow-kos-600/30">
-                  R
-                </span>
+                <LogoMark size={44} className="shrink-0 text-kos-950" />
                 <span className="hidden leading-tight sm:block">
-                  <span className="block text-[15px] font-bold text-kos-950">
-                    Kos Rafasya
-                  </span>
+                  <BrandName className="block text-[18px] text-kos-950" />
                   <span className="block text-xs text-ink-soft">
                     Panel {roleLabel}
                   </span>
@@ -353,12 +350,8 @@ export default function DashboardLayout({ user, onLogout }: Props) {
             <div className="absolute inset-y-0 left-0 flex w-[280px] flex-col bg-page p-5 shadow-2xl motion-safe:animate-[pop-in_.18s_ease-out]">
               <div className="mb-6 flex items-center justify-between">
                 <span className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-kos-600 text-lg font-bold text-white">
-                    R
-                  </span>
-                  <span className="text-[15px] font-bold text-kos-950">
-                    Kos Rafasya
-                  </span>
+                  <LogoMark size={44} className="shrink-0 text-kos-950" />
+                  <BrandName className="text-[18px] text-kos-950" />
                 </span>
                 <button
                   type="button"

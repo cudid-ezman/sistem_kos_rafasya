@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode } from 'react';
-import { EyeIcon, EyeOffIcon, InfoIcon } from './icons';
+import { AlertCircleIcon, AlertTriangleIcon, EyeIcon, EyeOffIcon, InfoIcon } from './icons';
 
 interface FieldProps {
   label: string;
@@ -61,14 +61,23 @@ export default function Field({
           autoComplete={autoComplete}
           inputMode={inputMode}
           aria-invalid={invalid || undefined}
-          className={`h-11 w-full rounded-xl border bg-field pl-11 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 ${
-            isPassword ? 'pr-11' : 'pr-4'
+          className={`h-11 w-full rounded-xl border bg-white pl-11 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 ${
+            isPassword ? (invalid ? 'pr-20' : 'pr-11') : invalid ? 'pr-11' : 'pr-4'
           } ${
             invalid
-              ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
+              ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200'
               : 'border-field-line focus:border-kos-600 focus:ring-kos-600/20'
           }`}
         />
+        {invalid && (
+          <span
+            className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-red-600 ${
+              isPassword ? 'right-11' : 'right-3.5'
+            }`}
+          >
+            <AlertTriangleIcon size={16} />
+          </span>
+        )}
         {isPassword && (
           <button
             type="button"
@@ -83,8 +92,18 @@ export default function Field({
       </div>
 
       {hint && (
-        <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-snug text-ink-soft">
-          {hintLeading ?? (hintIcon && <InfoIcon size={13} className="mt-px shrink-0" />)}
+        <p
+          className={`mt-1.5 flex items-start gap-1.5 text-xs leading-snug ${
+            invalid ? 'text-red-600' : 'text-ink-soft'
+          }`}
+        >
+          {hintLeading ??
+            (hintIcon &&
+              (invalid ? (
+                <AlertCircleIcon size={13} className="mt-px shrink-0" />
+              ) : (
+                <InfoIcon size={13} className="mt-px shrink-0 text-kos-600" />
+              )))}
           <span>{hint}</span>
         </p>
       )}

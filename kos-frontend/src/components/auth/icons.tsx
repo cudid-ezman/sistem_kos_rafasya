@@ -75,3 +75,9 @@ export const SendIcon = (p: IconProps) => (
 export const LoginIcon = (p: IconProps) => (
   <Icon {...p}><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" /><path d="m10 16 4-4-4-4M14 12H3" /></Icon>
 );
+export const KeyIcon = (p: IconProps) => (
+  <Icon {...p}><circle cx="8" cy="15" r="4" /><path d="m11 12 8-8M16 7l3 3M14 9l2 2" /></Icon>
+);
+export const AlertTriangleIcon = (p: IconProps) => (
+  <Icon {...p}><path d="M12 3 2.5 20h19L12 3Z" /><path d="M12 10v4.5M12 17.5h.01" /></Icon>
+);

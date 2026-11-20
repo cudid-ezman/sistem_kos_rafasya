@@ -89,12 +89,12 @@ export default function RincianTagihan() {
 table{width:100%;border-collapse:collapse;margin-top:20px}td{border-bottom:1px solid #e5e9ec;font-size:14px}
 .total{margin-top:20px;background:#103e3b;color:#fff;border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
 .total b{font-size:22px}</style></head><body>
-<h1>Kos Rafasya</h1><p style="color:#55636e;margin:4px 0 20px">Bukti Pembayaran Sewa</p><span class="badge">LUNAS</span>
+<div style="display:flex;align-items:center;gap:12px"><svg width="44" height="39" viewBox="0 0 64 56" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 27 16 12l8 8 8-12 8 12 8-8 11 15" stroke="#b5543c" stroke-width="4.5"/><g stroke="#0f3d36" stroke-width="3.5"><path d="M11 27v21h42V27"/><rect x="18" y="32" width="10" height="10" rx="1.5" stroke-width="2.5"/><rect x="36" y="32" width="10" height="10" rx="1.5" stroke-width="2.5"/><path d="M23 32v10M18 37h10M41 32v10M36 37h10" stroke-width="1.8"/></g></svg><div><div style="font-size:9px;letter-spacing:.25em;color:#157f6b;font-weight:600">— KOST PUTRA —</div><h1 style="font-family:Nunito,Inter,Arial,sans-serif;font-weight:800;font-size:26px;line-height:1.1"><span style="color:#b5543c">R</span>affasya</h1></div></div><p style="color:#55636e;margin:14px 0 20px">Bukti Pembayaran Sewa</p><span class="badge">LUNAS</span>
 <table>${baris('Nama penghuni', user.nama_lengkap || user.username)}${baris('Kamar', noKamar ? `Kamar ${noKamar}` : '-')}
 ${baris('Periode', t.periode)}${baris('Nominal tagihan', rupiah(t.nominal))}
 ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tanggal verifikasi', tglAngka(buktiDiterima?.tanggal_verifikasi))}</table>
 <div class="total"><span>Total dibayar</span><b>${esc(rupiah(t.nominal))}</b></div>
-<p style="margin-top:28px;font-size:12px;color:#55636e">Dokumen ini dibuat otomatis oleh Sistem Kos Rafasya dan sah tanpa tanda tangan.</p>
+<p style="margin-top:28px;font-size:12px;color:#55636e">Dokumen ini dibuat otomatis oleh Sistem Kost Putra Raffasya dan sah tanpa tanda tangan.</p>
 <script>window.onload=function(){window.print()}</script></body></html>`);
     w.document.close();
   };

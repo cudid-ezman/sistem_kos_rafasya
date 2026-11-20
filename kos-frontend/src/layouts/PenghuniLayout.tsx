@@ -14,6 +14,7 @@ import {
   ReceiptIcon,
   WarningIcon,
 } from "../components/portal/icons";
+import { BrandName, LogoMark } from "../components/brand/BrandLogo";
 
 interface Props {
   user: UserProfile;
@@ -70,13 +71,9 @@ function Shell({ onLogout }: { onLogout: () => void }) {
             to="/dashboard/tagihan-saya"
             className="flex items-center gap-3"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-kos-600 text-lg font-bold text-white shadow-sm shadow-kos-600/30">
-              R
-            </span>
+            <LogoMark size={44} className="shrink-0 text-kos-950" />
             <span className="leading-tight">
-              <span className="block text-[15px] font-bold text-kos-950">
-                Kos Rafasya
-              </span>
+              <BrandName className="block text-[18px] text-kos-950" />
               <span className="block text-xs text-ink-soft">
                 Portal Penghuni
               </span>

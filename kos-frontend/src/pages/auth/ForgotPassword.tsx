@@ -5,7 +5,8 @@ import AuthLayout from '../../components/auth/AuthLayout';
 import Alert from '../../components/auth/Alert';
 import Field from '../../components/auth/Field';
 import SubmitButton from '../../components/auth/SubmitButton';
-import { ArrowLeftIcon, MailIcon, SendIcon } from '../../components/auth/icons';
+import AuthIconBadge from '../../components/auth/AuthIconBadge';
+import { ArrowLeftIcon, KeyIcon, MailIcon, SendIcon } from '../../components/auth/icons';
 import { requestPasswordReset } from '../../services/authService';
 
 type Status = { kind: 'idle' } | { kind: 'success' } | { kind: 'error'; message: string };
@@ -38,10 +39,11 @@ export default function ForgotPassword() {
   const hasError = status.kind === 'error';
 
   return (
-    <AuthLayout>
+    <AuthLayout showHelp={false}>
+      <AuthIconBadge icon={<KeyIcon size={20} />} />
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">Lupa Kata Sandi</h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-        Masukkan alamat email yang terdaftar pada akun Kos Rafasya Anda. Kami akan mengirimkan tautan
+        Masukkan alamat email yang terdaftar pada akun Kost Raffasya Anda. Kami akan mengirimkan tautan
         untuk mengatur ulang kata sandi Anda.
       </p>
 
@@ -67,7 +69,11 @@ export default function ForgotPassword() {
           placeholder="nama@email.com"
           autoComplete="email"
           invalid={hasError}
-          hint="Pastikan email sesuai dengan yang didaftarkan saat registrasi kos."
+          hint={
+            hasError && status.message === 'Email tidak terdaftar'
+              ? 'Alamat email tidak ditemukan dalam sistem Kost Putra Raffasya.'
+              : 'Pastikan email sesuai dengan yang didaftarkan saat registrasi kos.'
+          }
           disabled={isLoading}
         />
 
@@ -81,7 +87,12 @@ export default function ForgotPassword() {
         </SubmitButton>
       </form>
 
-      <div className="mt-6 border-t border-slate-200 pt-5 text-center">
+      <div className="my-5 flex items-center gap-3 text-[11px] font-medium tracking-wider text-slate-400">
+        <span className="h-px flex-1 bg-slate-200" />
+        ATAU
+        <span className="h-px flex-1 bg-slate-200" />
+      </div>
+      <div className="text-center">
         <Link
           to="/"
           className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-kos-600 hover:text-kos-700 hover:underline"
@@ -89,6 +100,10 @@ export default function ForgotPassword() {
           <ArrowLeftIcon size={14} /> Kembali ke Masuk
         </Link>
       </div>
+      <p className="mt-5 border-t border-slate-200 pt-5 text-center text-xs text-ink-soft">
+        Butuh bantuan?{' '}
+        <span className="font-semibold text-kos-600">Hubungi pengurus kos.</span>
+      </p>
     </AuthLayout>
   );
 }
