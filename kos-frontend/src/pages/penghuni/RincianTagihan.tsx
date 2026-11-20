@@ -69,9 +69,9 @@ export default function RincianTagihan() {
 
   const { hari, denda } = hitungDenda(t);
   const total = totalTagihan(t);
-  const periode = rentangPeriode(t.periode);
+  const periode = rentangPeriode(t.periode, t.jatuh_tempo);
+  const labelPeriode = t.periode.replace(/\b\w/g, (c) => c.toUpperCase());
   const berdua = t.penghuni?.kamar?.tipe === 'berdua';
-  const hargaKamar = t.penghuni?.kamar?.harga_sewa ?? (berdua ? t.nominal * 2 : t.nominal);
   const buktiTagihan = bukti.filter((b) => b.tagihan === t.id);
   const buktiTerbaru = buktiTagihan[0];
   const buktiDiterima = buktiTagihan.find((b) => b.status === 'diterima');
@@ -122,14 +122,14 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           </div>
 
           <div className="divide-y divide-slate-100 px-6">
-            <Baris label="Periode Sewa">{periode ? `${t.periode} (${periode.mulai} - ${periode.selesai})` : t.periode}</Baris>
-            <Baris label="Tipe Kamar" sub={berdua ? 'Sewa kamar dibagi rata untuk 2 penghuni' : undefined}>
+            <Baris label="Periode Sewa">{periode ? `${labelPeriode} (${periode.mulai} - ${periode.selesai})` : labelPeriode}</Baris>
+            <Baris label="Tipe Kamar" sub={berdua ? 'Tagihan kolektif 1 kamar untuk 2 penghuni' : undefined}>
               {noKamar ? `Kamar ${noKamar}` : '-'}
               {t.penghuni?.kamar?.tipe ? ` (${berdua ? 'Kamar Berdua' : 'Kamar Individu'})` : ''}
             </Baris>
             <Baris
               label="Nominal Tagihan Kamar"
-              sub={berdua ? `Harga sewa kamar ${rupiah(hargaKamar)} dibagi 2 penghuni` : undefined}
+              sub={berdua ? 'Tarif penuh kamar berdua per bulan' : undefined}
             >
               {rupiah(t.nominal)}
             </Baris>

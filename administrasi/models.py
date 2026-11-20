@@ -54,6 +54,7 @@ class Tagihan(models.Model):
 
 class BuktiPembayaran(models.Model):
     tagihan = models.ForeignKey(Tagihan, on_delete=models.CASCADE)
+    diunggah_oleh = models.ForeignKey(Penghuni, on_delete=models.SET_NULL, null=True, blank=True, related_name='bukti_diunggah')
     berkas = models.ImageField(upload_to='bukti_pembayaran/')
     tanggal_bayar = models.DateField()
     waktu_unggah = models.DateTimeField(auto_now_add=True)

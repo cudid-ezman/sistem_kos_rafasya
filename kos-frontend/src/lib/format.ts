@@ -1,7 +1,7 @@
 import type { Tagihan } from '../types/kos';
 
 /** Denda keterlambatan per hari (Rp). Sesuaikan jika aturan kos berubah. */
-export const DENDA_PER_HARI = 20000;
+export const DENDA_PER_HARI = 10000;
 
 export const BULAN = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -56,8 +56,21 @@ export function hitungDenda(t: Pick<Tagihan, 'jatuh_tempo' | 'status'>) {
 
 export const totalTagihan = (t: Tagihan) => Number(t.nominal || 0) + hitungDenda(t).denda;
 
-/** "Desember 2026" -> { mulai: "01 Des 2026", selesai: "31 Des 2026" } (null jika tidak terbaca) */
-export function rentangPeriode(periode: string) {
+/** Siklus sewa 1 bulan penuh mengikuti tanggal jatuh tempo (mis. 20 Nov 2026 - 20 Des 2026) */
+export function rentangPeriode(periode: string, jatuhTempo?: string) {
+  if (jatuhTempo) {
+    const awal = parseTanggal(jatuhTempo);
+    if (!Number.isNaN(awal.getTime())) {
+      const tahunBerikut = awal.getMonth() === 11 ? awal.getFullYear() + 1 : awal.getFullYear();
+      const bulanBerikut = (awal.getMonth() + 1) % 12;
+      const hariMaks = new Date(tahunBerikut, bulanBerikut + 1, 0).getDate();
+      const selesai = new Date(tahunBerikut, bulanBerikut, Math.min(awal.getDate(), hariMaks));
+      return {
+        mulai: `${dua(awal.getDate())} ${BULAN_PENDEK[awal.getMonth()]} ${awal.getFullYear()}`,
+        selesai: `${dua(selesai.getDate())} ${BULAN_PENDEK[selesai.getMonth()]} ${selesai.getFullYear()}`,
+      };
+    }
+  }
   const m = periode.trim().match(/^([A-Za-z]+)\s+(\d{4})$/);
   if (!m) return null;
   const idx = BULAN.findIndex((b) => b.toLowerCase() === m[1].toLowerCase());

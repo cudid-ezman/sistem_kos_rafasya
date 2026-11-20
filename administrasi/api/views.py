@@ -1,7 +1,7 @@
 from datetime import timedelta
 from django.utils.timezone import now
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.contrib.auth.models import User
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
@@ -288,7 +288,15 @@ class TagihanListCreateAPI(generics.ListCreateAPIView):
         if not penghuni:
             return Tagihan.objects.none()
         if penghuni.kamar:
-            return Tagihan.objects.filter(penghuni__kamar=penghuni.kamar).order_by('-id')
+            harga_berdua = penghuni.kamar.harga_berdua or 800000
+            return Tagihan.objects.filter(
+                Q(penghuni=penghuni) |
+                Q(
+                    penghuni__kamar=penghuni.kamar,
+                    nominal__gte=harga_berdua,
+                    jatuh_tempo__gte=penghuni.tanggal_masuk,
+                )
+            ).distinct().order_by('-id')
         return Tagihan.objects.filter(penghuni=penghuni).order_by('-id')
     
 class CustomLoginView(TokenObtainPairView):
@@ -388,11 +396,19 @@ class BuktiPembayaranListCreateAPI(generics.ListCreateAPIView):
         user = self.request.user
         if (hasattr(user, 'profiluser') and user.profiluser.role.lower() == 'pengurus') or user.is_superuser:
             return BuktiPembayaran.objects.all().order_by('-waktu_unggah')
-        return BuktiPembayaran.objects.filter(tagihan__penghuni__user=user).order_by('-waktu_unggah')
+        penghuni = Penghuni.objects.filter(user=user).first()
+        if penghuni and penghuni.kamar:
+            return BuktiPembayaran.objects.filter(
+                Q(tagihan__penghuni__kamar=penghuni.kamar) | Q(diunggah_oleh__user=user)
+            ).distinct().order_by('-waktu_unggah')
+        return BuktiPembayaran.objects.filter(
+            Q(tagihan__penghuni__user=user) | Q(diunggah_oleh__user=user)
+        ).distinct().order_by('-waktu_unggah')
 
     def perform_create(self, serializer):
         with transaction.atomic():
-            bukti = serializer.save(status='menunggu_verifikasi')
+            pengunggah = Penghuni.objects.filter(user=self.request.user).first()
+            bukti = serializer.save(status='menunggu_verifikasi', diunggah_oleh=pengunggah)
             tagihan = bukti.tagihan
             tagihan.status = 'menunggu_verifikasi'
             tagihan.save()

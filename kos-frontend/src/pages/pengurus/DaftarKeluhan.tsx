@@ -69,13 +69,18 @@ export default function DaftarKeluhan() {
   );
 
   const tersaring = useMemo(() => {
-    const q = cari.trim().toLowerCase();
+    const q = cari.trim().toLowerCase().replace(/\s+/g, " ");
     return list.filter((k) => {
       if (filter !== 'semua' && k.status !== filter) return false;
       if (!q) return true;
+      const kamar = (k.nomor_kamar || '').toLowerCase();
+      if (/^\d+$/.test(q)) {
+        return kamar === q || kamar.endsWith(q.padStart(2, '0'));
+      }
       return (
         (k.nama_penghuni || '').toLowerCase().includes(q) ||
-        (k.nomor_kamar || '').toLowerCase().includes(q) ||
+        kamar.includes(q) ||
+        (kamar !== '' && `kamar ${kamar}`.includes(q)) ||
         (k.nama_kategori || '').toLowerCase().includes(q) ||
         k.deskripsi.toLowerCase().includes(q)
       );

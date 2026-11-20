@@ -145,19 +145,28 @@ export default function DataPenghuni() {
       if (p.status_aktif) aktif += 1;
       else nonaktif += 1;
     }
-    return { semua: penghuniList.length, aktif, nonaktif };
+    return { semua: aktif, aktif, nonaktif };
   }, [penghuniList]);
 
   const tersaring = useMemo(() => {
-    const q = cari.trim().toLowerCase();
+    const q = cari.trim().toLowerCase().replace(/\s+/g, " ");
     return penghuniList.filter((p) => {
-      if (filterStatus === "aktif" && !p.status_aktif) return false;
-      if (filterStatus === "nonaktif" && p.status_aktif) return false;
+      if (filterStatus === "nonaktif") {
+        if (p.status_aktif) return false;
+      } else if (!p.status_aktif) {
+        return false;
+      }
+      if (!q) return true;
+      const kamar = (p.nomor_kamar || "").toLowerCase();
+      if (/^\d+$/.test(q)) {
+        return kamar === q || kamar.endsWith(q.padStart(2, "0"));
+      }
       return (
         p.nama_lengkap.toLowerCase().includes(q) ||
         (p.email || "").toLowerCase().includes(q) ||
         (p.no_identitas || "").toLowerCase().includes(q) ||
-        (p.nomor_kamar || "").toLowerCase().includes(q)
+        kamar.includes(q) ||
+        (kamar !== "" && `kamar ${kamar}`.includes(q))
       );
     });
   }, [penghuniList, cari, filterStatus]);
@@ -353,7 +362,7 @@ export default function DataPenghuni() {
             <h2 className="flex items-center gap-2 text-base font-bold text-ink">
               Penghuni{" "}
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-ink-soft">
-                {penghuniList.length}
+                {hitungStatus.aktif}
               </span>
             </h2>
             <FilterTabs
@@ -436,11 +445,7 @@ export default function DataPenghuni() {
                     </td>
                     <td className={tdCls}>{p.no_kontak}</td>
                     <td className={`${tdCls} font-semibold`}>
-                      {p.nomor_kamar ? (
-                        `Kamar ${p.nomor_kamar}`
-                      ) : (
-                        <span className="text-ink-soft">-</span>
-                      )}
+                      {p.nomor_kamar || <span className="text-ink-soft">-</span>}
                     </td>
                     <td className={`${tdCls} whitespace-nowrap text-ink-soft`}>
                       {tglPendek(p.tanggal_masuk)}

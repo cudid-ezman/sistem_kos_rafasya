@@ -93,13 +93,18 @@ export default function DataTagihan() {
   );
 
   const tersaring = useMemo(() => {
-    const q = cari.trim().toLowerCase();
+    const q = cari.trim().toLowerCase().replace(/\s+/g, " ");
     return list.filter((t) => {
       if (filter !== "semua" && statusTampil(t) !== filter) return false;
       if (!q) return true;
+      const kamar = (t.nomor_kamar || "").toLowerCase();
+      if (/^\d+$/.test(q)) {
+        return kamar === q || kamar.endsWith(q.padStart(2, "0"));
+      }
       return (
         (t.nama_penghuni || "").toLowerCase().includes(q) ||
-        (t.nomor_kamar || "").toLowerCase().includes(q) ||
+        kamar.includes(q) ||
+        `kamar ${kamar}`.includes(q) ||
         t.periode.toLowerCase().includes(q)
       );
     });

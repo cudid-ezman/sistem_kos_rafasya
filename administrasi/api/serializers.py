@@ -29,8 +29,28 @@ class PenghuniSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 class TagihanSerializer(serializers.ModelSerializer):
-    nama_penghuni = serializers.CharField(source='penghuni.user.first_name', read_only=True)
+    nama_penghuni = serializers.SerializerMethodField()
     nomor_kamar = serializers.CharField(source='penghuni.kamar.nomor_kamar', read_only=True)
+
+    def get_nama_penghuni(self, obj):
+        kamar = getattr(obj.penghuni, 'kamar', None)
+        harga_berdua = getattr(kamar, 'harga_berdua', 800000) or 800000
+        # Hanya gabungkan 2 nama jika nominal tagihan memang tarif berdua (>= harga_berdua)
+        if kamar and (obj.nominal or 0) >= harga_berdua:
+            penghuni_kamar = list(
+                Penghuni.objects.filter(kamar=kamar, status_aktif=True)
+                .select_related('user')
+                .order_by('tanggal_masuk', 'id')
+            )
+            if len(penghuni_kamar) > 1:
+                nama_list = [
+                    (p.user.first_name or p.user.username).strip()
+                    for p in penghuni_kamar
+                ]
+                return " & ".join(nama_list)
+        if obj.penghuni and obj.penghuni.user:
+            return obj.penghuni.user.first_name or obj.penghuni.user.username
+        return "-"
 
     class Meta:
         model = Tagihan
@@ -40,8 +60,14 @@ class TagihanSerializer(serializers.ModelSerializer):
 class BuktiPembayaranSerializer(serializers.ModelSerializer):
     periode_tagihan = serializers.CharField(source='tagihan.periode', read_only=True)
     nominal_tagihan = serializers.FloatField(source='tagihan.nominal', read_only=True)
-    nama_penghuni = serializers.CharField(source='tagihan.penghuni.user.first_name', read_only=True)
+    nama_penghuni = serializers.SerializerMethodField()
     nomor_kamar = serializers.CharField(source='tagihan.penghuni.kamar.nomor_kamar', read_only=True)
+
+    def get_nama_penghuni(self, obj):
+        pengaju = obj.diunggah_oleh or obj.tagihan.penghuni
+        if pengaju and pengaju.user:
+            return pengaju.user.first_name or pengaju.user.username
+        return "-" 
 
     class Meta:
         model = BuktiPembayaran

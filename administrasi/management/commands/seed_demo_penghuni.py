@@ -91,7 +91,7 @@ class Command(BaseCommand):
             b.berkas.save("bukti_demo.png", ContentFile(PNG_KECIL), save=False)
             b.save()
 
-        # Tagihan terbaru: ditolak & sudah lewat jatuh tempo 4 hari (denda Rp 80.000)
+        # Tagihan terbaru: ditolak & sudah lewat jatuh tempo 4 hari (denda Rp 40.000)
         tempo = hari_ini - timedelta(days=4)
         t = Tagihan.objects.create(
             penghuni=penghuni, periode=f"{BULAN[tempo.month - 1]} {tempo.year}",

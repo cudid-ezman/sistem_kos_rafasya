@@ -92,13 +92,23 @@ export default function DataKamar() {
     [kamarList],
   );
 
-  const tersaring = useMemo(
-    () =>
-      kamarList.filter((k) =>
-        k.nomor_kamar.toLowerCase().includes(cari.trim().toLowerCase()),
-      ),
-    [kamarList, cari],
-  );
+  const tersaring = useMemo(() => {
+    const q = cari.trim().toLowerCase().replace(/\s+/g, " ");
+    if (!q) return kamarList;
+    return kamarList.filter((k) => {
+      const nomor = k.nomor_kamar.toLowerCase();
+      if (/^\d+$/.test(q)) {
+        return nomor === q || nomor.endsWith(q.padStart(2, "0"));
+      }
+      return (
+        nomor.includes(q) ||
+        `kamar ${nomor}`.includes(q) ||
+        (k.fasilitas || "").toLowerCase().includes(q) ||
+        (k.status || "").toLowerCase().includes(q) ||
+        (k.tipe || "").toLowerCase().includes(q)
+      );
+    });
+  }, [kamarList, cari]);
   const baris = tersaring.slice(
     (halaman - 1) * PER_HALAMAN,
     halaman * PER_HALAMAN,
@@ -258,7 +268,7 @@ export default function DataKamar() {
                   setCari(v);
                   setHalaman(1);
                 }}
-                placeholder="Cari nomor kamar..."
+                placeholder="Cari kamar, fasilitas, atau status..."
               />
             </div>
 
