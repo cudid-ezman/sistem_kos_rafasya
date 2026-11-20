@@ -128,21 +128,6 @@ export default function DataKamar() {
     setFormOpen(true);
   };
 
-  const pratinjauHargaAktif = useMemo(() => {
-    const dasar =
-      editingJumlahPenghuni >= 2
-        ? Number(form.harga_berdua || 0)
-        : Number(form.harga_individu || 0);
-    const fas =
-      editingJumlahPenghuni === 0 ? 0 : Number(form.biaya_fasilitas || 0);
-    return dasar + fas;
-  }, [
-    editingJumlahPenghuni,
-    form.harga_individu,
-    form.harga_berdua,
-    form.biaya_fasilitas,
-  ]);
-
   const simpan = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
