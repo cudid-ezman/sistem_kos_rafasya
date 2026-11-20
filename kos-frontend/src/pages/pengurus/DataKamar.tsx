@@ -40,7 +40,7 @@ const KOSONG: CreateKamarPayload = {
   nomor_kamar: "",
   tipe: "individu",
   harga_individu: 550000,
-  harga_berdua: 750000,
+  harga_berdua: 800000,
   biaya_fasilitas: 0,
   fasilitas: "",
   status: "tersedia",
@@ -120,7 +120,7 @@ export default function DataKamar() {
       nomor_kamar: k.nomor_kamar,
       tipe: k.tipe,
       harga_individu: k.harga_individu ?? 550000,
-      harga_berdua: k.harga_berdua ?? 750000,
+      harga_berdua: k.harga_berdua ?? 800000,
       biaya_fasilitas: k.biaya_fasilitas ?? 0,
       fasilitas: k.fasilitas,
       status: k.status,
@@ -346,7 +346,7 @@ export default function DataKamar() {
                             <div>
                               2 org:{" "}
                               <span className="font-semibold text-ink">
-                                {rupiah(k.harga_berdua ?? 750000)}
+                                {rupiah(k.harga_berdua ?? 800000)}
                               </span>
                             </div>
                           </td>
@@ -433,11 +433,10 @@ export default function DataKamar() {
               Huruf di depan menentukan blok di denah (A12 → Blok A).
             </p>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="harga-individu" className={labelCls}>
-                Tarif Individu / 1 Org (Rp)
+                Tarif Dasar Sendiri (Rp)
               </label>
               <input
                 id="harga-individu"
@@ -453,7 +452,7 @@ export default function DataKamar() {
             </div>
             <div>
               <label htmlFor="harga-berdua" className={labelCls}>
-                Tarif Berdua / 2 Org (Rp)
+                Tarif Dasar Berdua (Rp)
               </label>
               <input
                 id="harga-berdua"
@@ -470,23 +469,35 @@ export default function DataKamar() {
           </div>
 
           <div>
-            <label htmlFor="biaya-fasilitas" className={labelCls}>
-              Tambahan Biaya Fasilitas (Rp)
+            <label htmlFor="paket-fasilitas" className={labelCls}>
+              Paket Fasilitas Kamar
             </label>
-            <input
-              id="biaya-fasilitas"
-              type="number"
-              min={0}
-              placeholder="0 (kosongkan jika tanpa fasilitas tambahan)"
-              value={form.biaya_fasilitas ?? 0}
-              onChange={(e) =>
-                setForm({ ...form, biaya_fasilitas: Number(e.target.value) })
-              }
+            <select
+              id="paket-fasilitas"
+              value={(form.biaya_fasilitas ?? 0) > 0 ? "fasilitas" : "standar"}
+              onChange={(e) => {
+                const pakaiFasilitas = e.target.value === "fasilitas";
+                const tambahan = !pakaiFasilitas
+                  ? 0
+                  : editingJumlahPenghuni >= 2
+                    ? 310000
+                    : 200000;
+                setForm({ ...form, biaya_fasilitas: tambahan });
+              }}
               className={inputCls}
-            />
+            >
+              <option value="standar">
+                Tanpa Fasilitas Tambahan (Sendiri Rp550.000 · Berdua Rp800.000)
+              </option>
+              <option value="fasilitas">
+                Pakai Fasilitas Tambahan (Sendiri Rp750.000 · Berdua
+                Rp1.110.000)
+              </option>
+            </select>
             <p className="mt-1.5 text-xs text-ink-soft">
-              Isi 0 jika tanpa fasilitas tambahan. Saat kamar kosong (0
-              penghuni), biaya fasilitas otomatis kembali ke 0.
+              Tarif fasilitas otomatis menyesuaikan kapasitas kamar (+Rp200.000
+              sendiri, +Rp310.000 berdua). Saat kamar kosong (0 penghuni), biaya
+              fasilitas otomatis kembali ke 0.
             </p>
           </div>
 
@@ -496,11 +507,22 @@ export default function DataKamar() {
                 Estimasi Harga Aktif ({editingJumlahPenghuni} penghuni):
               </span>
               <span className="text-sm font-bold text-kos-700 tabular-nums">
-                {rupiah(pratinjauHargaAktif)} / bulan
+                {rupiah(
+                  (editingJumlahPenghuni >= 2
+                    ? Number(form.harga_berdua || 800000)
+                    : Number(form.harga_individu || 550000)) +
+                    (editingJumlahPenghuni === 0
+                      ? 0
+                      : (form.biaya_fasilitas ?? 0) > 0
+                        ? editingJumlahPenghuni >= 2
+                          ? 310000
+                          : 200000
+                        : 0),
+                )}{" "}
+                / bulan
               </span>
             </div>
           </div>
-
           <div>
             <label htmlFor="fasilitas" className={labelCls}>
               Keterangan Fasilitas

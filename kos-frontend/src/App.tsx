@@ -5,7 +5,6 @@ import type { UserProfile } from "./types/auth";
 
 // Komponen
 import Login from "./pages/Login";
-import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -24,6 +23,7 @@ import DataKamar from "./pages/pengurus/DataKamar";
 import DataPenghuni from "./pages/pengurus/DataPenghuni";
 import DataTagihan from "./pages/pengurus/DataTagihan";
 import DaftarKeluhan from "./pages/pengurus/DaftarKeluhan";
+import KelolaInformasi from "./pages/pengurus/KelolaInformasi";
 import Beranda from "./pages/Beranda";
 import LaporanKeuangan from "./pages/pemilik/LaporanKeuangan";
 import KelolaAkun from "./pages/pemilik/KelolaAkun";
@@ -163,6 +163,10 @@ function App() {
           />
           <Route path="/dashboard/tagihan" element={<DataTagihan />} />
           <Route path="/dashboard/keluhan" element={<DaftarKeluhan />} />
+          <Route
+            path="/dashboard/informasi-kelola"
+            element={<KelolaInformasi />}
+          />
 
           {/* Rute Pemilik */}
           <Route path="/dashboard/laporan" element={<LaporanKeuangan />} />

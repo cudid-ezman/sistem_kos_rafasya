@@ -18,12 +18,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 import calendar
 
 from administrasi.models import (
-    ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan, RiwayatStatusKeluhan
+    ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan, RiwayatStatusKeluhan, Informasi
 )
 from .serializers import (
     KamarSerializer, PenghuniSerializer, TagihanSerializer,
     BuktiPembayaranSerializer, KategoriKeluhanSerializer, KeluhanSerializer, 
-    CustomTokenObtainPairSerializer, AkunStaffSerializer
+    CustomTokenObtainPairSerializer, AkunStaffSerializer, InformasiSerializer
 )
 from .permissions import IsPengurus, IsPemilik
 
@@ -603,3 +603,22 @@ def hapus_akun_staff_api(request, user_id):
 
     target_user.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+class InformasiListCreateAPI(generics.ListCreateAPIView):
+    queryset = Informasi.objects.all().order_by('id')
+    serializer_class = InformasiSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsPengurus()]
+        return [IsAuthenticated()]
+
+
+class InformasiDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Informasi.objects.all()
+    serializer_class = InformasiSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsPengurus()]
+        return [IsAuthenticated()]

@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import pre_save, post_save, post_delete
+from django.dispatch import receiver
 
 # Menggunakan User bawaan Django dan menambahkan Role
 class ProfilUser(models.Model):
@@ -21,7 +23,7 @@ class Kamar(models.Model):
     nomor_kamar = models.CharField(max_length=10, unique=True)
     tipe = models.CharField(max_length=20, choices=TIPE_CHOICES, default='individu')
     harga_individu = models.FloatField(default=550000)
-    harga_berdua = models.FloatField(default=750000)
+    harga_berdua = models.FloatField(default=800000)
     biaya_fasilitas = models.FloatField(default=0)
     harga_sewa = models.FloatField(default=550000)
     fasilitas = models.TextField(blank=True, default='')
@@ -87,11 +89,69 @@ class RiwayatStatusKeluhan(models.Model):
 
 class Informasi(models.Model):
     kategori = models.CharField(max_length=100)
-    isi = models.TextField()
+    ringkasan = models.CharField(max_length=255, blank=True, default='')
+    isi = models.TextField(blank=True, default='')
+    ikon = models.CharField(max_length=30, default='aturan-kos')
     tanggal_pembaruan = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return self.kategori
 
 class Notifikasi(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     pesan = models.TextField()
     sudah_dibaca = models.BooleanField(default=False)
     waktu = models.DateTimeField(auto_now_add=True)
+
+def sinkron_status_kamar(kamar):
+    if not kamar:
+        return
+    if not Kamar.objects.filter(pk=kamar.pk).exists():
+        return
+
+    jumlah_aktif = Penghuni.objects.filter(kamar=kamar, status_aktif=True).count()
+    pakai_fasilitas = (kamar.biaya_fasilitas or 0) > 0
+
+    if jumlah_aktif == 0:
+        kamar.status = 'tersedia'
+        kamar.tipe = 'individu'
+        kamar.biaya_fasilitas = 0
+        kamar.harga_sewa = kamar.harga_individu
+    elif jumlah_aktif == 1:
+        kamar.status = 'terisi'
+        kamar.tipe = 'individu'
+        kamar.biaya_fasilitas = 200000 if pakai_fasilitas else 0
+        kamar.harga_sewa = kamar.harga_individu + kamar.biaya_fasilitas
+    else:
+        kamar.status = 'terisi'
+        kamar.tipe = 'berdua'
+        kamar.biaya_fasilitas = 310000 if pakai_fasilitas else 0
+        kamar.harga_sewa = kamar.harga_berdua + kamar.biaya_fasilitas
+
+    kamar.save(update_fields=['status', 'tipe', 'biaya_fasilitas', 'harga_sewa'])
+
+
+@receiver(pre_save, sender=Penghuni)
+def _simpan_kamar_lama_penghuni(sender, instance, **kwargs):
+    if instance.pk:
+        lama = Penghuni.objects.filter(pk=instance.pk).only('kamar').first()
+        instance._kamar_lama = lama.kamar if lama else None
+    else:
+        instance._kamar_lama = None
+
+
+@receiver(post_save, sender=Penghuni)
+def _auto_sinkron_kamar_saat_simpan(sender, instance, **kwargs):
+    kamar_lama = getattr(instance, '_kamar_lama', None)
+    if kamar_lama and kamar_lama != instance.kamar:
+        sinkron_status_kamar(kamar_lama)
+    if instance.kamar:
+        sinkron_status_kamar(instance.kamar)
+
+
+@receiver(post_delete, sender=Penghuni)
+def _auto_sinkron_kamar_saat_hapus(sender, instance, **kwargs):
+    if instance.kamar_id:
+        kamar = Kamar.objects.filter(pk=instance.kamar_id).first()
+        if kamar:
+            sinkron_status_kamar(kamar)

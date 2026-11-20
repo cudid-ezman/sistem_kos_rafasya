@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from administrasi.models import (
-    Kamar, Penghuni, Tagihan, BuktiPembayaran, Keluhan, KategoriKeluhan, RiwayatStatusKeluhan
+    Kamar, Penghuni, Tagihan, BuktiPembayaran, Keluhan, KategoriKeluhan, RiwayatStatusKeluhan, Informasi
 )
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -114,3 +114,9 @@ class AkunStaffSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'nama_lengkap', 'role', 'date_joined']
+
+class InformasiSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Informasi
+        fields = ['id', 'kategori', 'ringkasan', 'isi', 'ikon', 'tanggal_pembaruan']
+        read_only_fields = ['tanggal_pembaruan']
