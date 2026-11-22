@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   hitungDenda,
@@ -10,7 +10,10 @@ import {
   tglWaktu,
   totalTagihan,
   DENDA_PER_HARI,
+  hariIniISO,
 } from '../../lib/format';
+import { tagihanService } from '../../services/tagihanService';
+import { useToast } from '../../components/portal/toastContext';
 import { usePortal } from '../../components/portal/portalContext';
 import PageHeader from '../../components/portal/PageHeader';
 import StatusPill from '../../components/portal/StatusPill';
@@ -47,7 +50,12 @@ const esc = (s: string) =>
 export default function RincianTagihan() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, kamar, tagihan, bukti, loading } = usePortal();
+  const toast = useToast();
+  const { user, kamar, tagihan, bukti, loading, reload } = usePortal();
+  const [bukaAjukan, setBukaAjukan] = useState(false);
+  const [tglPerpanjangan, setTglPerpanjangan] = useState('');
+  const [alasanPerpanjangan, setAlasanPerpanjangan] = useState('');
+  const [mengajukan, setMengajukan] = useState(false);
 
   if (loading) return <PageSkeleton />;
 
@@ -77,6 +85,42 @@ export default function RincianTagihan() {
   const buktiDiterima = buktiTagihan.find((b) => b.status === 'diterima');
   const bisaUpload = ['belum_dibayar', 'ditolak', 'terlambat'].includes(t.status);
   const noKamar = t.nomor_kamar ?? kamar?.nomor;
+
+  const tambahHariISO = (iso: string, h: number) => {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, (m || 1) - 1, (d || 1) + h);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+  };
+  const minPerpanjangan = tambahHariISO(t.jatuh_tempo, 1);
+  const maksPerpanjangan = tambahHariISO(t.jatuh_tempo, 7);
+  const batasPengajuan = tambahHariISO(t.jatuh_tempo, 1);
+  const statusPerpanjangan = t.status_perpanjangan ?? 'tidak_ada';
+  const bolehAjukanDispensasi =
+    ['belum_dibayar', 'terlambat', 'ditolak'].includes(t.status) &&
+    statusPerpanjangan === 'tidak_ada' &&
+    hariIniISO() <= batasPengajuan;
+
+  const kirimPengajuan = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!tglPerpanjangan) {
+      toast.error('Pilih tanggal kesanggupan bayar terlebih dahulu.');
+      return;
+    }
+    setMengajukan(true);
+    try {
+      await tagihanService.ajukanPerpanjangan(t.id, tglPerpanjangan, alasanPerpanjangan);
+      toast.success('Pengajuan perpanjangan jatuh tempo berhasil dikirim ke pengurus.');
+      setBukaAjukan(false);
+      await reload();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        'Gagal mengirim pengajuan perpanjangan.';
+      toast.error(msg);
+    } finally {
+      setMengajukan(false);
+    }
+  };
 
   const cetakBukti = () => {
     const w = window.open('', '_blank', 'width=720,height=900');
@@ -144,6 +188,36 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
             >
               {tglPendek(t.jatuh_tempo)}
             </Baris>
+            {statusPerpanjangan !== 'tidak_ada' && t.tanggal_perpanjangan && (
+              <Baris
+                label="Perpanjangan Jatuh Tempo"
+                sub={
+                  statusPerpanjangan === 'disetujui'
+                    ? 'Disetujui pengurus (denda ditahan s/d tanggal ini)'
+                    : statusPerpanjangan === 'menunggu'
+                      ? 'Menunggu persetujuan pengurus'
+                      : 'Pengajuan perpanjangan ditolak pengurus'
+                }
+              >
+                <span
+                  className={
+                    statusPerpanjangan === 'disetujui'
+                      ? 'text-emerald-700'
+                      : statusPerpanjangan === 'menunggu'
+                        ? 'text-sky-700'
+                        : 'text-rose-600'
+                  }
+                >
+                  {tglPendek(t.tanggal_perpanjangan)} (
+                  {statusPerpanjangan === 'disetujui'
+                    ? 'Disetujui'
+                    : statusPerpanjangan === 'menunggu'
+                      ? 'Menunggu'
+                      : 'Ditolak'}
+                  )
+                </span>
+              </Baris>
+            )}
             <Baris label="Status Tagihan Saat Ini">
               <StatusPill status={t.status} />
             </Baris>
@@ -238,6 +312,95 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                 Bayar lewat QRIS sesuai nominal {rupiah(total)}, lalu unggah bukti pembayaran agar segera diverifikasi
                 pengurus.
               </p>
+              {statusPerpanjangan === 'disetujui' && t.tanggal_perpanjangan && (
+                <p className="mt-2.5 rounded-xl bg-emerald-100/80 px-3 py-2 text-xs font-medium text-emerald-800">
+                  Dispensasi aktif: batas pembayaran diperpanjang hingga{' '}
+                  <strong>{tglPendek(t.tanggal_perpanjangan)}</strong>. Denda keterlambatan akan otomatis berjalan jika
+                  melewati tanggal tersebut.
+                </p>
+              )}
+              {statusPerpanjangan === 'menunggu' && t.tanggal_perpanjangan && (
+                <p className="mt-2.5 rounded-xl bg-sky-100/80 px-3 py-2 text-xs font-medium text-sky-800">
+                  Pengajuan perpanjangan hingga <strong>{tglPendek(t.tanggal_perpanjangan)}</strong> sedang ditinjau
+                  pengurus.
+                </p>
+              )}
+              {statusPerpanjangan === 'ditolak' && (
+                <p className="mt-2.5 rounded-xl bg-rose-100/80 px-3 py-2 text-xs font-medium text-rose-800">
+                  Pengajuan perpanjangan sebelumnya ditolak pengurus. Pembayaran tetap mengacu pada jatuh tempo asli.
+                </p>
+              )}
+            </div>
+          )}
+
+          {bolehAjukanDispensasi && (
+            <div className="rounded-3xl border border-slate-200 bg-white p-5">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-ink">Butuh Kelonggaran Waktu Bayar?</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-soft">
+                    Ajukan pengunduran jatuh tempo maksimal <strong>7 hari</strong> ({tglPendek(minPerpanjangan)} –{' '}
+                    {tglPendek(maksPerpanjangan)}) jika ada kendala mendesak.
+                  </p>
+                </div>
+              </div>
+
+              {!bukaAjukan ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTglPerpanjangan(maksPerpanjangan);
+                    setBukaAjukan(true);
+                  }}
+                  className={`${btnOutline} mt-3.5 w-full`}
+                >
+                  <ClockIcon size={16} /> Ajukan Perpanjangan Jatuh Tempo
+                </button>
+              ) : (
+                <form onSubmit={kirimPengajuan} className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-ink">
+                      Tanggal Kesanggupan Bayar (1–7 hari)
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      min={minPerpanjangan}
+                      max={maksPerpanjangan}
+                      value={tglPerpanjangan}
+                      onChange={(e) => setTglPerpanjangan(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
+                    />
+                    <p className="mt-1 text-[11px] text-ink-soft">
+                      Bisa lebih cepat (1–6 hari) atau maksimal hingga {tglPendek(maksPerpanjangan)}.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-ink">Alasan Pengunduran</label>
+                    <textarea
+                      required
+                      rows={2}
+                      minLength={5}
+                      placeholder="Contoh: Menunggu jadwal gajian / transfer dari orang tua tanggal sekian..."
+                      value={alasanPerpanjangan}
+                      onChange={(e) => setAlasanPerpanjangan(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 p-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setBukaAjukan(false)}
+                      className={`${btnOutline} flex-1`}
+                    >
+                      Batal
+                    </button>
+                    <button type="submit" disabled={mengajukan} className={`${btnPrimary} flex-1`}>
+                      {mengajukan ? 'Mengirim...' : 'Kirim Pengajuan'}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
 

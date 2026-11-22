@@ -22,6 +22,15 @@ export const tagihanService = {
   prosesVerifikasi: (buktiId: number, aksi: 'terima' | 'tolak', catatan_penolakan = '') =>
     api.post(`/verifikasi/${buktiId}/`, { aksi, catatan_penolakan }),
 
+  ajukanPerpanjangan: (id: number, tanggal_perpanjangan: string, alasan_perpanjangan: string) =>
+    api.post<Tagihan>(`/tagihan/${id}/ajukan-perpanjangan/`, {
+      tanggal_perpanjangan,
+      alasan_perpanjangan,
+    }),
+
+  responPerpanjangan: (id: number, aksi: 'setujui' | 'tolak') =>
+    api.post<Tagihan>(`/tagihan/${id}/respon-perpanjangan/`, { aksi }),
+
   getLaporanKeuangan: () =>
     api.get<LaporanKeuanganResponse>('/laporan-keuangan/'),
 };

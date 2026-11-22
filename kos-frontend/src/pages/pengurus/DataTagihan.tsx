@@ -34,6 +34,7 @@ type Filter =
   | "belum_dibayar"
   | "terlambat"
   | "menunggu_verifikasi"
+  | "dispensasi"
   | "lunas"
   | "ditolak";
 const PER_HALAMAN = 10;
@@ -50,6 +51,7 @@ export default function DataTagihan() {
   const [genOpen, setGenOpen] = useState(false);
   const [periode, setPeriode] = useState(periodeSekarang());
   const [isGenerating, setIsGenerating] = useState(false);
+  const [memprosesDispensasiId, setMemprosesDispensasiId] = useState<number | null>(null);
 
   const fetchTagihan = async () => {
     try {
@@ -75,14 +77,38 @@ export default function DataTagihan() {
       belum_dibayar: 0,
       terlambat: 0,
       menunggu_verifikasi: 0,
+      dispensasi: 0,
       lunas: 0,
       ditolak: 0,
     };
     list.forEach((t) => {
       m[statusTampil(t)] += 1;
+      if (t.status_perpanjangan && t.status_perpanjangan !== "tidak_ada") {
+        m.dispensasi += 1;
+      }
     });
     return m;
   }, [list]);
+
+  const prosesDispensasi = async (t: Tagihan, aksi: "setujui" | "tolak") => {
+    setMemprosesDispensasiId(t.id);
+    try {
+      await tagihanService.responPerpanjangan(t.id, aksi);
+      toast.success(
+        aksi === "setujui"
+          ? `Perpanjangan jatuh tempo Kamar ${t.nomor_kamar || ""} disetujui.`
+          : `Pengajuan perpanjangan Kamar ${t.nomor_kamar || ""} ditolak.`,
+      );
+      await fetchTagihan();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data
+          ?.detail || "Gagal memproses pengajuan perpanjangan.";
+      toast.error(msg);
+    } finally {
+      setMemprosesDispensasiId(null);
+    }
+  };
 
   const totalLunas = useMemo(
     () =>
@@ -95,7 +121,11 @@ export default function DataTagihan() {
   const tersaring = useMemo(() => {
     const q = cari.trim().toLowerCase().replace(/\s+/g, " ");
     return list.filter((t) => {
-      if (filter !== "semua" && statusTampil(t) !== filter) return false;
+      if (filter === "dispensasi") {
+        if (!t.status_perpanjangan || t.status_perpanjangan === "tidak_ada") return false;
+      } else if (filter !== "semua" && statusTampil(t) !== filter) {
+        return false;
+      }
       if (!q) return true;
       const kamar = (t.nomor_kamar || "").toLowerCase();
       if (/^\d+$/.test(q)) {
@@ -204,6 +234,11 @@ export default function DataTagihan() {
                 label: "Menunggu",
                 count: hitung.menunggu_verifikasi,
               },
+              {
+                key: "dispensasi",
+                label: "Dispensasi",
+                count: hitung.dispensasi,
+              },
               { key: "lunas", label: "Lunas", count: hitung.lunas },
               { key: "ditolak", label: "Ditolak", count: hitung.ditolak },
             ]}
@@ -272,10 +307,57 @@ export default function DataTagihan() {
                           </p>
                         )}
                       </td>
-                      <td
-                        className={`${tdCls} whitespace-nowrap text-ink-soft`}
-                      >
-                        {tglPendek(t.jatuh_tempo)}
+                      <td className={`${tdCls} text-ink-soft`}>
+                        <div className="whitespace-nowrap">
+                          {tglPendek(t.jatuh_tempo)}
+                        </div>
+                        {t.status_perpanjangan === "menunggu" &&
+                          t.tanggal_perpanjangan && (
+                            <div className="mt-1.5 max-w-[230px] rounded-xl border border-sky-200 bg-sky-50 p-2 text-[11px] text-sky-900">
+                              <p className="font-semibold">
+                                Minta undur s/d{" "}
+                                {tglPendek(t.tanggal_perpanjangan)}
+                              </p>
+                              {t.alasan_perpanjangan && (
+                                <p className="mt-0.5 line-clamp-2 text-sky-800/80">
+                                  “{t.alasan_perpanjangan}”
+                                </p>
+                              )}
+                              <div className="mt-2 flex gap-1.5">
+                                <button
+                                  type="button"
+                                  disabled={memprosesDispensasiId === t.id}
+                                  onClick={() => prosesDispensasi(t, "setujui")}
+                                  className="cursor-pointer rounded-lg bg-emerald-600 px-2.5 py-1 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                                >
+                                  Setujui
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={memprosesDispensasiId === t.id}
+                                  onClick={() => prosesDispensasi(t, "tolak")}
+                                  className="cursor-pointer rounded-lg border border-rose-200 bg-white px-2.5 py-1 font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+                                >
+                                  Tolak
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        {t.status_perpanjangan === "disetujui" &&
+                          t.tanggal_perpanjangan && (
+                            <span
+                              title={t.alasan_perpanjangan || ""}
+                              className="mt-1 inline-block rounded-md bg-emerald-100/80 px-2 py-0.5 text-[11px] font-semibold text-emerald-800"
+                            >
+                              Diperpanjang s/d{" "}
+                              {tglPendek(t.tanggal_perpanjangan)}
+                            </span>
+                          )}
+                        {t.status_perpanjangan === "ditolak" && (
+                          <span className="mt-1 inline-block rounded-md bg-rose-100/80 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
+                            Dispensasi ditolak
+                          </span>
+                        )}
                       </td>
                       <td className={tdCls}>
                         <StatusPill status={statusTampil(t)} />

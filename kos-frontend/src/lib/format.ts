@@ -47,10 +47,16 @@ export function hariSelisih(dari: Date, ke: Date) {
   return Math.round((b - a) / 86_400_000);
 }
 
-/** Hari terlambat & denda. Tagihan lunas tidak kena denda. */
-export function hitungDenda(t: Pick<Tagihan, 'jatuh_tempo' | 'status'>) {
+/** Hari terlambat & denda. Jika dispensasi disetujui, patokan bergeser ke tanggal_perpanjangan. */
+export function hitungDenda(
+  t: Pick<Tagihan, 'jatuh_tempo' | 'status' | 'tanggal_perpanjangan' | 'status_perpanjangan'>,
+) {
   if (t.status === 'lunas') return { hari: 0, denda: 0 };
-  const hari = Math.max(0, hariSelisih(parseTanggal(t.jatuh_tempo), new Date()));
+  const patokan =
+    t.status_perpanjangan === 'disetujui' && t.tanggal_perpanjangan
+      ? t.tanggal_perpanjangan
+      : t.jatuh_tempo;
+  const hari = Math.max(0, hariSelisih(parseTanggal(patokan), new Date()));
   return { hari, denda: hari * DENDA_PER_HARI };
 }
 
@@ -118,7 +124,9 @@ export const ukuranBerkas = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 /** Status tampilan untuk admin: belum dibayar yang sudah lewat jatuh tempo dianggap "terlambat". */
-export function statusTampil(t: Pick<Tagihan, 'jatuh_tempo' | 'status'>): Tagihan['status'] {
+export function statusTampil(
+  t: Pick<Tagihan, 'jatuh_tempo' | 'status' | 'tanggal_perpanjangan' | 'status_perpanjangan'>,
+): Tagihan['status'] {
   if (t.status === 'belum_dibayar' && hitungDenda(t).hari > 0) return 'terlambat';
   return t.status;
 }

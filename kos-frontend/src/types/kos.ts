@@ -36,6 +36,9 @@ export interface Tagihan {
     | "ditolak"
     | "terlambat";
   catatan?: string | null;
+  tanggal_perpanjangan?: string | null;
+  alasan_perpanjangan?: string | null;
+  status_perpanjangan?: "tidak_ada" | "menunggu" | "disetujui" | "ditolak";
   nama_penghuni?: string;
   nomor_kamar?: string;
   penghuni?: {

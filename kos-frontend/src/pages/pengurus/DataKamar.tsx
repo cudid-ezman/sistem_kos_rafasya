@@ -5,7 +5,7 @@ import {
   type CreateKamarPayload,
 } from "../../services/kamarService";
 import type { Kamar } from "../../types/kos";
-import { rupiah } from "../../lib/format";
+import { pecahKamar, rupiah } from "../../lib/format";
 import DenahKamar from "./DenahKamar";
 import PageHeader from "../../components/portal/PageHeader";
 import StatusPill from "../../components/portal/StatusPill";
@@ -46,6 +46,21 @@ const KOSONG: CreateKamarPayload = {
   status: "tersedia",
 };
 const PER_HALAMAN = 10;
+const DAFTAR_BLOK = [
+  { kode: "A", label: "Blok A (Slot 01–13)", maks: 13 },
+  { kode: "B", label: "Blok B (Slot 01–14)", maks: 14 },
+  { kode: "C", label: "Blok C (Slot 01–14)", maks: 14 },
+  { kode: "D", label: "Blok D (Slot 01–04)", maks: 4 },
+  { kode: "LAINNYA", label: "Blok Lainnya / Kustom", maks: 99 },
+];
+
+function formatKodeKamar(blok: string, nomor: string): string {
+  const bersih = nomor.trim();
+  if (blok === "LAINNYA") return bersih.toUpperCase();
+  const angka = parseInt(bersih.replace(/\D/g, ""), 10);
+  if (Number.isNaN(angka) || angka <= 0) return "";
+  return `${blok}${String(angka).padStart(2, "0")}`;
+}
 
 export default function DataKamar() {
   const toast = useToast();
@@ -55,11 +70,15 @@ export default function DataKamar() {
   const [kamarList, setKamarList] = useState<Kamar[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cari, setCari] = useState("");
+  const [filterBlok, setFilterBlok] = useState<string>("SEMUA");
   const [halaman, setHalaman] = useState(1);
+  const [denahKey, setDenahKey] = useState(0);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingJumlahPenghuni, setEditingJumlahPenghuni] = useState<number>(0);
+  const [blokForm, setBlokForm] = useState<string>("A");
+  const [nomorForm, setNomorForm] = useState<string>("1");
   const [form, setForm] = useState<CreateKamarPayload>(KOSONG);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hapus, setHapus] = useState<Kamar | null>(null);
@@ -94,8 +113,11 @@ export default function DataKamar() {
 
   const tersaring = useMemo(() => {
     const q = cari.trim().toLowerCase().replace(/\s+/g, " ");
-    if (!q) return kamarList;
     return kamarList.filter((k) => {
+      const { blok } = pecahKamar(k.nomor_kamar);
+      if (filterBlok === "TANPA_BLOK" && blok !== null) return false;
+      if (filterBlok !== "SEMUA" && filterBlok !== "TANPA_BLOK" && blok !== filterBlok) return false;
+      if (!q) return true;
       const nomor = k.nomor_kamar.toLowerCase();
       if (/^\d+$/.test(q)) {
         return nomor === q || nomor.endsWith(q.padStart(2, "0"));
@@ -108,16 +130,19 @@ export default function DataKamar() {
         (k.tipe || "").toLowerCase().includes(q)
       );
     });
-  }, [kamarList, cari]);
+  }, [kamarList, cari, filterBlok]);
   const baris = tersaring.slice(
     (halaman - 1) * PER_HALAMAN,
     halaman * PER_HALAMAN,
   );
 
-  const bukaTambah = () => {
+  const bukaTambah = (blokAwal = "A", nomorAwal = "") => {
     setEditingId(null);
     setEditingJumlahPenghuni(0);
-    setForm(KOSONG);
+    setBlokForm(blokAwal);
+    setNomorForm(nomorAwal);
+    const kodeAwal = nomorAwal ? formatKodeKamar(blokAwal, nomorAwal) : "";
+    setForm({ ...KOSONG, nomor_kamar: kodeAwal });
     setFormOpen(true);
   };
 
@@ -126,6 +151,18 @@ export default function DataKamar() {
     setEditingJumlahPenghuni(
       k.jumlah_penghuni ?? (k.status === "terisi" ? 1 : 0),
     );
+    const hasil = pecahKamar(k.nomor_kamar);
+    if (hasil.blok && ["A", "B", "C", "D"].includes(hasil.blok)) {
+      setBlokForm(hasil.blok);
+      setNomorForm(String(hasil.nomor));
+    } else if (hasil.blok) {
+      setBlokForm("LAINNYA");
+      setNomorForm(k.nomor_kamar);
+    } else {
+      const angkaSaja = k.nomor_kamar.replace(/\D/g, "");
+      setBlokForm("A");
+      setNomorForm(angkaSaja || k.nomor_kamar);
+    }
     setForm({
       nomor_kamar: k.nomor_kamar,
       tipe: k.tipe,
@@ -140,17 +177,24 @@ export default function DataKamar() {
 
   const simpan = async (e: FormEvent) => {
     e.preventDefault();
+    const kodeFinal = formatKodeKamar(blokForm, nomorForm) || form.nomor_kamar.trim();
+    if (!kodeFinal) {
+      toast.error("Nomor kamar wajib diisi.");
+      return;
+    }
+    const payload: CreateKamarPayload = { ...form, nomor_kamar: kodeFinal };
     setIsSubmitting(true);
     try {
       if (editingId) {
-        await kamarService.updateKamar(editingId, form);
-        toast.success("Data kamar berhasil diperbarui.");
+        await kamarService.updateKamar(editingId, payload);
+        toast.success(`Data kamar ${kodeFinal} berhasil diperbarui.`);
       } else {
-        await kamarService.createKamar(form);
-        toast.success("Kamar baru berhasil ditambahkan.");
+        await kamarService.createKamar(payload);
+        toast.success(`Kamar ${kodeFinal} berhasil ditambahkan.`);
       }
       setFormOpen(false);
       await fetchKamar();
+      setDenahKey((n) => n + 1);
     } catch (error) {
       console.error("Gagal menyimpan data kamar", error);
       toast.error(
@@ -202,7 +246,7 @@ export default function DataKamar() {
         title="Manajemen Data Kamar"
         subtitle="Kelola tarif individu/berdua, tambahan biaya fasilitas, dan ketersediaan kamar."
         action={
-          <button type="button" onClick={bukaTambah} className={btnPrimary}>
+          <button type="button" onClick={() => bukaTambah()} className={btnPrimary}>
             <PlusIcon size={17} /> Tambah Kamar
           </button>
         }
@@ -236,7 +280,11 @@ export default function DataKamar() {
       </div>
 
       {tab === "denah" ? (
-        <DenahKamar />
+        <DenahKamar
+          key={denahKey}
+          onTambahSlot={(blok, nomor) => bukaTambah(blok, String(nomor))}
+          onEditKamar={(k) => bukaEdit(k)}
+        />
       ) : (
         <>
           <div className="mb-4 grid grid-cols-3 gap-3">
@@ -260,8 +308,38 @@ export default function DataKamar() {
           </div>
 
           <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
-            <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-base font-bold text-ink">Daftar Kamar</h2>
+            <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="mr-1 text-base font-bold text-ink">Daftar Kamar</h2>
+                <div className="flex flex-wrap items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+                  {[
+                    { id: "SEMUA", label: "Semua Blok" },
+                    { id: "A", label: "Blok A" },
+                    { id: "B", label: "Blok B" },
+                    { id: "C", label: "Blok C" },
+                    { id: "D", label: "Blok D" },
+                    ...(kamarList.some((k) => !pecahKamar(k.nomor_kamar).blok)
+                      ? [{ id: "TANPA_BLOK", label: "Belum Berblok" }]
+                      : []),
+                  ].map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => {
+                        setFilterBlok(b.id);
+                        setHalaman(1);
+                      }}
+                      className={`cursor-pointer rounded-lg px-2.5 py-1 transition ${
+                        filterBlok === b.id
+                          ? "bg-white text-kos-700 shadow-xs"
+                          : "text-ink-soft hover:text-ink"
+                      }`}
+                    >
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <SearchInput
                 value={cari}
                 onChange={(v) => {
@@ -289,7 +367,7 @@ export default function DataKamar() {
                   kamarList.length === 0 && (
                     <button
                       type="button"
-                      onClick={bukaTambah}
+                      onClick={() => bukaTambah()}
                       className={btnPrimary}
                     >
                       <PlusIcon size={17} /> Tambah Kamar
@@ -321,7 +399,21 @@ export default function DataKamar() {
                           className="transition hover:bg-slate-50/70"
                         >
                           <td className={`${tdCls} font-bold`}>
-                            {k.nomor_kamar}
+                            <div className="flex items-center gap-2">
+                              <span>{k.nomor_kamar}</span>
+                              {(() => {
+                                const info = pecahKamar(k.nomor_kamar);
+                                return info.blok ? (
+                                  <span className="rounded-md bg-kos-100/70 px-2 py-0.5 text-[11px] font-semibold text-kos-700">
+                                    Blok {info.blok}
+                                  </span>
+                                ) : (
+                                  <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                                    Belum berblok
+                                  </span>
+                                );
+                              })()}
+                            </div>
                           </td>
                           <td className={tdCls}>
                             <span className="capitalize">{k.tipe}</span>
@@ -411,22 +503,56 @@ export default function DataKamar() {
       >
         <form onSubmit={simpan} className="space-y-4">
           <div>
-            <label htmlFor="nomor" className={labelCls}>
-              Nomor Kamar
-            </label>
-            <input
-              id="nomor"
-              required
-              placeholder="Contoh: A12"
-              value={form.nomor_kamar}
-              onChange={(e) =>
-                setForm({ ...form, nomor_kamar: e.target.value })
-              }
-              className={inputCls}
-            />
-            <p className="mt-1.5 text-xs text-ink-soft">
-              Huruf di depan menentukan blok di denah (A12 → Blok A).
-            </p>
+            <label className={labelCls}>Blok &amp; Nomor Kamar</label>
+            <div className="grid grid-cols-[1.25fr_1fr] gap-2.5">
+              <select
+                aria-label="Pilih Blok Kamar"
+                value={blokForm}
+                onChange={(e) => {
+                  const b = e.target.value;
+                  setBlokForm(b);
+                  const kode = formatKodeKamar(b, nomorForm);
+                  setForm({ ...form, nomor_kamar: kode });
+                }}
+                className={inputCls}
+              >
+                {DAFTAR_BLOK.map((b) => (
+                  <option key={b.kode} value={b.kode}>
+                    {b.label}
+                  </option>
+                ))}
+              </select>
+              <input
+                id="nomor"
+                required
+                type={blokForm === "LAINNYA" ? "text" : "number"}
+                min={blokForm === "LAINNYA" ? undefined : 1}
+                max={
+                  blokForm === "LAINNYA"
+                    ? undefined
+                    : (DAFTAR_BLOK.find((b) => b.kode === blokForm)?.maks ?? 99)
+                }
+                placeholder={blokForm === "LAINNYA" ? "Contoh: VIP-1" : "No. 1–14"}
+                value={nomorForm}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setNomorForm(val);
+                  const kode = formatKodeKamar(blokForm, val);
+                  setForm({ ...form, nomor_kamar: kode || val });
+                }}
+                className={inputCls}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs">
+              <span className="text-ink-soft">Kode &amp; posisi di denah:</span>
+              <span className="font-bold text-kos-700">
+                {formatKodeKamar(blokForm, nomorForm)
+                  ? `${formatKodeKamar(blokForm, nomorForm)} · ${
+                      blokForm === "LAINNYA" ? "Blok Tambahan" : `Blok ${blokForm}`
+                    }`
+                  : "Isi nomor kamar"}
+              </span>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

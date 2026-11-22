@@ -55,6 +55,7 @@ class TagihanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tagihan
         fields = '__all__'
+        read_only_fields = ('tanggal_perpanjangan', 'alasan_perpanjangan', 'status_perpanjangan')
         depth = 2
 
 class BuktiPembayaranSerializer(serializers.ModelSerializer):

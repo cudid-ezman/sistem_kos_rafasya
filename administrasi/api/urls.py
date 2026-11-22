@@ -20,6 +20,8 @@ urlpatterns = [
 
     path('tagihan/', views.TagihanListCreateAPI.as_view(), name='api_tagihan'),
     path('tagihan/generate/', views.generate_tagihan_bulanan, name='api_tagihan_generate'),
+    path('tagihan/<int:pk>/ajukan-perpanjangan/', views.ajukan_perpanjangan_api, name='api_tagihan_ajukan_perpanjangan'),
+    path('tagihan/<int:pk>/respon-perpanjangan/', views.respon_perpanjangan_api, name='api_tagihan_respon_perpanjangan'),
 
     path('bukti-pembayaran/', views.BuktiPembayaranListCreateAPI.as_view(), name='api-bukti-pembayaran'),
     path('verifikasi/<int:bukti_id>/', views.proses_verifikasi_api, name='api_proses_verifikasi'),

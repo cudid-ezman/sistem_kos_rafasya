@@ -197,7 +197,17 @@ export default function LaporanKeuangan() {
                     <td className={tdCls}>Kamar {t.nomor_kamar || t.penghuni?.kamar?.nomor_kamar || '-'}</td>
                     <td className={`${tdCls} text-right font-bold tabular-nums`}>{rupiah(t.nominal)}</td>
                     <td className={tdCls}>
-                      <StatusPill status={t.status} />
+                      <div className="flex flex-col items-start gap-1">
+                        <StatusPill status={t.status} />
+                        {t.status_perpanjangan === 'disetujui' && t.tanggal_perpanjangan && (
+                          <span
+                            title={t.alasan_perpanjangan || 'Dispensasi jatuh tempo disetujui pengurus'}
+                            className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-700"
+                          >
+                            Dispensasi s/d {tglAngka(t.tanggal_perpanjangan)}
+                          </span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

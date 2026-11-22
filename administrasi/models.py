@@ -48,9 +48,18 @@ class Tagihan(models.Model):
     penghuni = models.ForeignKey(Penghuni, on_delete=models.CASCADE)
     periode = models.CharField(max_length=50)
     nominal = models.FloatField()
+    PERPANJANGAN_CHOICES = (
+        ('tidak_ada', 'Tidak Ada'),
+        ('menunggu', 'Menunggu Persetujuan'),
+        ('disetujui', 'Disetujui'),
+        ('ditolak', 'Ditolak'),
+    )
     jatuh_tempo = models.DateField()
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='belum_dibayar')
     catatan = models.TextField(blank=True, null=True)
+    tanggal_perpanjangan = models.DateField(blank=True, null=True)
+    alasan_perpanjangan = models.TextField(blank=True, null=True)
+    status_perpanjangan = models.CharField(max_length=20, choices=PERPANJANGAN_CHOICES, default='tidak_ada')
 
 class BuktiPembayaran(models.Model):
     tagihan = models.ForeignKey(Tagihan, on_delete=models.CASCADE)
