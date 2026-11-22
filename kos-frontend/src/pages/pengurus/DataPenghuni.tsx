@@ -748,15 +748,17 @@ export default function DataPenghuni() {
                   }
                   className={inputCls}
                 >
-                  {opsiKamarEdit.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      Kamar {k.nomor_kamar} —{" "}
-                      {(k.jumlah_penghuni ??
-                        (k.status === "terisi" ? 1 : 0)) === 0
-                        ? "Kosong (1 org: Rp550rb)"
-                        : "Terisi 1/2 org (Tambah teman sekamar → Berdua)"}
-                    </option>
-                  ))}
+                  {opsiKamarEdit.map((k) => {
+                    const pakaiFasilitas = (k.biaya_fasilitas ?? 0) > 0;
+                    const terisi =
+                      (k.jumlah_penghuni ?? (k.status === "terisi" ? 1 : 0)) > 0;
+                    return (
+                      <option key={k.id} value={k.id}>
+                        Kamar {k.nomor_kamar} ({pakaiFasilitas ? "Fasilitas" : "Standar"}) —{" "}
+                        {terisi ? "Terisi 1/2 org" : "Kosong"}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               <div>
@@ -775,6 +777,37 @@ export default function DataPenghuni() {
                 />
               </div>
             </div>
+            {(() => {
+              if (modeAktifkan || !editTarget?.kamar || editTarget.kamar === editForm.kamar)
+                return null;
+              const kamarAsal = kamarList.find((k) => k.id === editTarget.kamar);
+              const kamarTujuan = kamarList.find((k) => k.id === editForm.kamar);
+              if (!kamarAsal || !kamarTujuan) return null;
+              const asalFasilitas = (kamarAsal.biaya_fasilitas ?? 0) > 0;
+              const tujuanFasilitas = (kamarTujuan.biaya_fasilitas ?? 0) > 0;
+              const nyilang = asalFasilitas !== tujuanFasilitas;
+              return (
+                <div
+                  className={`rounded-xl border px-3.5 py-2.5 text-xs leading-relaxed ${
+                    nyilang
+                      ? "border-amber-200 bg-amber-50 text-amber-900"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-900"
+                  }`}
+                >
+                  {nyilang ? (
+                    <>
+                      <b>Perpindahan Silang ({asalFasilitas ? "Fasilitas" : "Standar"} → {tujuanFasilitas ? "Fasilitas" : "Standar"}):</b>{" "}
+                      Hanya diizinkan pada atau setelah tanggal jatuh tempo siklus berjalan.
+                    </>
+                  ) : (
+                    <>
+                      <b>Perpindahan Setipe ({asalFasilitas ? "Fasilitas" : "Standar"}):</b>{" "}
+                      Dapat dilakukan kapan saja dan pembayaran siklus aktif otomatis berlanjut di kamar baru.
+                    </>
+                  )}
+                </div>
+              );
+            })()}
             <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"

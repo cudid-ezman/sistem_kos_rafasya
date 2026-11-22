@@ -30,12 +30,20 @@ class PenghuniSerializer(serializers.ModelSerializer):
 
 class TagihanSerializer(serializers.ModelSerializer):
     nama_penghuni = serializers.SerializerMethodField()
-    nomor_kamar = serializers.CharField(source='penghuni.kamar.nomor_kamar', read_only=True)
+    nomor_kamar = serializers.SerializerMethodField()
+
+    def get_nomor_kamar(self, obj):
+        if obj.kamar:
+            return obj.kamar.nomor_kamar
+        if obj.penghuni and obj.penghuni.kamar:
+            return obj.penghuni.kamar.nomor_kamar
+        return "-"
 
     def get_nama_penghuni(self, obj):
-        kamar = getattr(obj.penghuni, 'kamar', None)
+        if (obj.nama_penghuni_snapshot or '').strip():
+            return obj.nama_penghuni_snapshot.strip()
+        kamar = obj.kamar or getattr(obj.penghuni, 'kamar', None)
         harga_berdua = getattr(kamar, 'harga_berdua', 800000) or 800000
-        # Hanya gabungkan 2 nama jika nominal tagihan memang tarif berdua (>= harga_berdua)
         if kamar and (obj.nominal or 0) >= harga_berdua:
             penghuni_kamar = list(
                 Penghuni.objects.filter(kamar=kamar, status_aktif=True)
@@ -62,7 +70,14 @@ class BuktiPembayaranSerializer(serializers.ModelSerializer):
     periode_tagihan = serializers.CharField(source='tagihan.periode', read_only=True)
     nominal_tagihan = serializers.FloatField(source='tagihan.nominal', read_only=True)
     nama_penghuni = serializers.SerializerMethodField()
-    nomor_kamar = serializers.CharField(source='tagihan.penghuni.kamar.nomor_kamar', read_only=True)
+    nomor_kamar = serializers.SerializerMethodField()
+
+    def get_nomor_kamar(self, obj):
+        if obj.tagihan.kamar:
+            return obj.tagihan.kamar.nomor_kamar
+        if obj.tagihan.penghuni and obj.tagihan.penghuni.kamar:
+            return obj.tagihan.penghuni.kamar.nomor_kamar
+        return "-"
 
     def get_nama_penghuni(self, obj):
         pengaju = obj.diunggah_oleh or obj.tagihan.penghuni

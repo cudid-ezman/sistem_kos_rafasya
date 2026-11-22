@@ -6,6 +6,7 @@ import type { Tagihan } from "../../types/kos";
 import {
   hitungDenda,
   inisial,
+  BULAN,
   periodeSekarang,
   rupiah,
   statusTampil,
@@ -397,17 +398,39 @@ export default function DataTagihan() {
       >
         <form onSubmit={generate} className="space-y-4">
           <div>
-            <label htmlFor="periode" className={labelCls}>
-              Periode Tagihan
-            </label>
-            <input
-              id="periode"
-              required
-              value={periode}
-              onChange={(e) => setPeriode(e.target.value)}
-              placeholder="Contoh: Desember 2026"
-              className={inputCls}
-            />
+            <span className={labelCls}>Periode Tagihan</span>
+            <div className="grid grid-cols-[1.4fr_1fr] gap-2.5">
+              <select
+                aria-label="Bulan tagihan"
+                value={periode.split(' ')[0] || BULAN[new Date().getMonth()]}
+                onChange={(e) => {
+                  const thn = periode.split(' ')[1] || String(new Date().getFullYear());
+                  setPeriode(`${e.target.value} ${thn}`);
+                }}
+                className={inputCls}
+              >
+                {BULAN.map((b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="Tahun tagihan"
+                value={periode.split(' ')[1] || String(new Date().getFullYear())}
+                onChange={(e) => {
+                  const bln = periode.split(' ')[0] || BULAN[new Date().getMonth()];
+                  setPeriode(`${bln} ${e.target.value}`);
+                }}
+                className={inputCls}
+              >
+                {[new Date().getFullYear(), new Date().getFullYear() + 1].map((y) => (
+                  <option key={y} value={String(y)}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
             <p className="mt-1.5 text-xs text-ink-soft">
               "Jatuh tempo otomatis mengikuti tanggal masuk penghuni utama
               kamar. Nominal tagihan dihitung per kamar (tidak dibagi dua)."
