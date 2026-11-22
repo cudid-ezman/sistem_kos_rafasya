@@ -216,6 +216,7 @@ def _pastikan_tagihan_kamar_aktif(kamar, penghuni_referensi=None):
         periode__iexact=periode_ini
     ).first()
 
+    nominal = kamar.harga_sewa
     if not tagihan_bulan_ini:
         jatuh_tempo = _jatuh_tempo_siklus_masuk(penghuni_utama.tanggal_masuk, hari_ini)
         Tagihan.objects.create(
@@ -223,13 +224,15 @@ def _pastikan_tagihan_kamar_aktif(kamar, penghuni_referensi=None):
             kamar=kamar,
             nama_penghuni_snapshot=_label_penghuni_kamar(kamar, penghuni_utama, nominal),
             periode=periode_ini,
-            nominal=kamar.harga_sewa,
+            nominal=nominal,
             jatuh_tempo=jatuh_tempo,
             status='belum_dibayar'
         )
     elif tagihan_bulan_ini.status in ['belum_dibayar', 'terlambat', 'ditolak']:
-        tagihan_bulan_ini.nominal = kamar.harga_sewa
-        tagihan_bulan_ini.save(update_fields=['nominal'])
+        tagihan_bulan_ini.nominal = nominal
+        tagihan_bulan_ini.kamar = kamar
+        tagihan_bulan_ini.nama_penghuni_snapshot = _label_penghuni_kamar(kamar, penghuni_utama, nominal)
+        tagihan_bulan_ini.save(update_fields=['nominal', 'kamar', 'nama_penghuni_snapshot'])
 
 class PenghuniDetailAPI(generics.RetrieveUpdateAPIView):
     queryset = Penghuni.objects.select_related('user', 'kamar').all()
