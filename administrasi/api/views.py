@@ -1,5 +1,4 @@
-from datetime import date, timedelta
-import re
+from datetime import timedelta
 from django.utils.timezone import now
 from django.db import transaction
 from django.db.models import Sum, Q
@@ -16,7 +15,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
+from datetime import date
 import calendar
+import re
 
 from administrasi.models import (
     ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan, RiwayatStatusKeluhan, Informasi
@@ -335,15 +336,43 @@ BULAN_MAP = {
 }
 
 
-def _parse_bulan_tahun_periode(periode_str, tahun_default):
+NAMA_BULAN_ID = [
+    '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+]
+
+
+def _parse_bulan_tahun_periode(periode_str, tahun_default, bulan_sekarang=None):
     teks = (periode_str or '').strip().lower()
+    # Format YYYY-MM atau YYYY/MM
+    m_iso = re.match(r'^(\d{4})[-/](\d{1,2})$', teks)
+    if m_iso:
+        thn, bln = int(m_iso.group(1)), int(m_iso.group(2))
+        return (thn, bln) if 1 <= bln <= 12 else None
+
+    # Format angka bulan: "1 2026", "01/2026", "1"
+    m_num = re.match(r'^(\d{1,2})(?:[\s/-]+(\d{4}))?$', teks)
+    if m_num:
+        bln = int(m_num.group(1))
+        if not (1 <= bln <= 12):
+            return None
+        if m_num.group(2):
+            thn = int(m_num.group(2))
+        else:
+            thn = tahun_default + 1 if (bulan_sekarang and bln < bulan_sekarang) else tahun_default
+        return (thn, bln)
+
+    # Format nama bulan: "Januari 2027", "Jan 2027", "Januari"
     m = re.search(r'([a-z]+)\s*(\d{4})?', teks)
     if not m:
         return None
     bulan = BULAN_MAP.get(m.group(1))
     if not bulan:
         return None
-    tahun = int(m.group(2)) if m.group(2) else tahun_default
+    if m.group(2):
+        tahun = int(m.group(2))
+    else:
+        tahun = tahun_default + 1 if (bulan_sekarang and bulan < bulan_sekarang) else tahun_default
     return (tahun, bulan)
 
 
@@ -401,34 +430,53 @@ def generate_tagihan_bulanan(request):
                 continue
 
             nominal = kamar.harga_sewa
-            parsed_periode = _parse_bulan_tahun_periode(periode, hari_ini.year)
+            tagihan_terakhir = (
+                Tagihan.objects.filter(penghuni__kamar=kamar)
+                .order_by('-jatuh_tempo', '-id')
+                .first()
+            )
+            parsed_periode = _parse_bulan_tahun_periode(periode, hari_ini.year, hari_ini.month)
             if parsed_periode:
                 jatuh_tempo = _tanggal_siklus_pada_bulan(
                     penghuni_utama.tanggal_masuk,
                     parsed_periode[0],
                     parsed_periode[1],
                 )
-            else:
-                tagihan_terakhir = (
-                    Tagihan.objects.filter(penghuni__kamar=kamar)
-                    .order_by('-jatuh_tempo', '-id')
-                    .first()
+            elif tagihan_terakhir:
+                t_prev = tagihan_terakhir.jatuh_tempo
+                thn_next = t_prev.year + (1 if t_prev.month == 12 else 0)
+                bln_next = 1 if t_prev.month == 12 else t_prev.month + 1
+                jatuh_tempo = _tanggal_siklus_pada_bulan(
+                    penghuni_utama.tanggal_masuk, thn_next, bln_next
                 )
-                if tagihan_terakhir:
-                    t_prev = tagihan_terakhir.jatuh_tempo
-                    thn_next = t_prev.year + (1 if t_prev.month == 12 else 0)
-                    bln_next = 1 if t_prev.month == 12 else t_prev.month + 1
-                    jatuh_tempo = _tanggal_siklus_pada_bulan(
-                        penghuni_utama.tanggal_masuk, thn_next, bln_next
-                    )
-                else:
-                    jatuh_tempo = _jatuh_tempo_siklus_masuk(penghuni_utama.tanggal_masuk, hari_ini)
+            else:
+                jatuh_tempo = _jatuh_tempo_siklus_masuk(penghuni_utama.tanggal_masuk, hari_ini)
+
+            # Cegah duplikat di bulan & tahun jatuh tempo yang sama (meski penulisan teks berbeda)
+            sudah_ada_bulan_ini = Tagihan.objects.filter(
+                penghuni__kamar=kamar,
+                jatuh_tempo__year=jatuh_tempo.year,
+                jatuh_tempo__month=jatuh_tempo.month,
+            ).exists()
+            if sudah_ada_bulan_ini:
+                skipped_count += 1
+                continue
+
+            # Cegah tagihan dibuat untuk tanggal sebelum penghuni masuk atau sebelum/sama dengan tagihan terakhir
+            if jatuh_tempo < penghuni_utama.tanggal_masuk or (
+                tagihan_terakhir and jatuh_tempo <= tagihan_terakhir.jatuh_tempo
+            ):
+                skipped_count += 1
+                continue
+
+            periode_rapi = f"{NAMA_BULAN_ID[jatuh_tempo.month]} {jatuh_tempo.year}"
             Tagihan.objects.create(
                 penghuni=penghuni_utama,
-                periode=periode,
+                periode=periode_rapi,
                 nominal=nominal,
                 jatuh_tempo=jatuh_tempo,
-                status='belum_dibayar'
+                status='belum_dibayar',
+                status_perpanjangan='tidak_ada'
             )
             created_count += 1
 
@@ -705,106 +753,3 @@ class InformasiDetailAPI(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
             return [IsPengurus()]
         return [IsAuthenticated()]
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def ajukan_perpanjangan_api(request, pk):
-    from datetime import date, timedelta
-    tagihan = Tagihan.objects.select_related('penghuni__kamar', 'penghuni__user').filter(pk=pk).first()
-    if not tagihan:
-        return Response({'detail': 'Tagihan tidak ditemukan.'}, status=status.HTTP_404_NOT_FOUND)
-
-    penghuni = Penghuni.objects.filter(user=request.user).first()
-    if not penghuni:
-        return Response({'detail': 'Hanya penghuni yang dapat mengajukan perpanjangan.'}, status=status.HTTP_403_FORBIDDEN)
-
-    punya_akses = (tagihan.penghuni_id == penghuni.id) or (
-        penghuni.kamar_id and tagihan.penghuni and tagihan.penghuni.kamar_id == penghuni.kamar_id
-    )
-    if not punya_akses:
-        return Response({'detail': 'Anda tidak memiliki akses ke tagihan ini.'}, status=status.HTTP_403_FORBIDDEN)
-
-    if tagihan.status in ['lunas', 'menunggu_verifikasi']:
-        return Response({'detail': 'Tagihan yang sudah dibayar atau sedang diverifikasi tidak dapat diperpanjang.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Pagar 1: Maksimal 1x pengajuan per tagihan
-    if tagihan.status_perpanjangan != 'tidak_ada':
-        return Response({'detail': 'Pengajuan perpanjangan hanya dapat dilakukan 1 kali per tagihan.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Pagar 2: Wajib diajukan paling lambat H+1 dari jatuh tempo asli
-    hari_ini = date.today()
-    if hari_ini > tagihan.jatuh_tempo + timedelta(days=1):
-        return Response(
-            {'detail': 'Batas pengajuan perpanjangan sudah lewat (maksimal H+1 dari tanggal jatuh tempo).'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # Pagar 3: Kuota maksimal 2x disetujui dalam 180 hari terakhir agar tidak disalahgunakan tiap bulan
-    batas_riwayat = hari_ini - timedelta(days=180)
-    filter_riwayat = Q(penghuni=penghuni)
-    if penghuni.kamar_id:
-        filter_riwayat |= Q(penghuni__kamar_id=penghuni.kamar_id)
-    jumlah_disetujui = Tagihan.objects.filter(
-        filter_riwayat,
-        status_perpanjangan='disetujui',
-        jatuh_tempo__gte=batas_riwayat,
-    ).count()
-    if jumlah_disetujui >= 2:
-        return Response(
-            {'detail': 'Kuota dispensasi sudah mencapai batas maksimal (2 kali dalam 6 bulan terakhir).'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    tgl_str = str(request.data.get('tanggal_perpanjangan', '')).strip()
-    alasan = str(request.data.get('alasan_perpanjangan', '')).strip()
-
-    if not tgl_str:
-        return Response({'detail': 'Tanggal perpanjangan wajib dipilih.'}, status=status.HTTP_400_BAD_REQUEST)
-    try:
-        tgl_baru = date.fromisoformat(tgl_str)
-    except ValueError:
-        return Response({'detail': 'Format tanggal tidak valid.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Pagar 4: Rentang 1 s/d maksimal 7 hari setelah jatuh tempo asli
-    min_tgl = tagihan.jatuh_tempo + timedelta(days=1)
-    maks_tgl = tagihan.jatuh_tempo + timedelta(days=7)
-    if tgl_baru < min_tgl or tgl_baru > maks_tgl:
-        return Response(
-            {'detail': f'Tanggal perpanjangan harus antara {min_tgl.isoformat()} sampai {maks_tgl.isoformat()} (maksimal 7 hari).'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if len(alasan) < 5:
-        return Response({'detail': 'Tuliskan alasan pengunduran pembayaran minimal 5 karakter.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    tagihan.tanggal_perpanjangan = tgl_baru
-    tagihan.alasan_perpanjangan = alasan
-    tagihan.status_perpanjangan = 'menunggu'
-    tagihan.save(update_fields=['tanggal_perpanjangan', 'alasan_perpanjangan', 'status_perpanjangan'])
-
-    return Response(TagihanSerializer(tagihan).data)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def respon_perpanjangan_api(request, pk):
-    user = request.user
-    is_staff_kos = (hasattr(user, 'profiluser') and user.profiluser.role in ['pengurus', 'pemilik']) or user.is_superuser
-    if not is_staff_kos:
-        return Response({'detail': 'Hanya pengurus atau pemilik yang dapat memproses pengajuan ini.'}, status=status.HTTP_403_FORBIDDEN)
-
-    tagihan = Tagihan.objects.filter(pk=pk).first()
-    if not tagihan:
-        return Response({'detail': 'Tagihan tidak ditemukan.'}, status=status.HTTP_404_NOT_FOUND)
-
-    if tagihan.status_perpanjangan != 'menunggu':
-        return Response({'detail': 'Tidak ada pengajuan perpanjangan yang menunggu persetujuan pada tagihan ini.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    aksi = str(request.data.get('aksi', '')).strip().lower()
-    if aksi not in ['setujui', 'tolak']:
-        return Response({'detail': 'Aksi harus berupa "setujui" atau "tolak".'}, status=status.HTTP_400_BAD_REQUEST)
-
-    tagihan.status_perpanjangan = 'disetujui' if aksi == 'setujui' else 'ditolak'
-    tagihan.save(update_fields=['status_perpanjangan'])
-
-    return Response(TagihanSerializer(tagihan).data)

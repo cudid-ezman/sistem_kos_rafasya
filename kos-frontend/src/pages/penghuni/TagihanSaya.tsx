@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tagihan } from '../../types/kos';
-import { hariSelisih, hitungDenda, parseTanggal, rupiah, tglPendek, totalTagihan } from '../../lib/format';
+import { hariSelisih, hitungDenda, parseTanggal, rupiah, sudahTerbitH7, tanggalTerbitH7, tglPendek, totalTagihan } from '../../lib/format';
 import { usePortal } from '../../components/portal/portalContext';
 import PageHeader from '../../components/portal/PageHeader';
 import StatusPill from '../../components/portal/StatusPill';
@@ -32,25 +32,38 @@ type Filter = 'semua' | 'perlu' | 'lunas';
 export default function TagihanSaya() {
   const { tagihan, loading, error, reload } = usePortal();
   const [filter, setFilter] = useState<Filter>('semua');
+  const [lihatMendatang, setLihatMendatang] = useState(false);
 
-  const urut = useMemo(
-    () => [...tagihan].sort((a, b) => parseTanggal(b.jatuh_tempo).getTime() - parseTanggal(a.jatuh_tempo).getTime()),
-    [tagihan]
-  );
+  const { tagihanTerbit, tagihanMendatang } = useMemo(() => {
+    const terlamaId = [...tagihan].sort((a, b) => a.id - b.id)[0]?.id;
+    const terbit: Tagihan[] = [];
+    const mendatang: Tagihan[] = [];
+    tagihan.forEach((t) => {
+      if (sudahTerbitH7(t, tagihan.length === 1 && t.id === terlamaId)) {
+        terbit.push(t);
+      } else {
+        mendatang.push(t);
+      }
+    });
+    return {
+      tagihanTerbit: terbit.sort((a, b) => parseTanggal(b.jatuh_tempo).getTime() - parseTanggal(a.jatuh_tempo).getTime()),
+      tagihanMendatang: mendatang.sort((a, b) => parseTanggal(a.jatuh_tempo).getTime() - parseTanggal(b.jatuh_tempo).getTime()),
+    };
+  }, [tagihan]);
 
   const ringkasan = useMemo(() => {
-    const harusBayar = tagihan.filter((t) => PERLU_BAYAR.includes(t.status));
+    const harusBayar = tagihanTerbit.filter((t) => PERLU_BAYAR.includes(t.status));
     const total = harusBayar.reduce((sum, t) => sum + totalTagihan(t), 0);
-    const ditolak = tagihan.filter((t) => t.status === 'ditolak').length;
+    const ditolak = tagihanTerbit.filter((t) => t.status === 'ditolak').length;
     const adaDenda = harusBayar.some((t) => hitungDenda(t).denda > 0);
     const terdekat = [...harusBayar].sort(
       (a, b) => parseTanggal(a.jatuh_tempo).getTime() - parseTanggal(b.jatuh_tempo).getTime()
     )[0];
-    const terakhirLunas = [...tagihan].filter((t) => t.status === 'lunas').sort((a, b) => b.id - a.id)[0];
+    const terakhirLunas = [...tagihanTerbit].filter((t) => t.status === 'lunas').sort((a, b) => b.id - a.id)[0];
     return { harusBayar, total, ditolak, adaDenda, terdekat, terakhirLunas };
-  }, [tagihan]);
+  }, [tagihanTerbit]);
 
-  const tampil = urut.filter((t) =>
+  const tampil = tagihanTerbit.filter((t) =>
     filter === 'semua' ? true : filter === 'lunas' ? t.status === 'lunas' : PERLU_BAYAR.includes(t.status)
   );
 
@@ -232,9 +245,37 @@ export default function TagihanSaya() {
         )}
       </section>
 
+      {tagihanMendatang.length > 0 && (
+        <div className="mt-4 rounded-3xl border border-slate-200/80 bg-white/80 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="flex items-center gap-2 text-xs text-ink-soft">
+              <InfoCircleIcon size={15} className="shrink-0 text-kos-600" />
+              <span>
+                Terdapat <strong>{tagihanMendatang.length} tagihan periode berikutnya</strong> yang otomatis terbit aktif mulai H-7 sebelum jatuh tempo (
+                {tglPendek(tanggalTerbitH7(tagihanMendatang[0].jatuh_tempo))}).
+              </span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setLihatMendatang((v) => !v)}
+              className="cursor-pointer text-xs font-semibold text-kos-700 hover:underline"
+            >
+              {lihatMendatang ? 'Sembunyikan' : 'Bayar lebih awal'}
+            </button>
+          </div>
+          {lihatMendatang && (
+            <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100 pt-2">
+              {tagihanMendatang.map((t) => (
+                <BarisTagihan key={t.id} t={t} />
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <p className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-white/60 px-4 py-3 text-[13px] text-ink-soft">
         <InfoCircleIcon size={16} className="text-kos-600" />
-        Tagihan baru akan muncul di sini sesuai tanggal jatuh tempo Anda.
+        Tagihan bulanan otomatis aktif mulai 7 hari (H-7) sebelum tanggal jatuh tempo Anda.
       </p>
     </div>
   );
