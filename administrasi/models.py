@@ -131,7 +131,7 @@ def sinkron_status_kamar(kamar):
     if jumlah_aktif == 0:
         kamar.status = 'tersedia'
         kamar.tipe = 'individu'
-        kamar.biaya_fasilitas = 0
+        kamar.biaya_fasilitas = 200000 if pakai_fasilitas else 0
         kamar.harga_sewa = kamar.harga_individu
     elif jumlah_aktif == 1:
         kamar.status = 'terisi'

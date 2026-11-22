@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from administrasi.models import (
     Kamar, Penghuni, Tagihan, BuktiPembayaran, Keluhan, KategoriKeluhan, RiwayatStatusKeluhan, Informasi
@@ -5,12 +6,32 @@ from administrasi.models import (
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+def _normalisasi_nomor_kamar(value: str) -> str:
+    teks = re.sub(r'\s+', '', (value or '').strip().upper())
+    m = re.match(r'^([A-Z]+)(\d+)$', teks)
+    if m:
+        huruf, angka = m.group(1), int(m.group(2))
+        return f"{huruf}{angka:02d}"
+    return teks
+
+
 class KamarSerializer(serializers.ModelSerializer):
     jumlah_penghuni = serializers.SerializerMethodField()
 
     class Meta:
         model = Kamar
         fields = '__all__'
+
+    def validate_nomor_kamar(self, value):
+        normal = _normalisasi_nomor_kamar(value)
+        if not normal:
+            raise serializers.ValidationError("Nomor kamar wajib diisi.")
+        qs = Kamar.objects.filter(nomor_kamar__iexact=normal)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError(f"Nomor kamar {normal} sudah terdaftar.")
+        return normal
 
     def get_jumlah_penghuni(self, obj):
         return obj.penghuni_set.filter(status_aktif=True).count()

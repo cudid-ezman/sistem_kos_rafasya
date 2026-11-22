@@ -370,6 +370,7 @@ export default function DataKamar() {
                             {(k.biaya_fasilitas ?? 0) > 0 && (
                               <span className="text-[11px] font-medium text-kos-700">
                                 + {rupiah(k.biaya_fasilitas)} fasilitas
+                                {jml === 0 ? " (saat terisi)" : ""}
                               </span>
                             )}
                           </td>
@@ -435,11 +436,17 @@ export default function DataKamar() {
             <input
               id="nomor"
               required
-              placeholder="Contoh: A12"
+              placeholder="Contoh: A01"
               value={form.nomor_kamar}
               onChange={(e) =>
-                setForm({ ...form, nomor_kamar: e.target.value })
+                setForm({ ...form, nomor_kamar: e.target.value.toUpperCase() })
               }
+              onBlur={() => {
+                const m = form.nomor_kamar.trim().toUpperCase().match(/^([A-Z]+)\s*(\d+)$/);
+                if (m) {
+                  setForm({ ...form, nomor_kamar: `${m[1]}${String(Number(m[2])).padStart(2, "0")}` });
+                }
+              }}
               className={inputCls}
             />
             <p className="mt-1.5 text-xs text-ink-soft">
@@ -509,8 +516,7 @@ export default function DataKamar() {
             </select>
             <p className="mt-1.5 text-xs text-ink-soft">
               Tarif fasilitas otomatis menyesuaikan kapasitas kamar (+Rp200.000
-              sendiri, +Rp310.000 berdua). Saat kamar kosong (0 penghuni), biaya
-              fasilitas otomatis kembali ke 0.
+              sendiri, +Rp310.000 berdua) saat kamar terisi penghuni.
             </p>
           </div>
 
