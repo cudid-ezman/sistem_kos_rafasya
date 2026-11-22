@@ -167,6 +167,36 @@ NAMA_BULAN_ID = [
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ]
 
+def _label_penghuni_kamar(kamar, fallback_penghuni=None, nominal=None):
+    if not kamar:
+        if fallback_penghuni and fallback_penghuni.user:
+            return (fallback_penghuni.user.first_name or fallback_penghuni.user.username).strip()
+        return "-"
+    harga_berdua = getattr(kamar, 'harga_berdua', 800000) or 800000
+    is_berdua = (nominal >= harga_berdua) if nominal is not None else (kamar.tipe == 'berdua')
+    if is_berdua:
+        penghuni_aktif = list(
+            Penghuni.objects.filter(kamar=kamar, status_aktif=True)
+            .select_related('user')
+            .order_by('tanggal_masuk', 'id')
+        )
+        if len(penghuni_aktif) > 1:
+            return " & ".join(
+                (p.user.first_name or p.user.username).strip() for p in penghuni_aktif
+            )
+    if fallback_penghuni and fallback_penghuni.user:
+        return (fallback_penghuni.user.first_name or fallback_penghuni.user.username).strip()
+    penghuni_pertama = (
+        Penghuni.objects.filter(kamar=kamar, status_aktif=True)
+        .select_related('user')
+        .order_by('tanggal_masuk', 'id')
+        .first()
+    )
+    if penghuni_pertama and penghuni_pertama.user:
+        return (penghuni_pertama.user.first_name or penghuni_pertama.user.username).strip()
+    return "-"
+
+
 def _pastikan_tagihan_kamar_aktif(kamar, penghuni_referensi=None):
     if not kamar:
         return
@@ -190,6 +220,8 @@ def _pastikan_tagihan_kamar_aktif(kamar, penghuni_referensi=None):
         jatuh_tempo = _jatuh_tempo_siklus_masuk(penghuni_utama.tanggal_masuk, hari_ini)
         Tagihan.objects.create(
             penghuni=penghuni_utama,
+            kamar=kamar,
+            nama_penghuni_snapshot=_label_penghuni_kamar(kamar, penghuni_utama, nominal),
             periode=periode_ini,
             nominal=kamar.harga_sewa,
             jatuh_tempo=jatuh_tempo,
@@ -253,6 +285,35 @@ class PenghuniDetailAPI(generics.RetrieveUpdateAPIView):
 
                         if kamar_lama != kamar_baru and Penghuni.objects.filter(kamar=kamar_baru, status_aktif=True).count() >= 2:
                             return Response({'detail': 'Kamar tujuan sudah terisi penuh (maksimal 2 orang).'}, status=status.HTTP_400_BAD_REQUEST)
+
+                        # Aturan pindah kamar (Fasilitas vs Non-Fasilitas)
+                        if kamar_lama and kamar_lama != kamar_baru:
+                            lama_fasilitas = (kamar_lama.biaya_fasilitas or 0) > 0
+                            baru_fasilitas = (kamar_baru.biaya_fasilitas or 0) > 0
+                            if lama_fasilitas != baru_fasilitas:
+                                hari_ini = now().date()
+                                tagihan_berjalan = (
+                                    Tagihan.objects.filter(
+                                        Q(kamar=kamar_lama) | Q(kamar__isnull=True, penghuni__kamar=kamar_lama),
+                                        jatuh_tempo__gt=hari_ini,
+                                    )
+                                    .order_by('-jatuh_tempo', '-id')
+                                    .first()
+                                )
+                                if tagihan_berjalan:
+                                    tgl_jt = tagihan_berjalan.jatuh_tempo.strftime('%d-%m-%Y')
+                                    asal_txt = 'Fasilitas' if lama_fasilitas else 'Non-Fasilitas'
+                                    tujuan_txt = 'Fasilitas' if baru_fasilitas else 'Non-Fasilitas'
+                                    return Response(
+                                        {
+                                            'detail': (
+                                                f'Perpindahan silang dari kamar {asal_txt} ke {tujuan_txt} '
+                                                f'hanya dapat dilakukan pada atau setelah tanggal jatuh tempo ({tgl_jt}).'
+                                            )
+                                        },
+                                        status=status.HTTP_400_BAD_REQUEST,
+                                    )
+
                         penghuni.kamar = kamar_baru
                     elif penghuni.status_aktif:
                         return Response({'detail': 'Penghuni aktif harus menempati kamar.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -270,9 +331,35 @@ class PenghuniDetailAPI(generics.RetrieveUpdateAPIView):
             # 3. Sinkronkan status kamar lama & kamar baru
             _sinkron_status_kamar(kamar_lama)
             if penghuni.kamar and penghuni.kamar != kamar_lama:
-             _sinkron_status_kamar(penghuni.kamar)
-            if penghuni.status_aktif and penghuni.kamar:
-             _pastikan_tagihan_kamar_aktif(penghuni.kamar, penghuni)
+                _sinkron_status_kamar(penghuni.kamar)
+
+            # 4. Penanganan tagihan saat pindah kamar setipe:
+            pindah_kamar = bool(kamar_lama and penghuni.kamar and kamar_lama != penghuni.kamar)
+            if pindah_kamar:
+                sisa_kamar_lama = Penghuni.objects.filter(kamar=kamar_lama, status_aktif=True).exists()
+                hari_ini = now().date()
+                periode_ini = f"{NAMA_BULAN_ID[hari_ini.month]} {hari_ini.year}"
+                if not sisa_kamar_lama:
+                    tagihan_lama_aktif = Tagihan.objects.filter(
+                        Q(kamar=kamar_lama) | Q(kamar__isnull=True, penghuni=penghuni),
+                        status__in=['belum_dibayar', 'ditolak', 'terlambat'],
+                    )
+                    for t in tagihan_lama_aktif:
+                        t.kamar = penghuni.kamar
+                        t.penghuni = penghuni
+                        t.nama_penghuni_snapshot = _label_penghuni_kamar(penghuni.kamar, penghuni, penghuni.kamar.harga_sewa)
+                        t.nominal = penghuni.kamar.harga_sewa
+                        t.save(update_fields=['kamar', 'penghuni', 'nama_penghuni_snapshot', 'nominal'])
+
+                sudah_lunas_berjalan = Tagihan.objects.filter(
+                    Q(penghuni=penghuni) | Q(kamar=kamar_lama) | Q(kamar=penghuni.kamar),
+                    periode__iexact=periode_ini,
+                    status='lunas',
+                ).exists()
+                if penghuni.status_aktif and penghuni.kamar and not sudah_lunas_berjalan:
+                    _pastikan_tagihan_kamar_aktif(penghuni.kamar, penghuni)
+            elif penghuni.status_aktif and penghuni.kamar:
+                _pastikan_tagihan_kamar_aktif(penghuni.kamar, penghuni)
 
         serializer = self.get_serializer(penghuni)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -472,6 +559,8 @@ def generate_tagihan_bulanan(request):
             periode_rapi = f"{NAMA_BULAN_ID[jatuh_tempo.month]} {jatuh_tempo.year}"
             Tagihan.objects.create(
                 penghuni=penghuni_utama,
+                kamar=kamar,
+                nama_penghuni_snapshot=_label_penghuni_kamar(kamar, penghuni_utama, nominal),
                 periode=periode_rapi,
                 nominal=nominal,
                 jatuh_tempo=jatuh_tempo,

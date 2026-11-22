@@ -83,6 +83,16 @@ export default function DataKamar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (params.get("tambah") === "1") {
+      const nomorParam = (params.get("nomor") || "").trim().toUpperCase();
+      setEditingId(null);
+      setEditingJumlahPenghuni(0);
+      setForm({ ...KOSONG, nomor_kamar: nomorParam });
+      setFormOpen(true);
+    }
+  }, [params]);
+
   const ringkas = useMemo(
     () => ({
       total: kamarList.length,
@@ -149,7 +159,7 @@ export default function DataKamar() {
         await kamarService.createKamar(form);
         toast.success("Kamar baru berhasil ditambahkan.");
       }
-      setFormOpen(false);
+      setFormOpen(false); if (params.has('tambah') || params.has('nomor')) { const next = new URLSearchParams(params); next.delete('tambah'); next.delete('nomor'); setParams(next, { replace: true }); }
       await fetchKamar();
     } catch (error) {
       console.error("Gagal menyimpan data kamar", error);
@@ -236,7 +246,15 @@ export default function DataKamar() {
       </div>
 
       {tab === "denah" ? (
-        <DenahKamar />
+        <DenahKamar
+          refreshKey={kamarList.length}
+          onTambahKamar={(nomor) => {
+            setEditingId(null);
+            setEditingJumlahPenghuni(0);
+            setForm({ ...KOSONG, nomor_kamar: nomor });
+            setFormOpen(true);
+          }}
+        />
       ) : (
         <>
           <div className="mb-4 grid grid-cols-3 gap-3">

@@ -142,7 +142,12 @@ function RumahShape({ tone, dashed = false, tebal = false }: { tone: string; das
 
 /* ───────────── Komponen ───────────── */
 
-export default function DenahKamar() {
+interface DenahKamarProps {
+  onTambahKamar?: (nomorKamar: string) => void;
+  refreshKey?: number;
+}
+
+export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamarProps) {
   const [kamar, setKamar] = useState<Kamar[]>([]);
   const [penghuni, setPenghuni] = useState<Penghuni[]>([]);
   const [tagihan, setTagihan] = useState<Tagihan[]>([]);
@@ -150,6 +155,7 @@ export default function DenahKamar() {
   const [loading, setLoading] = useState(true);
   const [galat, setGalat] = useState(false);
   const [terpilih, setTerpilih] = useState<number | null>(null);
+  const [slotKosongTerpilih, setSlotKosongTerpilih] = useState<{ kode: string; blok: string; nomor: number } | null>(null);
   const [filter, setFilter] = useState<StatusDenah | null>(null);
   const [periodePilihan, setPeriodePilihan] = useState<string | null>(null);
 
@@ -168,7 +174,7 @@ export default function DenahKamar() {
     return () => {
       batal = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   // Daftar periode (terbaru dulu)
   const daftarPeriode = useMemo(() => {
@@ -420,26 +426,50 @@ export default function DenahKamar() {
                                   }
                                   const kode = s.item?.kamar.nomor_kamar ?? `${b}${String(s.nomor).padStart(2, '0')}`;
                                   if (!s.item) {
+                                    const aktifSlot = slotKosongTerpilih?.kode === kode;
                                     return (
-                                      <div
+                                      <button
                                         key={si}
-                                        title="Belum terdaftar di Data Kamar"
+                                        type="button"
+                                        onClick={() => {
+                                          setSlotKosongTerpilih({ kode, blok: b, nomor: s.nomor! });
+                                        }}
+                                        aria-pressed={aktifSlot}
+                                        title={`Kamar ${kode} (Belum Terdaftar)`}
+                                        aria-label={`Kamar ${kode}, Belum Terdaftar`}
                                         style={{ height: TINGGI_SEL }}
-                                        className="relative flex items-center justify-center pt-3.5 text-[11px] font-semibold text-slate-300"
+                                        className={`group relative flex cursor-pointer flex-col items-center justify-center pt-3.5 leading-none transition ${
+                                          aktifSlot ? "" : "hover:-translate-y-px"
+                                        }`}
                                       >
-                                        <RumahShape tone="fill-transparent stroke-slate-200" dashed />
-                                        <span className="relative">{kode}</span>
-                                      </div>
+                                        <RumahShape
+                                          tone={
+                                            aktifSlot
+                                              ? `${RUMAH_ISI.kosong} stroke-kos-600 drop-shadow-md`
+                                              : "fill-transparent stroke-slate-200 group-hover:fill-slate-100/70 group-hover:stroke-slate-400"
+                                          }
+                                          dashed
+                                          tebal={aktifSlot}
+                                        />
+                                        <span className={`relative text-[11px] font-bold ${aktifSlot ? "text-kos-700" : "text-slate-400 group-hover:text-ink"}`}>
+                                          {kode}
+                                        </span>
+                                        {aktifSlot && (
+                                          <span className="relative mt-[3px] rounded bg-kos-600 px-1 py-px text-[7.5px] font-bold tracking-wider text-white uppercase">
+                                            PILIH
+                                          </span>
+                                        )}
+                                      </button>
                                     );
                                   }
                                   const st = CELL[s.item.status];
-                                  const aktif = dipilih?.kamar.id === s.item.kamar.id;
+                                  const aktif = !slotKosongTerpilih && dipilih?.kamar.id === s.item.kamar.id;
                                   const redup = filter !== null && filter !== s.item.status;
                                   return (
                                     <button
                                       key={si}
                                       type="button"
-                                      onClick={() => setTerpilih(s.item!.kamar.id)}
+                                      onClick={() => { setSlotKosongTerpilih(null); setSlotKosongTerpilih(null); setTerpilih(s.item!.kamar.id); }}
                                       aria-pressed={aktif}
                                       aria-label={`Kamar ${kode}, ${st.label}${s.item.keluhanAktif.length ? ', ada keluhan aktif' : ''}`}
                                       style={{ height: TINGGI_SEL }}
@@ -475,7 +505,43 @@ export default function DenahKamar() {
         </section>
 
         {/* ───────── Detail kamar terpilih ───────── */}
-        {dipilih && (
+        {slotKosongTerpilih ? (
+          <aside className="rounded-3xl border border-slate-200 bg-white p-5 xl:sticky xl:top-24">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-bold tracking-wider text-kos-600 uppercase">Detail Kamar Terpilih</span>
+              <Pill nada="gray">Belum Terdaftar</Pill>
+            </div>
+
+            <h3 className="mt-2 text-[17px] leading-snug font-bold text-ink">
+              Kamar {slotKosongTerpilih.kode} • Blok {slotKosongTerpilih.blok}
+            </h3>
+            <p className="mt-1 text-xs text-ink-soft">
+              Slot kamar belum ditambahkan ke sistem
+            </p>
+
+            <div className="mt-4 border-t border-slate-200 pt-4">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+                <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-400 ring-1 ring-slate-200">
+                  <DoorIcon size={22} />
+                </span>
+                <p className="text-sm font-semibold text-ink">Kamar ini belum terdaftar</p>
+                <p className="mt-1 mb-4 text-xs text-ink-soft">
+                  Daftarkan kamar {slotKosongTerpilih.kode} untuk mengatur tarif dan mulai menambahkan penghuni.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const kode = slotKosongTerpilih.kode;
+                    if (onTambahKamar) onTambahKamar(kode);
+                  }}
+                  className={`${btnPrimary} w-full`}
+                >
+                  <PlusIcon size={16} /> Tambah Kamar
+                </button>
+              </div>
+            </div>
+          </aside>
+        ) : dipilih && (
           <aside className="rounded-3xl border border-slate-200 bg-white p-5 xl:sticky xl:top-24">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-bold tracking-wider text-kos-600 uppercase">Detail Kamar Terpilih</span>

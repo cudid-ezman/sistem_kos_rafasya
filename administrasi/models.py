@@ -46,6 +46,8 @@ class Tagihan(models.Model):
         ('terlambat', 'Terlambat'),
     )
     penghuni = models.ForeignKey(Penghuni, on_delete=models.CASCADE)
+    kamar = models.ForeignKey(Kamar, on_delete=models.SET_NULL, null=True, blank=True)
+    nama_penghuni_snapshot = models.CharField(max_length=150, blank=True, default='')
     periode = models.CharField(max_length=50)
     nominal = models.FloatField()
     jatuh_tempo = models.DateField()
