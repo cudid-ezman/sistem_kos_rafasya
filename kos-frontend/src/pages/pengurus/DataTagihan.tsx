@@ -9,6 +9,8 @@ import {
   periodeSekarang,
   rupiah,
   statusTampil,
+  sudahTerbitH7,
+  tanggalTerbitH7,
   tglPendek,
 } from "../../lib/format";
 import PageHeader from "../../components/portal/PageHeader";
@@ -278,7 +280,17 @@ export default function DataTagihan() {
                         {tglPendek(t.jatuh_tempo)}
                       </td>
                       <td className={tdCls}>
-                        <StatusPill status={statusTampil(t)} />
+                        <div className="flex flex-col items-start gap-1">
+                          <StatusPill status={statusTampil(t)} />
+                          {t.status === "belum_dibayar" && !sudahTerbitH7(t) && (
+                            <span
+                              title={`Otomatis muncul di portal penghuni mulai ${tglPendek(tanggalTerbitH7(t.jatuh_tempo))}`}
+                              className="rounded-md bg-slate-100 px-2 py-0.5 text-[10.5px] font-medium text-ink-soft"
+                            >
+                              Terjadwal (tampil {tglPendek(tanggalTerbitH7(t.jatuh_tempo))})
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

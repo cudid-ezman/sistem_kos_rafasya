@@ -117,6 +117,23 @@ export function validasiGambar(file: File): string | null {
 export const ukuranBerkas = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
+/** Tanggal mulai tagihan muncul aktif ke penghuni (H-7 sebelum jatuh tempo). */
+export function tanggalTerbitH7(jatuhTempo: string): string {
+  const d = parseTanggal(jatuhTempo);
+  d.setDate(d.getDate() - 7);
+  return `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())}`;
+}
+
+/** True jika tagihan sudah masuk jendela H-7 (atau bukan belum_dibayar). */
+export function sudahTerbitH7(
+  t: Pick<Tagihan, 'jatuh_tempo' | 'status'>,
+  isTagihanPertama = false,
+): boolean {
+  if (t.status !== 'belum_dibayar') return true;
+  if (isTagihanPertama) return true;
+  return hariIniISO() >= tanggalTerbitH7(t.jatuh_tempo);
+}
+
 /** Status tampilan untuk admin: belum dibayar yang sudah lewat jatuh tempo dianggap "terlambat". */
 export function statusTampil(t: Pick<Tagihan, 'jatuh_tempo' | 'status'>): Tagihan['status'] {
   if (t.status === 'belum_dibayar' && hitungDenda(t).hari > 0) return 'terlambat';

@@ -1,9 +1,8 @@
 import type { BuktiPembayaran, Keluhan, Tagihan } from "../types/kos";
 import {
-  hariSelisih,
   hitungDenda,
-  parseTanggal,
   rupiah,
+  sudahTerbitH7,
   tglAngka,
 } from "./format";
 
@@ -89,20 +88,21 @@ export function buatNotifikasi(
     }
   }
 
-  // Pengingat jatuh tempo (0-7 hari lagi)
+  // Pengingat jatuh tempo (mulai H-7 sebelum jatuh tempo, belum terlambat)
   for (const t of tagihan) {
-    if (t.status === "belum_dibayar") {
-      const sisa = hariSelisih(new Date(), parseTanggal(t.jatuh_tempo));
-      if (sisa >= 0 && sisa <= 7) {
-        out.push({
-          id: `ingat-${t.id}`,
-          tone: "info",
-          title: "Pengingat jatuh tempo",
-          text: `Tagihan ${t.periode} jatuh tempo ${tglAngka(t.jatuh_tempo)}.`,
-          to: `/dashboard/tagihan-saya/${t.id}`,
-          linkLabel: "Lihat Rincian Tagihan",
-        });
-      }
+    if (
+      t.status === "belum_dibayar" &&
+      hitungDenda(t).hari === 0 &&
+      sudahTerbitH7(t, tagihan.length === 1)
+    ) {
+      out.push({
+        id: `ingat-${t.id}`,
+        tone: "info",
+        title: "Pengingat jatuh tempo",
+        text: `Tagihan ${t.periode} jatuh tempo ${tglAngka(t.jatuh_tempo)}.`,
+        to: `/dashboard/tagihan-saya/${t.id}`,
+        linkLabel: "Lihat Rincian Tagihan",
+      });
     }
   }
 

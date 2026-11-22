@@ -15,7 +15,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
+from datetime import date
 import calendar
+import re
 
 from administrasi.models import (
     ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan, RiwayatStatusKeluhan, Informasi
@@ -318,13 +320,72 @@ def ganti_password_api(request):
     request.user.save()
     return Response({'detail': 'Kata sandi berhasil diperbarui.'}, status=status.HTTP_200_OK)
 
+BULAN_MAP = {
+    'januari': 1, 'january': 1, 'jan': 1,
+    'februari': 2, 'february': 2, 'feb': 2,
+    'maret': 3, 'march': 3, 'mar': 3,
+    'april': 4, 'apr': 4,
+    'mei': 5, 'may': 5,
+    'juni': 6, 'june': 6, 'jun': 6,
+    'juli': 7, 'july': 7, 'jul': 7,
+    'agustus': 8, 'august': 8, 'agu': 8, 'agt': 8, 'aug': 8,
+    'september': 9, 'sep': 9, 'sept': 9,
+    'oktober': 10, 'october': 10, 'okt': 10, 'oct': 10,
+    'november': 11, 'nov': 11,
+    'desember': 12, 'december': 12, 'des': 12, 'dec': 12,
+}
+
+
+NAMA_BULAN_ID = [
+    '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+]
+
+
+def _parse_bulan_tahun_periode(periode_str, tahun_default, bulan_sekarang=None):
+    teks = (periode_str or '').strip().lower()
+    # Format YYYY-MM atau YYYY/MM
+    m_iso = re.match(r'^(\d{4})[-/](\d{1,2})$', teks)
+    if m_iso:
+        thn, bln = int(m_iso.group(1)), int(m_iso.group(2))
+        return (thn, bln) if 1 <= bln <= 12 else None
+
+    # Format angka bulan: "1 2026", "01/2026", "1"
+    m_num = re.match(r'^(\d{1,2})(?:[\s/-]+(\d{4}))?$', teks)
+    if m_num:
+        bln = int(m_num.group(1))
+        if not (1 <= bln <= 12):
+            return None
+        if m_num.group(2):
+            thn = int(m_num.group(2))
+        else:
+            thn = tahun_default + 1 if (bulan_sekarang and bln < bulan_sekarang) else tahun_default
+        return (thn, bln)
+
+    # Format nama bulan: "Januari 2027", "Jan 2027", "Januari"
+    m = re.search(r'([a-z]+)\s*(\d{4})?', teks)
+    if not m:
+        return None
+    bulan = BULAN_MAP.get(m.group(1))
+    if not bulan:
+        return None
+    if m.group(2):
+        tahun = int(m.group(2))
+    else:
+        tahun = tahun_default + 1 if (bulan_sekarang and bulan < bulan_sekarang) else tahun_default
+    return (tahun, bulan)
+
+
+def _tanggal_siklus_pada_bulan(tanggal_masuk, tahun, bulan):
+    hari_maks = calendar.monthrange(tahun, bulan)[1]
+    return date(tahun, bulan, min(tanggal_masuk.day, hari_maks))
+
+
 def _jatuh_tempo_siklus_masuk(tanggal_masuk, tanggal_acuan):
     """Menentukan tanggal jatuh tempo berdasarkan hari dari tanggal_masuk penghuni."""
     tahun = tanggal_acuan.year
     bulan = tanggal_acuan.month
-    hari_maks_bulan_ini = calendar.monthrange(tahun, bulan)[1]
-    hari_target = min(tanggal_masuk.day, hari_maks_bulan_ini)
-    kandidat = tanggal_acuan.replace(day=hari_target)
+    kandidat = _tanggal_siklus_pada_bulan(tanggal_masuk, tahun, bulan)
 
     if kandidat < tanggal_acuan - timedelta(days=7):
         if bulan == 12:
@@ -332,9 +393,7 @@ def _jatuh_tempo_siklus_masuk(tanggal_masuk, tanggal_acuan):
             bulan = 1
         else:
             bulan += 1
-        hari_maks_berikut = calendar.monthrange(tahun, bulan)[1]
-        kandidat = kandidat.replace(year=tahun, month=bulan, day=min(tanggal_masuk.day, hari_maks_berikut))
-
+        kandidat = _tanggal_siklus_pada_bulan(tanggal_masuk, tahun, bulan)
     return kandidat
 
 
@@ -371,13 +430,53 @@ def generate_tagihan_bulanan(request):
                 continue
 
             nominal = kamar.harga_sewa
-            jatuh_tempo = _jatuh_tempo_siklus_masuk(penghuni_utama.tanggal_masuk, hari_ini)
+            tagihan_terakhir = (
+                Tagihan.objects.filter(penghuni__kamar=kamar)
+                .order_by('-jatuh_tempo', '-id')
+                .first()
+            )
+            parsed_periode = _parse_bulan_tahun_periode(periode, hari_ini.year, hari_ini.month)
+            if parsed_periode:
+                jatuh_tempo = _tanggal_siklus_pada_bulan(
+                    penghuni_utama.tanggal_masuk,
+                    parsed_periode[0],
+                    parsed_periode[1],
+                )
+            elif tagihan_terakhir:
+                t_prev = tagihan_terakhir.jatuh_tempo
+                thn_next = t_prev.year + (1 if t_prev.month == 12 else 0)
+                bln_next = 1 if t_prev.month == 12 else t_prev.month + 1
+                jatuh_tempo = _tanggal_siklus_pada_bulan(
+                    penghuni_utama.tanggal_masuk, thn_next, bln_next
+                )
+            else:
+                jatuh_tempo = _jatuh_tempo_siklus_masuk(penghuni_utama.tanggal_masuk, hari_ini)
+
+            # Cegah duplikat di bulan & tahun jatuh tempo yang sama (meski penulisan teks berbeda)
+            sudah_ada_bulan_ini = Tagihan.objects.filter(
+                penghuni__kamar=kamar,
+                jatuh_tempo__year=jatuh_tempo.year,
+                jatuh_tempo__month=jatuh_tempo.month,
+            ).exists()
+            if sudah_ada_bulan_ini:
+                skipped_count += 1
+                continue
+
+            # Cegah tagihan dibuat untuk tanggal sebelum penghuni masuk atau sebelum/sama dengan tagihan terakhir
+            if jatuh_tempo < penghuni_utama.tanggal_masuk or (
+                tagihan_terakhir and jatuh_tempo <= tagihan_terakhir.jatuh_tempo
+            ):
+                skipped_count += 1
+                continue
+
+            periode_rapi = f"{NAMA_BULAN_ID[jatuh_tempo.month]} {jatuh_tempo.year}"
             Tagihan.objects.create(
                 penghuni=penghuni_utama,
-                periode=periode,
+                periode=periode_rapi,
                 nominal=nominal,
                 jatuh_tempo=jatuh_tempo,
-                status='belum_dibayar'
+                status='belum_dibayar',
+                status_perpanjangan='tidak_ada'
             )
             created_count += 1
 
