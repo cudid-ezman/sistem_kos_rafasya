@@ -117,7 +117,7 @@ export default function DataTagihan() {
     () =>
       list
         .filter((t) => t.status === "lunas")
-        .reduce((s, t) => s + Number(t.nominal || 0), 0),
+        .reduce((s, t) => s + (Number(t.nominal || 0) + Number(t.denda || 0)), 0),
     [list],
   );
 

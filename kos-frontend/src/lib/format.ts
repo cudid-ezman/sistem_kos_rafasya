@@ -49,15 +49,24 @@ export function hariSelisih(dari: Date, ke: Date) {
 
 /** Hari terlambat & denda. Jika dispensasi disetujui, patokan bergeser ke tanggal_perpanjangan. */
 export function hitungDenda(
-  t: Pick<Tagihan, 'jatuh_tempo' | 'status' | 'tanggal_perpanjangan' | 'status_perpanjangan'>,
+  t: Pick<Tagihan, 'jatuh_tempo' | 'status' | 'tanggal_perpanjangan' | 'status_perpanjangan' | 'denda' | 'hari_terlambat'>,
 ) {
-  if (t.status === 'lunas') return { hari: 0, denda: 0 };
+  if (t.status === 'lunas' || t.status === 'menunggu_verifikasi') {
+    const dendaTersimpan = Number(t.denda || 0);
+    const hariTersimpan = Number(t.hari_terlambat || (dendaTersimpan > 0 ? Math.round(dendaTersimpan / DENDA_PER_HARI) : 0));
+    return { hari: hariTersimpan, denda: dendaTersimpan };
+  }
   const patokan =
     t.status_perpanjangan === 'disetujui' && t.tanggal_perpanjangan
       ? t.tanggal_perpanjangan
       : t.jatuh_tempo;
   const hari = Math.max(0, hariSelisih(parseTanggal(patokan), new Date()));
-  return { hari, denda: hari * DENDA_PER_HARI };
+  const dendaHitung = hari * DENDA_PER_HARI;
+  const dendaTersimpan = Number(t.denda || 0);
+  if (dendaTersimpan > dendaHitung) {
+    return { hari: Number(t.hari_terlambat || Math.round(dendaTersimpan / DENDA_PER_HARI)), denda: dendaTersimpan };
+  }
+  return { hari, denda: dendaHitung };
 }
 
 export const totalTagihan = (t: Tagihan) => Number(t.nominal || 0) + hitungDenda(t).denda;

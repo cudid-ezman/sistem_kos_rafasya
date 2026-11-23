@@ -50,6 +50,8 @@ class Tagihan(models.Model):
     nama_penghuni_snapshot = models.CharField(max_length=150, blank=True, default='')
     periode = models.CharField(max_length=50)
     nominal = models.FloatField()
+    denda = models.FloatField(default=0)
+    hari_terlambat = models.IntegerField(default=0)
     jatuh_tempo = models.DateField()
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='belum_dibayar')
     catatan = models.TextField(blank=True, null=True)
@@ -67,6 +69,19 @@ class Tagihan(models.Model):
     tanggal_perpanjangan = models.DateField(blank=True, null=True)
     alasan_perpanjangan = models.TextField(blank=True, null=True)
 
+    def hitung_denda_pada(self, tanggal_acuan=None):
+        from django.utils.timezone import now
+        tgl = tanggal_acuan or now().date()
+        patokan = (
+            self.tanggal_perpanjangan
+            if self.status_perpanjangan == 'disetujui' and self.tanggal_perpanjangan
+            else self.jatuh_tempo
+        )
+        if not patokan or tgl <= patokan:
+            return 0, 0.0
+        hari = (tgl - patokan).days
+        return hari, float(hari * 10000)
+
 class BuktiPembayaran(models.Model):
     tagihan = models.ForeignKey(Tagihan, on_delete=models.CASCADE)
     diunggah_oleh = models.ForeignKey(Penghuni, on_delete=models.SET_NULL, null=True, blank=True, related_name='bukti_diunggah')
@@ -79,7 +94,7 @@ class BuktiPembayaran(models.Model):
     verifikator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
 class Denda(models.Model):
-    tagihan = models.ForeignKey(Tagihan, on_delete=models.CASCADE)
+    tagihan = models.ForeignKey(Tagihan, on_delete=models.CASCADE, related_name='riwayat_denda')
     jumlah_hari = models.IntegerField()
     nominal = models.FloatField()
     tanggal_hitung = models.DateField(auto_now=True)

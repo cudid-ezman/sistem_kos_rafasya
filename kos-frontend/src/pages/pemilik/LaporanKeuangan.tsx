@@ -195,7 +195,14 @@ export default function LaporanKeuangan() {
                     <td className={`${tdCls} font-semibold capitalize`}>{t.periode}</td>
                     <td className={tdCls}>{t.nama_penghuni || t.penghuni?.nama_lengkap || '-'}</td>
                     <td className={tdCls}>Kamar {t.nomor_kamar || t.penghuni?.kamar?.nomor_kamar || '-'}</td>
-                    <td className={`${tdCls} text-right font-bold tabular-nums`}>{rupiah(t.nominal)}</td>
+                    <td className={`${tdCls} text-right font-bold tabular-nums`}>
+                      <div>{rupiah(Number(t.nominal || 0) + Number(t.denda || 0))}</div>
+                      {Number(t.denda || 0) > 0 && (
+                        <div className="text-[11px] font-medium text-orange-600">
+                          Pokok {rupiah(t.nominal)} + denda {rupiah(t.denda || 0)}
+                        </div>
+                      )}
+                    </td>
                     <td className={tdCls}>
                       <div className="flex flex-col items-start gap-1">
                         <StatusPill status={t.status} />

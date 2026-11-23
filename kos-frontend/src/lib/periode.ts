@@ -90,7 +90,7 @@ export function filterPeriode(list: TransaksiLaporan[], mode: ModePeriode, ancho
   });
 }
 
-export const totalNominal = (list: TransaksiLaporan[]) => list.reduce((s, t) => s + Number(t.nominal || 0), 0);
+export const totalNominal = (list: TransaksiLaporan[]) => list.reduce((s, t) => s + Number(t.nominal || 0) + Number(t.denda || 0), 0);
 
 /** Persen perubahan; null jika pembanding 0. */
 export const persenPerubahan = (sekarang: number, sebelumnya: number) =>

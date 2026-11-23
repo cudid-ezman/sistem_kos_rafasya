@@ -28,6 +28,9 @@ export interface Tagihan {
   id: number;
   periode: string;
   nominal: number;
+  denda?: number;
+  hari_terlambat?: number;
+  total_tagihan?: number;
   jatuh_tempo: string;
   status:
     | "belum_dibayar"
@@ -62,6 +65,8 @@ export interface BuktiPembayaran {
   id: number;
   tagihan: number;
   periode_tagihan?: string;
+  nominal_pokok?: number;
+  denda_tagihan?: number;
   nominal_tagihan?: number;
   nama_penghuni?: string;
   nomor_kamar?: string;

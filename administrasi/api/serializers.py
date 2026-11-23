@@ -52,6 +52,24 @@ class PenghuniSerializer(serializers.ModelSerializer):
 class TagihanSerializer(serializers.ModelSerializer):
     nama_penghuni = serializers.SerializerMethodField()
     nomor_kamar = serializers.SerializerMethodField()
+    denda = serializers.SerializerMethodField()
+    hari_terlambat = serializers.SerializerMethodField()
+    total_tagihan = serializers.SerializerMethodField()
+
+    def _info_denda(self, obj):
+        if obj.status in ['lunas', 'menunggu_verifikasi']:
+            return int(obj.hari_terlambat or 0), float(obj.denda or 0)
+        hari, nominal_denda = obj.hitung_denda_pada()
+        return hari, nominal_denda
+
+    def get_denda(self, obj):
+        return self._info_denda(obj)[1]
+
+    def get_hari_terlambat(self, obj):
+        return self._info_denda(obj)[0]
+
+    def get_total_tagihan(self, obj):
+        return float(obj.nominal or 0) + self._info_denda(obj)[1]
 
     def get_nomor_kamar(self, obj):
         if obj.kamar:
@@ -89,9 +107,24 @@ class TagihanSerializer(serializers.ModelSerializer):
 
 class BuktiPembayaranSerializer(serializers.ModelSerializer):
     periode_tagihan = serializers.CharField(source='tagihan.periode', read_only=True)
-    nominal_tagihan = serializers.FloatField(source='tagihan.nominal', read_only=True)
+    nominal_pokok = serializers.FloatField(source='tagihan.nominal', read_only=True)
+    denda_tagihan = serializers.SerializerMethodField()
+    nominal_tagihan = serializers.SerializerMethodField()
     nama_penghuni = serializers.SerializerMethodField()
     nomor_kamar = serializers.SerializerMethodField()
+
+    def _denda_untuk_bukti(self, obj):
+        t = obj.tagihan
+        if t.status in ['lunas', 'menunggu_verifikasi'] and (t.denda or 0) > 0:
+            return float(t.denda or 0)
+        _, d = t.hitung_denda_pada(obj.tanggal_bayar)
+        return max(float(t.denda or 0), d)
+
+    def get_denda_tagihan(self, obj):
+        return self._denda_untuk_bukti(obj)
+
+    def get_nominal_tagihan(self, obj):
+        return float(obj.tagihan.nominal or 0) + self._denda_untuk_bukti(obj)
 
     def get_nomor_kamar(self, obj):
         if obj.tagihan.kamar:
@@ -109,7 +142,7 @@ class BuktiPembayaranSerializer(serializers.ModelSerializer):
     class Meta:
         model = BuktiPembayaran
         fields = [
-            'id', 'tagihan', 'periode_tagihan', 'nominal_tagihan',
+            'id', 'tagihan', 'periode_tagihan', 'nominal_pokok', 'denda_tagihan', 'nominal_tagihan',
             'nama_penghuni', 'nomor_kamar', 'berkas', 'tanggal_bayar',
             'waktu_unggah', 'status', 'catatan_penolakan', 'tanggal_verifikasi'
         ]

@@ -145,8 +145,13 @@ export default function VerifikasiPembayaran() {
                         Kamar {b.nomor_kamar || '-'} • {b.periode_tagihan}
                       </span>
                     </span>
-                    <span className="flex flex-col items-end gap-1.5">
+                    <span className="flex flex-col items-end gap-1">
                       <span className="text-sm font-bold text-ink tabular-nums">{rupiah(b.nominal_tagihan)}</span>
+                      {Number(b.denda_tagihan || 0) > 0 && (
+                        <span className="text-[10.5px] font-medium text-orange-600">
+                          + denda {rupiah(b.denda_tagihan || 0)}
+                        </span>
+                      )}
                       <StatusPill status={statusPill(b.status)} />
                     </span>
                   </button>
@@ -198,7 +203,12 @@ export default function VerifikasiPembayaran() {
 
                 <dl className="space-y-4 text-sm">
                   {[
-                    ['Nominal tagihan', rupiah(dipilih.nominal_tagihan)],
+                    [
+                      'Nominal tagihan',
+                      Number(dipilih.denda_tagihan || 0) > 0
+                        ? `${rupiah(dipilih.nominal_tagihan)} (Pokok ${rupiah(dipilih.nominal_pokok || 0)} + denda ${rupiah(dipilih.denda_tagihan || 0)})`
+                        : rupiah(dipilih.nominal_tagihan),
+                    ],
                     ['Tanggal transfer', tglAngka(dipilih.tanggal_bayar)],
                     ['Diunggah', tglWaktu(dipilih.waktu_unggah)],
                     ...(dipilih.tanggal_verifikasi ? [['Diverifikasi', tglAngka(dipilih.tanggal_verifikasi)]] : []),

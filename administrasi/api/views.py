@@ -1,7 +1,7 @@
 from datetime import timedelta
 from django.utils.timezone import now
 from django.db import transaction
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, F
 from django.contrib.auth.models import User
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
@@ -20,7 +20,7 @@ import calendar
 import re
 
 from administrasi.models import (
-    ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, KategoriKeluhan, Keluhan, RiwayatStatusKeluhan, Informasi
+    ProfilUser, Kamar, Penghuni, Tagihan, BuktiPembayaran, Denda, KategoriKeluhan, Keluhan, RiwayatStatusKeluhan, Informasi
 )
 from .serializers import (
     KamarSerializer, PenghuniSerializer, TagihanSerializer,
@@ -729,8 +729,16 @@ class BuktiPembayaranListCreateAPI(generics.ListCreateAPIView):
             pengunggah = Penghuni.objects.filter(user=self.request.user).first()
             bukti = serializer.save(status='menunggu_verifikasi', diunggah_oleh=pengunggah)
             tagihan = bukti.tagihan
+            hari_telat, nominal_denda = tagihan.hitung_denda_pada(bukti.tanggal_bayar)
+            tagihan.hari_terlambat = hari_telat
+            tagihan.denda = nominal_denda
             tagihan.status = 'menunggu_verifikasi'
-            tagihan.save()
+            tagihan.save(update_fields=['hari_terlambat', 'denda', 'status'])
+            if nominal_denda > 0:
+                Denda.objects.update_or_create(
+                    tagihan=tagihan,
+                    defaults={'jumlah_hari': hari_telat, 'nominal': nominal_denda},
+                )
 
 @api_view(['POST'])
 @permission_classes([IsPengurus])
@@ -747,10 +755,24 @@ def proses_verifikasi_api(request, bukti_id):
         tagihan = bukti.tagihan
         if aksi == 'terima':
             bukti.status = 'diterima'
+            hari_telat, nominal_denda = tagihan.hitung_denda_pada(bukti.tanggal_bayar)
+            if (tagihan.denda or 0) > nominal_denda:
+                hari_telat = int(tagihan.hari_terlambat or hari_telat)
+                nominal_denda = float(tagihan.denda or 0)
+            tagihan.hari_terlambat = hari_telat
+            tagihan.denda = nominal_denda
             tagihan.status = 'lunas'
+            if nominal_denda > 0:
+                Denda.objects.update_or_create(
+                    tagihan=tagihan,
+                    defaults={'jumlah_hari': hari_telat, 'nominal': nominal_denda},
+                )
         elif aksi == 'tolak':
             bukti.status = 'ditolak'
             bukti.catatan_penolakan = catatan
+            hari_telat, nominal_denda = tagihan.hitung_denda_pada()
+            tagihan.hari_terlambat = hari_telat
+            tagihan.denda = nominal_denda
             tagihan.status = 'ditolak'
         else:
             return Response({'detail': 'Aksi tidak valid.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -812,7 +834,9 @@ class KeluhanUpdateAPI(generics.UpdateAPIView):
 @permission_classes([IsPemilik])
 def laporan_keuangan_api(request):
     tagihan_lunas = Tagihan.objects.filter(status='lunas').order_by('-id')
-    total_pemasukan = tagihan_lunas.aggregate(Sum('nominal'))['nominal__sum'] or 0
+    total_pemasukan = (
+        tagihan_lunas.aggregate(total=Sum(F('nominal') + F('denda')))['total'] or 0
+    )
 
     # Tanggal pembayaran diambil dari bukti yang diterima (jika ada beberapa, yang terbaru dipakai)
     bukti_diterima = {}

@@ -201,7 +201,7 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
                     {t.periode} • Kamar {t.nomor_kamar || '-'} • dibayar {tglAngka(t.tanggal_bayar || t.tanggal_verifikasi || t.jatuh_tempo)}
                   </p>
                 </div>
-                <p className="text-sm font-bold text-ink tabular-nums">{rupiah(t.nominal)}</p>
+                <p className="text-sm font-bold text-ink tabular-nums">{rupiah(Number(t.nominal || 0) + Number(t.denda || 0))}</p>
               </li>
             ))}
           </ul>
