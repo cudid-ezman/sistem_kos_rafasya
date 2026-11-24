@@ -104,12 +104,30 @@ class KategoriKeluhan(models.Model):
 
 class Keluhan(models.Model):
     STATUS_CHOICES = (('diterima', 'Diterima'), ('diproses', 'Diproses'), ('selesai', 'Selesai'))
+    STATUS_PEMILIK_CHOICES = (
+        ('tidak_diajukan', 'Tidak Diajukan'),
+        ('menunggu', 'Menunggu Respon Pemilik'),
+        ('dicairkan', 'Dana Dicairkan'),
+        ('dicairkan_sebagian', 'Dicairkan Sebagian'),
+        ('ditolak', 'Ditolak / Ditunda'),
+    )
     penghuni = models.ForeignKey(Penghuni, on_delete=models.CASCADE)
     kategori = models.ForeignKey(KategoriKeluhan, on_delete=models.SET_NULL, null=True)
     deskripsi = models.TextField()
     foto = models.ImageField(upload_to='keluhan/', blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='diterima')
     catatan_tindak_lanjut = models.TextField(blank=True, null=True)
+    dieskalasi_pemilik = models.BooleanField(default=False)
+    nominal_pengajuan = models.FloatField(default=0)
+    catatan_pengajuan = models.TextField(blank=True, null=True)
+    status_pemilik = models.CharField(
+        max_length=25,
+        choices=STATUS_PEMILIK_CHOICES,
+        default='tidak_diajukan',
+    )
+    nominal_pencairan = models.FloatField(default=0)
+    catatan_pemilik = models.TextField(blank=True, null=True)
+    tanggal_pencairan = models.DateTimeField(blank=True, null=True)
     tanggal_kirim = models.DateTimeField(auto_now_add=True)
 
 class RiwayatStatusKeluhan(models.Model):

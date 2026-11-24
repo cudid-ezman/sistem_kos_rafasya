@@ -44,6 +44,7 @@ const JUDUL: Record<string, string> = {
   "/dashboard/keluhan": "Keluhan Penghuni",
   "/dashboard/informasi-kelola": "Pusat Informasi",
   "/dashboard/laporan": "Laporan Keuangan",
+  "/dashboard/keluhan-pemilik": "Keluhan & Perbaikan",
   "/dashboard/kelola-akun": "Kelola Akun",
 };
 
@@ -125,6 +126,12 @@ export default function DashboardLayout({ user, onLogout }: Props) {
                 to: "/dashboard/laporan",
                 label: "Laporan Keuangan",
                 icon: ChartIcon,
+              },
+              {
+                to: "/dashboard/keluhan-pemilik",
+                label: "Keluhan & Perbaikan",
+                icon: WarningIcon,
+                badge: keluhanList.filter((k) => k.status_pemilik === "menunggu").length || undefined,
               },
             ],
           },

@@ -161,6 +161,7 @@ class RiwayatStatusKeluhanSerializer(serializers.ModelSerializer):
 
 class KeluhanSerializer(serializers.ModelSerializer):
     nama_kategori = serializers.CharField(source='kategori.nama', read_only=True)
+    kategori_custom = serializers.CharField(write_only=True, required=False, allow_blank=True)
     nama_penghuni = serializers.CharField(source='penghuni.user.first_name', read_only=True)
     nomor_kamar = serializers.CharField(source='penghuni.kamar.nomor_kamar', read_only=True)
     riwayat_status = RiwayatStatusKeluhanSerializer(
@@ -172,11 +173,16 @@ class KeluhanSerializer(serializers.ModelSerializer):
         model = Keluhan
         fields = [
             'id', 'penghuni', 'nama_penghuni', 'nomor_kamar',
-            'kategori', 'nama_kategori', 'deskripsi', 'foto',
-            'status', 'catatan_tindak_lanjut', 'tanggal_kirim',
-            'tanggal_diperbarui', 'riwayat_status'
+            'kategori', 'kategori_custom', 'nama_kategori', 'deskripsi', 'foto',
+            'status', 'catatan_tindak_lanjut',
+            'dieskalasi_pemilik', 'nominal_pengajuan', 'catatan_pengajuan',
+            'status_pemilik', 'nominal_pencairan', 'catatan_pemilik', 'tanggal_pencairan',
+            'tanggal_kirim', 'tanggal_diperbarui', 'riwayat_status'
         ]
-        read_only_fields = ['penghuni', 'tanggal_kirim']
+        read_only_fields = ['penghuni', 'tanggal_kirim', 'tanggal_pencairan']
+        extra_kwargs = {
+            'kategori': {'required': False, 'allow_null': True},
+        }
 
     def get_tanggal_diperbarui(self, obj):
         terakhir = obj.riwayatstatuskeluhan_set.order_by('-waktu', '-id').first()

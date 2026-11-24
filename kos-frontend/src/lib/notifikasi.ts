@@ -18,10 +18,6 @@ export interface Notifikasi {
   linkLabel: string;
 }
 
-/**
- * Notifikasi dihitung dari data tagihan, bukti pembayaran, dan keluhan milik penghuni.
- * (Belum ada endpoint notifikasi di backend; model Notifikasi bisa dipakai nanti.)
- */
 export function buatNotifikasi(
   tagihan: Tagihan[],
   bukti: BuktiPembayaran[],
@@ -29,7 +25,7 @@ export function buatNotifikasi(
 ): Notifikasi[] {
   const out: Notifikasi[] = [];
 
-  // Pembayaran ditolak (bukti terbaru per tagihan)
+  // 1. Pembayaran ditolak (bukti terbaru per tagihan)
   const sudahDitolak = new Set<number>();
   for (const b of bukti) {
     const t = tagihan.find((x) => x.id === b.tagihan);
@@ -53,10 +49,33 @@ export function buatNotifikasi(
     }
   }
 
-  // Denda berjalan
+  // 2. Respon pengajuan perpanjangan jatuh tempo (dispensasi)
+  for (const t of tagihan) {
+    if (t.status !== "lunas" && t.status_perpanjangan === "disetujui" && t.tanggal_perpanjangan) {
+      out.push({
+        id: `dispensasi-ok-${t.id}-${t.tanggal_perpanjangan}`,
+        tone: "success",
+        title: "Perpanjangan jatuh tempo disetujui",
+        text: `Tenggat pembayaran ${t.periode} diperpanjang hingga ${tglAngka(t.tanggal_perpanjangan)}.`,
+        to: `/dashboard/tagihan-saya/${t.id}`,
+        linkLabel: "Lihat Rincian Tagihan",
+      });
+    } else if (t.status !== "lunas" && t.status_perpanjangan === "ditolak") {
+      out.push({
+        id: `dispensasi-no-${t.id}`,
+        tone: "danger",
+        title: "Perpanjangan jatuh tempo ditolak",
+        text: `Pengajuan dispensasi untuk ${t.periode} belum dapat disetujui pengurus.`,
+        to: `/dashboard/tagihan-saya/${t.id}`,
+        linkLabel: "Lihat Rincian Tagihan",
+      });
+    }
+  }
+
+  // 3. Denda berjalan
   for (const t of tagihan) {
     const { hari, denda } = hitungDenda(t);
-    if (denda > 0 && t.status !== "menunggu_verifikasi") {
+    if (denda > 0 && t.status !== "menunggu_verifikasi" && t.status !== "lunas") {
       out.push({
         id: `denda-${t.id}`,
         tone: "warning",
@@ -69,18 +88,21 @@ export function buatNotifikasi(
     }
   }
 
-  // Keluhan diproses / selesai
+  // 4. Keluhan diproses / selesai (sertakan catatan pengurus bila ada)
   for (const k of keluhan) {
     if (k.status === "diproses" || k.status === "selesai") {
+      const catatan = (k.catatan_tindak_lanjut || "").trim();
       out.push({
-        id: `keluhan-${k.id}-${k.status}`,
+        id: `keluhan-${k.id}-${k.status}-${catatan.slice(0, 20)}`,
         tone: k.status === "selesai" ? "success" : "violet",
         title: k.status === "selesai" ? "Keluhan selesai" : "Keluhan diproses",
-        text: `Keluhan ${k.nama_kategori ?? ""}${k.nomor_kamar ? ` kamar ${k.nomor_kamar}` : ""} ${
-          k.status === "selesai"
-            ? "sudah selesai ditangani."
-            : "sedang ditangani pengurus."
-        }`.replace(/\s+/g, " "),
+        text: catatan
+          ? `Keluhan ${k.nama_kategori ?? ""}: ${catatan}`.replace(/\s+/g, " ")
+          : `Keluhan ${k.nama_kategori ?? ""}${k.nomor_kamar ? ` kamar ${k.nomor_kamar}` : ""} ${
+              k.status === "selesai"
+                ? "sudah selesai ditangani."
+                : "sedang ditangani pengurus."
+            }`.replace(/\s+/g, " "),
         time: tglAngka(k.tanggal_kirim),
         to: `/dashboard/keluhan-saya/${k.id}`,
         linkLabel: "Detail Keluhan",
@@ -88,7 +110,7 @@ export function buatNotifikasi(
     }
   }
 
-  // Pengingat jatuh tempo (mulai H-7 sebelum jatuh tempo, belum terlambat)
+  // 5. Pengingat jatuh tempo (mulai H-7 sebelum jatuh tempo, belum terlambat)
   for (const t of tagihan) {
     if (
       t.status === "belum_dibayar" &&
@@ -106,7 +128,7 @@ export function buatNotifikasi(
     }
   }
 
-  // Pembayaran terakhir yang disetujui
+  // 6. Pembayaran terakhir yang disetujui
   const lunas = tagihan
     .filter((t) => t.status === "lunas")
     .sort((a, b) => b.id - a.id)[0];
@@ -155,7 +177,52 @@ export function buatNotifikasiPengurus(
     });
   }
 
-  // 2. Keluhan baru masuk (status 'diterima')
+  // 2. Pengajuan perpanjangan jatuh tempo (dispensasi) menunggu respon pengurus
+  const dispensasiMenunggu = tagihan.filter(
+    (t) => t.status !== "lunas" && t.status_perpanjangan === "menunggu",
+  );
+  for (const t of dispensasiMenunggu) {
+    out.push({
+      id: `pengurus-dispensasi-${t.id}`,
+      tone: "info",
+      title: "Pengajuan perpanjangan jatuh tempo",
+      text: `${t.nama_penghuni ?? "Penghuni"} (Kamar ${t.nomor_kamar ?? "-"}) mengajukan dispensasi periode ${t.periode}${t.tanggal_perpanjangan ? ` s/d ${tglAngka(t.tanggal_perpanjangan)}` : ""}.`,
+      to: "/dashboard/tagihan",
+      linkLabel: "Tinjau Pengajuan",
+    });
+  }
+
+  // 3. Feedback / Pencairan dana keluhan dari Pemilik
+  const responPemilik = keluhan
+    .filter(
+      (k) =>
+        k.dieskalasi_pemilik &&
+        k.status !== "selesai" &&
+        k.status_pemilik &&
+        k.status_pemilik !== "tidak_diajukan" &&
+        k.status_pemilik !== "menunggu",
+    )
+    .sort((a, b) => b.id - a.id);
+
+  for (const k of responPemilik) {
+    const cair = Number(k.nominal_pencairan || 0);
+    const ditolak = k.status_pemilik === "ditolak";
+    out.push({
+      id: `pengurus-respon-pemilik-${k.id}-${k.status_pemilik}-${cair}`,
+      tone: ditolak ? "danger" : "success",
+      title: ditolak
+        ? "Pengajuan keluhan ditolak Pemilik"
+        : cair > 0
+          ? `Dana keluhan dicairkan (${rupiah(cair)})`
+          : "Keluhan disetujui Pemilik",
+      text: `Kamar ${k.nomor_kamar ?? "-"} (${k.nama_kategori ?? "Keluhan"})${k.catatan_pemilik ? `: ${k.catatan_pemilik}` : "."}`,
+      time: k.tanggal_pencairan ? tglAngka(k.tanggal_pencairan) : undefined,
+      to: "/dashboard/keluhan",
+      linkLabel: "Lihat Keluhan",
+    });
+  }
+
+  // 4. Keluhan baru masuk (status 'diterima')
   const keluhanBaru = keluhan
     .filter((k) => k.status === "diterima")
     .sort((a, b) => b.id - a.id);
@@ -172,10 +239,10 @@ export function buatNotifikasiPengurus(
     });
   }
 
-  // 3. Tagihan menunggak / denda berjalan
+  // 5. Tagihan menunggak / denda berjalan
   for (const t of tagihan) {
     const { hari, denda } = hitungDenda(t);
-    if (denda > 0 && t.status !== "menunggu_verifikasi") {
+    if (denda > 0 && t.status !== "menunggu_verifikasi" && t.status !== "lunas") {
       out.push({
         id: `pengurus-telat-${t.id}`,
         tone: "danger",
@@ -191,12 +258,6 @@ export function buatNotifikasiPengurus(
   return out;
 }
 
-/**
- * Notifikasi ringkasan finansial & operasional untuk Pemilik:
- * - Pembayaran lunas terbaru masuk ke kas
- * - Ringkasan tagihan menunggak / jatuh tempo
- * - Keluhan aktif yang belum selesai
- */
 export function buatNotifikasiPemilik(
   tagihan: Tagihan[],
   bukti: BuktiPembayaran[],
@@ -204,7 +265,28 @@ export function buatNotifikasiPemilik(
 ): Notifikasi[] {
   const out: Notifikasi[] = [];
 
-  // 1. Pemasukan lunas terbaru (maksimal 5 terakhir)
+  // 1. Keluhan eskalasi dari pengurus yang menunggu respon / pencairan dana pemilik
+  const eskalasiMenunggu = keluhan
+    .filter((k) => k.dieskalasi_pemilik && k.status_pemilik === "menunggu")
+    .sort((a, b) => b.id - a.id);
+
+  for (const k of eskalasiMenunggu) {
+    const ajuan = Number(k.nominal_pengajuan || 0);
+    out.push({
+      id: `pemilik-eskalasi-${k.id}-${ajuan}`,
+      tone: "violet",
+      title:
+        ajuan > 0
+          ? `Pengajuan dana perbaikan (${rupiah(ajuan)})`
+          : "Keluhan kerusakan diteruskan pengurus",
+      text: `Kamar ${k.nomor_kamar ?? "-"} • ${k.nama_kategori ?? "Fasilitas"}: ${k.deskripsi}`,
+      time: tglAngka(k.tanggal_kirim),
+      to: "/dashboard/keluhan-pemilik",
+      linkLabel: "Tinjau & Beri Feedback",
+    });
+  }
+
+  // 2. Pemasukan lunas terbaru (maksimal 5 terakhir, sudah termasuk denda)
   const lunasTerbaru = tagihan
     .filter((t) => t.status === "lunas")
     .sort((a, b) => b.id - a.id)
@@ -212,23 +294,27 @@ export function buatNotifikasiPemilik(
 
   for (const t of lunasTerbaru) {
     const bk = bukti.find((b) => b.tagihan === t.id && b.status === "diterima");
+    const totalMasuk = Number(t.nominal || 0) + Number(t.denda || 0);
     out.push({
-      id: `pemilik-lunas-${t.id}`,
+      id: `pemilik-lunas-${t.id}-${totalMasuk}`,
       tone: "success",
       title: "Pemasukan sewa terverifikasi",
-      text: `Kamar ${t.nomor_kamar ?? "-"} (${t.periode}) lunas sebesar ${rupiah(t.nominal)}.`,
+      text: `Kamar ${t.nomor_kamar ?? "-"} (${t.periode}) lunas sebesar ${rupiah(totalMasuk)}.`,
       time: tglAngka(bk?.tanggal_verifikasi),
       to: "/dashboard/laporan",
       linkLabel: "Buka Laporan Keuangan",
     });
   }
 
-  // 2. Ringkasan tunggakan aktif
+  // 3. Ringkasan tunggakan aktif (termasuk denda berjalan)
   const menunggak = tagihan.filter((t) =>
     ["belum_dibayar", "terlambat", "ditolak"].includes(t.status),
   );
   if (menunggak.length > 0) {
-    const totalTunggakan = menunggak.reduce((acc, t) => acc + t.nominal, 0);
+    const totalTunggakan = menunggak.reduce(
+      (acc, t) => acc + Number(t.nominal || 0) + hitungDenda(t).denda,
+      0,
+    );
     out.push({
       id: `pemilik-tunggakan-${menunggak.length}-${totalTunggakan}`,
       tone: "warning",
@@ -236,19 +322,6 @@ export function buatNotifikasiPemilik(
       text: `Total piutang sewa berjalan sebesar ${rupiah(totalTunggakan)}.`,
       to: "/dashboard/laporan",
       linkLabel: "Cek Ringkasan Keuangan",
-    });
-  }
-
-  // 3. Keluhan fasilitas yang masih aktif
-  const keluhanAktif = keluhan.filter((k) => k.status !== "selesai");
-  if (keluhanAktif.length > 0) {
-    out.push({
-      id: `pemilik-keluhan-${keluhanAktif.length}`,
-      tone: "info",
-      title: `${keluhanAktif.length} keluhan dalam penanganan`,
-      text: "Terdapat laporan fasilitas kamar yang sedang ditangani pengurus.",
-      to: "/dashboard",
-      linkLabel: "Lihat Ringkasan Beranda",
     });
   }
 

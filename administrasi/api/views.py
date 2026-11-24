@@ -3,7 +3,7 @@ from django.utils.timezone import now
 from django.db import transaction
 from django.db.models import Sum, Q, F
 from django.contrib.auth.models import User
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -785,10 +785,39 @@ def proses_verifikasi_api(request, bukti_id):
     return Response({'detail': f'Pembayaran berhasil di-{aksi}.'})
 
 # --- KELUHAN & PROSES KELUHAN ---
-class KategoriKeluhanListAPI(generics.ListAPIView):
-    queryset = KategoriKeluhan.objects.all()
+def _rapikan_nama_kategori(raw: str) -> str:
+    bersih = re.sub(r'\s+', ' ', (raw or '').strip())
+    if not bersih:
+        return ''
+    return ' '.join(w if w.isupper() and len(w) <= 4 else w.capitalize() for w in bersih.split(' '))
+
+
+class KategoriKeluhanListAPI(generics.ListCreateAPIView):
+    queryset = KategoriKeluhan.objects.all().order_by('nama')
     serializer_class = KategoriKeluhanSerializer
     permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        nama = _rapikan_nama_kategori(request.data.get('nama') or '')
+        if not nama:
+            return Response({'detail': 'Nama kategori wajib diisi.'}, status=status.HTTP_400_BAD_REQUEST)
+        kategori = KategoriKeluhan.objects.filter(nama__iexact=nama).first()
+        if not kategori:
+            kategori = KategoriKeluhan.objects.create(nama=nama)
+        return Response(KategoriKeluhanSerializer(kategori).data, status=status.HTTP_201_CREATED)
+
+
+class KategoriKeluhanDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = KategoriKeluhan.objects.all()
+    serializer_class = KategoriKeluhanSerializer
+    permission_classes = [IsPengurus]
+
+    def perform_update(self, serializer):
+        nama = _rapikan_nama_kategori(self.request.data.get('nama') or serializer.instance.nama)
+        if not nama:
+            raise serializers.ValidationError({'nama': 'Nama kategori tidak boleh kosong.'})
+        serializer.save(nama=nama)
+
 
 class KeluhanListCreateAPI(generics.ListCreateAPIView):
     serializer_class = KeluhanSerializer
@@ -797,7 +826,10 @@ class KeluhanListCreateAPI(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if (hasattr(user, 'profiluser') and user.profiluser.role in ['pengurus', 'pemilik']) or user.is_superuser:
+        role = user.profiluser.role.lower() if hasattr(user, 'profiluser') else ''
+        if role == 'pemilik':
+            return Keluhan.objects.filter(dieskalasi_pemilik=True).order_by('-tanggal_kirim')
+        if role == 'pengurus' or user.is_superuser:
             return Keluhan.objects.all().order_by('-tanggal_kirim')
         penghuni = Penghuni.objects.filter(user=user).first()
         if not penghuni:
@@ -808,7 +840,16 @@ class KeluhanListCreateAPI(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         penghuni = Penghuni.objects.get(user=self.request.user)
-        keluhan = serializer.save(penghuni=penghuni)
+        kategori_custom = _rapikan_nama_kategori(serializer.validated_data.pop('kategori_custom', '') or '')
+        kategori = serializer.validated_data.get('kategori')
+        if kategori_custom:
+            kategori = (
+                KategoriKeluhan.objects.filter(nama__iexact=kategori_custom).first()
+                or KategoriKeluhan.objects.create(nama=kategori_custom)
+            )
+        if not kategori:
+            raise serializers.ValidationError({'kategori': 'Kategori keluhan wajib dipilih atau dibuat.'})
+        keluhan = serializer.save(penghuni=penghuni, kategori=kategori)
         RiwayatStatusKeluhan.objects.create(
             keluhan=keluhan,
             status=keluhan.status,
@@ -822,12 +863,119 @@ class KeluhanUpdateAPI(generics.UpdateAPIView):
     permission_classes = [IsPengurus]
 
     def perform_update(self, serializer):
-        keluhan = serializer.save()
+        kategori_custom = _rapikan_nama_kategori(serializer.validated_data.pop('kategori_custom', '') or '')
+        kategori = serializer.validated_data.get('kategori', serializer.instance.kategori)
+        if kategori_custom:
+            kategori = (
+                KategoriKeluhan.objects.filter(nama__iexact=kategori_custom).first()
+                or KategoriKeluhan.objects.create(nama=kategori_custom)
+            )
+
+        status_baru = serializer.validated_data.get('status', serializer.instance.status)
+        catatan_baru = (serializer.validated_data.get('catatan_tindak_lanjut', serializer.instance.catatan_tindak_lanjut) or '').strip()
+
+        sudah_direspon_pemilik = serializer.instance.status_pemilik in [
+            'dicairkan',
+            'dicairkan_sebagian',
+            'ditolak',
+        ]
+
+        if status_baru == 'selesai' or sudah_direspon_pemilik:
+            # Kunci histori eskalasi, nominal pengajuan, dan keputusan pemilik agar tidak hilang/ter-reset
+            dieskalasi = serializer.instance.dieskalasi_pemilik
+            nominal_ajuan = float(serializer.instance.nominal_pengajuan or 0)
+            status_pemilik = serializer.instance.status_pemilik
+            if status_baru == 'selesai' and (
+                not catatan_baru or catatan_baru.lower() in ['sedang proses', 'sedang diproses', 'sudah diajukan']
+            ):
+                catatan_baru = 'Kendala telah selesai ditangani.'
+        else:
+            dieskalasi = serializer.validated_data.get('dieskalasi_pemilik', serializer.instance.dieskalasi_pemilik)
+            nominal_ajuan = float(serializer.validated_data.get('nominal_pengajuan', serializer.instance.nominal_pengajuan) or 0)
+            if nominal_ajuan < 0:
+                nominal_ajuan = 0
+            status_pemilik = serializer.instance.status_pemilik
+            if dieskalasi:
+                if status_pemilik == 'tidak_diajukan':
+                    status_pemilik = 'menunggu'
+            else:
+                status_pemilik = 'tidak_diajukan'
+                nominal_ajuan = 0
+
+        keluhan = serializer.save(
+            kategori=kategori,
+            catatan_tindak_lanjut=catatan_baru,
+            dieskalasi_pemilik=dieskalasi,
+            nominal_pengajuan=nominal_ajuan,
+            status_pemilik=status_pemilik,
+        )
+
+        # Catatan publik untuk penghuni (bersih dari info dana internal)
         RiwayatStatusKeluhan.objects.create(
             keluhan=keluhan,
             status=keluhan.status,
-            catatan=(keluhan.catatan_tindak_lanjut or '').strip() or None
+            catatan=catatan_baru or None,
         )
+
+        # Catatan internal eskalasi pemilik (hanya saat belum selesai & baru/berubah eskalasi)
+        if status_baru != 'selesai' and not sudah_direspon_pemilik and keluhan.dieskalasi_pemilik:
+            info_ajuan = (
+                f"[Internal Pemilik] Diteruskan ke Pemilik (pengajuan dana Rp {int(keluhan.nominal_pengajuan):,}).".replace(',', '.')
+                if keluhan.nominal_pengajuan > 0
+                else "[Internal Pemilik] Diteruskan ke Pemilik untuk ditinjau (tanpa pengajuan dana)."
+            )
+            RiwayatStatusKeluhan.objects.create(
+                keluhan=keluhan,
+                status=keluhan.status,
+                catatan=info_ajuan,
+            )
+
+
+@api_view(['POST'])
+@permission_classes([IsPemilik])
+def respon_keluhan_pemilik_api(request, pk):
+    try:
+        keluhan = Keluhan.objects.get(pk=pk, dieskalasi_pemilik=True)
+    except Keluhan.DoesNotExist:
+        return Response({'detail': 'Keluhan eskalasi tidak ditemukan.'}, status=status.HTTP_404_NOT_FOUND)
+
+    status_pemilik = (request.data.get('status_pemilik') or '').strip()
+    catatan_pemilik = (request.data.get('catatan_pemilik') or '').strip()
+    try:
+        nominal_pencairan = float(request.data.get('nominal_pencairan') or 0)
+    except (TypeError, ValueError):
+        return Response({'detail': 'Nominal pencairan tidak valid.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if nominal_pencairan < 0:
+        return Response({'detail': 'Nominal pencairan tidak boleh negatif.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if status_pemilik not in ['dicairkan', 'dicairkan_sebagian', 'ditolak']:
+        return Response({'detail': 'Status respon pemilik tidak valid.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if status_pemilik == 'ditolak':
+        nominal_pencairan = 0
+    elif keluhan.nominal_pengajuan > 0 and nominal_pencairan > 0 and nominal_pencairan < keluhan.nominal_pengajuan:
+        status_pemilik = 'dicairkan_sebagian'
+
+    keluhan.status_pemilik = status_pemilik
+    keluhan.nominal_pencairan = nominal_pencairan
+    keluhan.catatan_pemilik = catatan_pemilik
+    keluhan.tanggal_pencairan = now()
+    keluhan.save(update_fields=['status_pemilik', 'nominal_pencairan', 'catatan_pemilik', 'tanggal_pencairan'])
+
+    label_respon = {
+        'dicairkan': f"Pemilik menyetujui & mencairkan dana Rp {int(nominal_pencairan):,}".replace(',', '.') if nominal_pencairan > 0 else "Pemilik menyetujui tindak lanjut keluhan",
+        'dicairkan_sebagian': f"Pemilik mencairkan dana sebagian Rp {int(nominal_pencairan):,}".replace(',', '.'),
+        'ditolak': "Pemilik menolak / menunda pengajuan keluhan",
+    }[status_pemilik]
+    detail_riwayat = f"[Internal Pemilik] {label_respon}{f' ({catatan_pemilik})' if catatan_pemilik else ''}."
+    RiwayatStatusKeluhan.objects.create(
+        keluhan=keluhan,
+        status=keluhan.status,
+        catatan=detail_riwayat,
+    )
+
+    return Response(KeluhanSerializer(keluhan, context={'request': request}).data)
 
 # --- LAPORAN KEUANGAN (PEMILIK) ---
 @api_view(['GET'])

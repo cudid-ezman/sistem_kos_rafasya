@@ -26,6 +26,7 @@ import DaftarKeluhan from "./pages/pengurus/DaftarKeluhan";
 import KelolaInformasi from "./pages/pengurus/KelolaInformasi";
 import Beranda from "./pages/Beranda";
 import LaporanKeuangan from "./pages/pemilik/LaporanKeuangan";
+import KeluhanPemilik from "./pages/pemilik/KeluhanPemilik";
 import KelolaAkun from "./pages/pemilik/KelolaAkun";
 
 function App() {
@@ -170,6 +171,7 @@ function App() {
 
           {/* Rute Pemilik */}
           <Route path="/dashboard/laporan" element={<LaporanKeuangan />} />
+          <Route path="/dashboard/keluhan-pemilik" element={<KeluhanPemilik />} />
           <Route path="/dashboard/kelola-akun" element={<KelolaAkun />} />
         </Route>
       </Route>

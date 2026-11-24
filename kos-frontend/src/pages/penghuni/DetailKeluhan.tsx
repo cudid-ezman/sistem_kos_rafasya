@@ -27,6 +27,17 @@ const TAHAP = [
   { key: "selesai", label: "Selesai", desc: "Kendala sudah ditangani." },
 ] as const;
 
+const isCatatanPublik = (catatan?: string | null) => {
+  if (!catatan) return false;
+  if (catatan === "Keluhan dikirim oleh penghuni.") return false;
+  if (catatan.startsWith("[Internal Pemilik]")) return false;
+  if (/Diteruskan ke Pemilik|Pemilik (menyetujui|mencairkan|menolak)/i.test(catatan)) return false;
+  return true;
+};
+
+const bersihkanCatatan = (catatan: string) =>
+  catatan.replace(/\s*—\s*Diteruskan ke Pemilik.*$/i, "").trim();
+
 export default function DetailKeluhan() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -253,21 +264,14 @@ export default function DetailKeluhan() {
               </p>
             )}
 
-            {(k.riwayat_status?.filter(
-              (r) =>
-                r.catatan && r.catatan !== "Keluhan dikirim oleh penghuni.",
-            ).length ?? 0) > 1 && (
+            {(k.riwayat_status?.filter((r) => isCatatanPublik(r.catatan)).length ?? 0) > 1 && (
               <div className="mt-4 border-t border-slate-100 pt-3">
                 <p className="mb-2 text-[11px] font-bold tracking-wider text-ink-soft uppercase">
                   Riwayat Pembaruan Pengurus
                 </p>
                 <ul className="space-y-2">
                   {[...(k.riwayat_status ?? [])]
-                    .filter(
-                      (r) =>
-                        r.catatan &&
-                        r.catatan !== "Keluhan dikirim oleh penghuni.",
-                    )
+                    .filter((r) => isCatatanPublik(r.catatan))
                     .reverse()
                     .map((r) => (
                       <li
@@ -280,7 +284,7 @@ export default function DetailKeluhan() {
                           </span>
                           <span>{tglWaktu(r.waktu)}</span>
                         </div>
-                        <p className="mt-1 text-ink">{r.catatan}</p>
+                        <p className="mt-1 text-ink">{bersihkanCatatan(r.catatan ?? '')}</p>
                       </li>
                     ))}
                 </ul>

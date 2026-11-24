@@ -10,6 +10,7 @@ import { btnOutline, btnPrimary } from '../../components/portal/buttons';
 import { ArrowRightIcon, WarningIcon, XIcon } from '../../components/portal/icons';
 
 const MAKS = 500;
+const KATEGORI_BARU = '__custom__';
 
 export default function BuatKeluhan() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function BuatKeluhan() {
 
   const [kategori, setKategori] = useState<KategoriKeluhan[]>([]);
   const [kategoriId, setKategoriId] = useState('');
+  const [kategoriBaru, setKategoriBaru] = useState('');
   const [deskripsi, setDeskripsi] = useState('');
   const [foto, setFoto] = useState<File | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
@@ -31,9 +33,11 @@ export default function BuatKeluhan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const isCustom = kategoriId === KATEGORI_BARU;
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!kategoriId || !deskripsi.trim()) {
+    if ((!kategoriId || (isCustom && !kategoriBaru.trim())) || !deskripsi.trim()) {
       setGalat('Kategori dan deskripsi wajib diisi');
       return;
     }
@@ -41,7 +45,11 @@ export default function BuatKeluhan() {
     setKirim(true);
 
     const fd = new FormData();
-    fd.append('kategori', kategoriId);
+    if (isCustom) {
+      fd.append('kategori_custom', kategoriBaru.trim());
+    } else {
+      fd.append('kategori', kategoriId);
+    }
     fd.append('deskripsi', deskripsi.trim());
     if (foto) fd.append('foto', foto);
 
@@ -97,7 +105,22 @@ export default function BuatKeluhan() {
                   {k.nama}
                 </option>
               ))}
+              <option value={KATEGORI_BARU}>+ Buat Kategori Baru...</option>
             </select>
+
+            {isCustom && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  maxLength={80}
+                  value={kategoriBaru}
+                  onChange={(e) => setKategoriBaru(e.target.value)}
+                  placeholder="Tulis nama kategori baru (contoh: Kunci Pintu, Wastafel, Lemari)..."
+                  className={`${fieldCls} h-11 ${galat && !kategoriBaru.trim() ? 'border-rose-300' : ''}`}
+                />
+                <p className="mt-1 text-xs text-ink-soft">Kategori baru akan tersimpan otomatis untuk laporan berikutnya.</p>
+              </div>
+            )}
           </div>
 
           <div>

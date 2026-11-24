@@ -27,8 +27,10 @@ urlpatterns = [
     path('verifikasi/<int:bukti_id>/', views.proses_verifikasi_api, name='api_proses_verifikasi'),
 
     path('kategori-keluhan/', views.KategoriKeluhanListAPI.as_view(), name='api-kategori-keluhan'),
+    path('kategori-keluhan/<int:pk>/', views.KategoriKeluhanDetailAPI.as_view(), name='api-kategori-keluhan-detail'),
     path('keluhan/', views.KeluhanListCreateAPI.as_view(), name='api-keluhan'),
     path('keluhan/<int:pk>/', views.KeluhanUpdateAPI.as_view(), name='api_keluhan_update'),
+    path('keluhan/<int:pk>/respon-pemilik/', views.respon_keluhan_pemilik_api, name='api_keluhan_respon_pemilik'),
 
     path('laporan-keuangan/', views.laporan_keuangan_api, name='api_laporan_keuangan'),
     path('informasi/', views.InformasiListCreateAPI.as_view(), name='api_informasi'),
