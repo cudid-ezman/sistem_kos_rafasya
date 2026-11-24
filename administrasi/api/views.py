@@ -28,6 +28,15 @@ from .serializers import (
     CustomTokenObtainPairSerializer, AkunStaffSerializer, InformasiSerializer
 )
 from .permissions import IsPengurus, IsPemilik
+from administrasi.whatsapp import (
+    wa_bukti_diunggah,
+    wa_verifikasi_pembayaran,
+    wa_ajukan_perpanjangan,
+    wa_respon_perpanjangan,
+    wa_keluhan_baru,
+    wa_keluhan_update_pengurus,
+    wa_keluhan_respon_pemilik,
+)
 
 # --- AUTH & PROFILE ---
 @api_view(['GET'])
@@ -782,6 +791,7 @@ def proses_verifikasi_api(request, bukti_id):
         bukti.save()
         tagihan.save()
 
+    wa_verifikasi_pembayaran(bukti, aksi, catatan)
     return Response({'detail': f'Pembayaran berhasil di-{aksi}.'})
 
 # --- KELUHAN & PROSES KELUHAN ---
@@ -855,6 +865,7 @@ class KeluhanListCreateAPI(generics.ListCreateAPIView):
             status=keluhan.status,
             catatan='Keluhan dikirim oleh penghuni.'
         )
+        wa_keluhan_baru(keluhan)
 
 
 class KeluhanUpdateAPI(generics.UpdateAPIView):
@@ -871,6 +882,8 @@ class KeluhanUpdateAPI(generics.UpdateAPIView):
                 or KategoriKeluhan.objects.create(nama=kategori_custom)
             )
 
+        status_sebelumnya = serializer.instance.status
+        eskalasi_sebelumnya = bool(serializer.instance.dieskalasi_pemilik)
         status_baru = serializer.validated_data.get('status', serializer.instance.status)
         catatan_baru = (serializer.validated_data.get('catatan_tindak_lanjut', serializer.instance.catatan_tindak_lanjut) or '').strip()
 
@@ -909,6 +922,8 @@ class KeluhanUpdateAPI(generics.UpdateAPIView):
             nominal_pengajuan=nominal_ajuan,
             status_pemilik=status_pemilik,
         )
+
+        wa_keluhan_update_pengurus(keluhan, status_sebelumnya, eskalasi_sebelumnya)
 
         # Catatan publik untuk penghuni (bersih dari info dana internal)
         RiwayatStatusKeluhan.objects.create(
@@ -975,6 +990,7 @@ def respon_keluhan_pemilik_api(request, pk):
         catatan=detail_riwayat,
     )
 
+    wa_keluhan_respon_pemilik(keluhan)
     return Response(KeluhanSerializer(keluhan, context={'request': request}).data)
 
 # --- LAPORAN KEUANGAN (PEMILIK) ---
@@ -1222,6 +1238,7 @@ def ajukan_perpanjangan_api(request, pk):
     tagihan.alasan_perpanjangan = alasan
     tagihan.status_perpanjangan = 'menunggu'
     tagihan.save(update_fields=['tanggal_perpanjangan', 'alasan_perpanjangan', 'status_perpanjangan'])
+    wa_ajukan_perpanjangan(tagihan)
 
     return Response(TagihanSerializer(tagihan).data)
 

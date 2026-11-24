@@ -198,3 +198,9 @@ else:
     DEFAULT_FROM_EMAIL = 'admin@kosrafasya.id'
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+
+# Konfigurasi WhatsApp Gateway
+WA_GATEWAY_URL = os.environ.get('WA_GATEWAY_URL', 'https://api.fonnte.com/send').strip()
+WA_GATEWAY_TOKEN = os.environ.get('WA_GATEWAY_TOKEN', '').strip()
+WA_PENGURUS = os.environ.get('WA_PENGURUS', '').strip()
+WA_PEMILIK = os.environ.get('WA_PEMILIK', '').strip()

@@ -204,3 +204,25 @@ def _auto_sinkron_kamar_saat_hapus(sender, instance, **kwargs):
         kamar = Kamar.objects.filter(pk=instance.kamar_id).first()
         if kamar:
             sinkron_status_kamar(kamar)
+
+
+class LogNotifikasiWA(models.Model):
+    STATUS_CHOICES = (
+        ('simulasi', 'Simulasi (Token Belum Diisi)'),
+        ('terkirim', 'Terkirim'),
+        ('gagal', 'Gagal'),
+    )
+    tujuan_role = models.CharField(max_length=20)
+    nomor_tujuan = models.CharField(max_length=30)
+    jenis_event = models.CharField(max_length=50)
+    referensi_kode = models.CharField(max_length=100, blank=True, default='', db_index=True)
+    pesan = models.TextField()
+    status_kirim = models.CharField(max_length=20, choices=STATUS_CHOICES, default='simulasi')
+    respons_gateway = models.TextField(blank=True, default='')
+    waktu_kirim = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-waktu_kirim']
+
+    def __str__(self):
+        return f"[{self.status_kirim}] {self.tujuan_role} ({self.nomor_tujuan}) - {self.jenis_event}"

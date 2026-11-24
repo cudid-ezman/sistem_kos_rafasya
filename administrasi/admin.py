@@ -17,3 +17,12 @@ admin.site.register(Keluhan)
 admin.site.register(RiwayatStatusKeluhan)
 admin.site.register(Informasi)
 admin.site.register(Notifikasi)
+
+from .models import LogNotifikasiWA
+
+@admin.register(LogNotifikasiWA)
+class LogNotifikasiWAAdmin(admin.ModelAdmin):
+    list_display = ('waktu_kirim', 'tujuan_role', 'nomor_tujuan', 'jenis_event', 'status_kirim')
+    list_filter = ('status_kirim', 'tujuan_role', 'jenis_event')
+    search_fields = ('nomor_tujuan', 'pesan', 'referensi_kode')
+    readonly_fields = ('waktu_kirim',)
