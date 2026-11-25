@@ -10,6 +10,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import DashboardLayout from "./layouts/DashboardLayout";
 import PenghuniLayout from "./layouts/PenghuniLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BerandaPenghuni from "./pages/penghuni/BerandaPenghuni";
 import TagihanSaya from "./pages/penghuni/TagihanSaya";
 import RincianTagihan from "./pages/penghuni/RincianTagihan";
 import UploadBukti from "./pages/penghuni/UploadBukti";
@@ -96,12 +97,12 @@ function App() {
         }
       />
       <Route
-        path="/atur-ulang-kata-sandi"
+        path="/atur-ulang-kata-sandi/:uid/:token"
         element={<ResetPassword />}
       />
       <Route
         path="/atur-ulang-kata-sandi/*"
-        element={<ResetPassword />}
+        element={<Navigate to="/lupa-kata-sandi" replace />}
       />
 
       {/* Portal Penghuni (layout & halaman khusus penghuni) */}
@@ -113,6 +114,7 @@ function App() {
         <Route
           element={<PenghuniLayout user={user!} onLogout={handleLogout} />}
         >
+          <Route path="/dashboard/beranda" element={<BerandaPenghuni />} />
           <Route path="/dashboard/tagihan-saya" element={<TagihanSaya />} />
           <Route
             path="/dashboard/tagihan-saya/:id"
@@ -148,7 +150,7 @@ function App() {
             path="/dashboard"
             element={
               (user?.role || "").toLowerCase() === "penghuni" ? (
-                <Navigate to="/dashboard/tagihan-saya" replace />
+                <Navigate to="/dashboard/beranda" replace />
               ) : (
                 <Beranda user={user!} />
               )

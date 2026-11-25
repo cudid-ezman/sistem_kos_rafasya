@@ -77,7 +77,7 @@ export default function BuatKeluhan() {
         subtitle="Sampaikan kendala fasilitas agar segera ditangani pengurus."
       />
 
-      <form onSubmit={submit} noValidate className="max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 sm:p-8">
+      <form onSubmit={submit} noValidate className="max-w-3xl rounded-2xl border border-field-line bg-field p-5 sm:p-8">
         {galat && (
           <div role="alert" className="mb-6 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
             <WarningIcon size={18} className="shrink-0" />
@@ -151,7 +151,7 @@ export default function BuatKeluhan() {
           </div>
         </div>
 
-        <div className="mt-8 flex justify-end gap-3 border-t border-slate-100 pt-5">
+        <div className="mt-8 flex justify-end gap-3 border-t border-field-line pt-5">
           <Link to="/dashboard/keluhan-saya" className={btnOutline}>
             Batal
           </Link>

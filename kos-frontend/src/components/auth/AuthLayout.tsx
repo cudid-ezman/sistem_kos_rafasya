@@ -1,4 +1,3 @@
-import LinkWhatsAppPengurus from '../common/LinkWhatsAppPengurus';
 import type { ReactNode } from 'react';
 import { BrandLockup } from '../brand/BrandLogo';
 import KosIllustration from './KosIllustration';
@@ -46,7 +45,7 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
 
         <div className="flex w-full flex-1 items-center justify-center">
           <div
-            className={`w-full rounded-2xl border border-slate-200 bg-white p-8 sm:p-10 ${
+            className={`w-full rounded-2xl border border-field-line bg-white p-8 sm:p-10 ${
               wide ? 'max-w-[520px]' : 'max-w-[460px]'
             }`}
           >
@@ -55,7 +54,7 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
         </div>
 
         <footer className="mt-8 text-center text-xs text-ink-soft">
-          {showHelp && <p className="mb-1">Butuh bantuan?{' '}<LinkWhatsAppPengurus pesan="Halo Pengurus Kos Putra Raffasya, saya butuh bantuan untuk masuk ke sistem kos." /></p>}
+          {showHelp && <p className="mb-1">Butuh bantuan? Hubungi pengurus kos.</p>}
           <p>© 2026 Kost Putra Raffasya</p>
         </footer>
       </main>

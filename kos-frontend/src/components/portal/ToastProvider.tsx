@@ -39,7 +39,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             role={t.kind === 'error' ? 'alert' : 'status'}
-            className={`pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border bg-white px-4 py-3 text-sm motion-safe:animate-[toast-in_.25s_ease-out] ${
+            className={`pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border bg-field px-4 py-3 text-sm motion-safe:animate-[toast-in_.25s_ease-out] ${
               t.kind === 'error' ? 'border-rose-200' : 'border-emerald-200'
             }`}
           >

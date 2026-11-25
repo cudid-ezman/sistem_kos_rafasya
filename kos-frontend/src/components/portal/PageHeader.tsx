@@ -19,6 +19,7 @@ export default function PageHeader({ crumbs, title, subtitle, badge, action }: P
   return (
     <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
+        {crumbs.length > 2 && (
         <nav aria-label="Breadcrumb" className="mb-2 flex flex-wrap items-center gap-1 text-[13px] text-ink-soft">
           {crumbs.map((c, i) => (
             <span key={c.label} className="flex items-center gap-1">
@@ -33,6 +34,7 @@ export default function PageHeader({ crumbs, title, subtitle, badge, action }: P
             </span>
           ))}
         </nav>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-ink">{title}</h1>
           {badge}

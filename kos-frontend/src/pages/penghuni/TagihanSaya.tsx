@@ -3,17 +3,16 @@ import { Link } from 'react-router-dom';
 import type { Tagihan } from '../../types/kos';
 import { hariSelisih, hitungDenda, parseTanggal, rupiah, sudahTerbitH7, tanggalTerbitH7, tglPendek, totalTagihan } from '../../lib/format';
 import { usePortal } from '../../components/portal/portalContext';
+import { Atap, panelCls } from '../../components/admin/DashboardParts';
 import PageHeader from '../../components/portal/PageHeader';
 import StatusPill from '../../components/portal/StatusPill';
 import { PageSkeleton } from '../../components/portal/Skeleton';
 import { btnOutline, btnPrimary } from '../../components/portal/buttons';
 import {
-  CalendarIcon,
   CheckCircleIcon,
   InfoCircleIcon,
   ReceiptIcon,
   UploadCloudIcon,
-  WalletIcon,
   WarningIcon,
 } from '../../components/portal/icons';
 
@@ -71,7 +70,7 @@ export default function TagihanSaya() {
 
   if (error) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-field-line bg-field p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
           <WarningIcon size={26} />
         </div>
@@ -97,99 +96,71 @@ export default function TagihanSaya() {
       />
 
       {/* Ringkasan */}
-      <section className="grid gap-4 lg:grid-cols-[1.7fr_1fr_1fr]" aria-label="Ringkasan tagihan">
-        <div className="relative overflow-hidden rounded-2xl bg-kos-700 p-6 text-white">
-          <div className="pointer-events-none absolute -right-10 -top-16 h-52 w-52 rounded-full border border-white/10" />
-          <div className="pointer-events-none absolute -right-2 -top-8 h-52 w-52 rounded-full border border-white/10" />
-          <div className="pointer-events-none absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-kos-400/10 blur-2xl" />
-
-          <div className="relative flex items-start justify-between">
-            <p className="text-sm font-medium text-white/80">Total yang harus dibayar</p>
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15 backdrop-blur">
-              <WalletIcon size={20} />
-            </span>
-          </div>
-
-          {harusBayar.length > 0 ? (
-            <>
-              <p className="relative mt-2 text-4xl font-bold tracking-tight tabular-nums sm:text-[40px]">{rupiah(total)}</p>
-              <div className="relative mt-5 flex flex-wrap items-center gap-2 border-t border-white/15 pt-4 text-xs">
-                {ditolak > 0 && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/25 px-2.5 py-1 font-semibold text-rose-100">
-                    <span className="h-1.5 w-1.5 rounded-full bg-rose-300" />
-                    {ditolak} tagihan ditolak
-                  </span>
-                )}
-                {adaDenda && <span className="text-white/75">Termasuk denda keterlambatan</span>}
-                {terdekat && (
-                  <Link
-                    to={`/dashboard/tagihan-saya/${terdekat.id}/upload`}
-                    className="ml-auto inline-flex h-9 items-center gap-2 rounded-lg bg-white px-4 text-[13px] font-semibold text-kos-950 transition hover:bg-kos-100"
-                  >
-                    Bayar sekarang
-                  </Link>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="relative mt-3 flex items-center gap-3">
-              <CheckCircleIcon size={34} className="text-kos-400" />
-              <div>
-                <p className="text-2xl font-bold">Semua tagihan beres</p>
-                <p className="mt-0.5 text-sm text-white/75">Tidak ada pembayaran yang perlu dilakukan saat ini.</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-ink-soft">Jatuh Tempo</p>
-              <p className={`mt-1 text-xl font-bold ${terlambatHari > 0 ? 'text-rose-600' : 'text-ink'}`}>
-                {terdekat ? tglPendek(terdekat.jatuh_tempo) : '—'}
-              </p>
-            </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-              <CalendarIcon size={20} />
-            </span>
-          </div>
-          <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-            <span className="text-ink-soft">Tenggat</span>
-            {terdekat ? (
-              terlambatHari > 0 ? (
-                <span className="flex items-center gap-1 font-semibold text-orange-700">
-                  <WarningIcon size={14} /> Terlambat {terlambatHari} hari
-                </span>
-              ) : (
-                <span className="font-semibold text-emerald-700">{sisaHari === 0 ? 'Hari ini' : `${sisaHari} hari lagi`}</span>
-              )
+      <section className={panelCls} aria-label="Ringkasan tagihan">
+        <Atap />
+        <div className="grid lg:grid-cols-[1.5fr_1fr]">
+          <div className="bg-cream p-6 lg:p-8">
+            <p className="text-sm font-medium text-gerbang/70">Total yang harus dibayar</p>
+            {harusBayar.length > 0 ? (
+              <>
+                <p className="mt-2 font-display text-5xl font-extrabold tracking-tight text-gerbang tabular-nums">{rupiah(total)}</p>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  {terdekat && (
+                    <Link to={`/dashboard/tagihan-saya/${terdekat.id}/upload`} className={btnPrimary}>
+                      Bayar sekarang
+                    </Link>
+                  )}
+                  {ditolak > 0 && (
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-terracotta px-2.5 py-1.5 text-xs font-semibold text-white">
+                      {ditolak} bukti ditolak, upload ulang
+                    </span>
+                  )}
+                  {adaDenda && <span className="text-[13px] text-gerbang/75">Sudah termasuk denda keterlambatan</span>}
+                </div>
+              </>
             ) : (
-              <span className="font-semibold text-emerald-700">Tidak ada tenggat</span>
+              <div className="mt-3 flex items-center gap-3">
+                <CheckCircleIcon size={38} className="shrink-0 text-kos-600" />
+                <div>
+                  <p className="font-display text-2xl font-extrabold text-gerbang">Semua tagihan beres</p>
+                  <p className="mt-0.5 text-sm text-gerbang/75">Tidak ada pembayaran yang perlu dilakukan saat ini.</p>
+                </div>
+              </div>
             )}
           </div>
-        </div>
 
-        <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-ink-soft">Verifikasi Terakhir</p>
-              <p className="mt-1 text-xl font-bold text-ink">{terakhirLunas ? rupiah(terakhirLunas.nominal) : '—'}</p>
+          <dl className="divide-y divide-field-line border-t border-field-line lg:border-l lg:border-t-0">
+            <div className="p-6">
+              <dt className="text-sm text-ink-soft">Jatuh tempo berikutnya</dt>
+              <dd className={`mt-1 font-display text-2xl font-bold ${terlambatHari > 0 ? 'text-rose-700' : 'text-ink'}`}>
+                {terdekat ? tglPendek(terdekat.jatuh_tempo) : '—'}
+              </dd>
+              <dd className="mt-1 text-[13px] font-medium">
+                {terdekat ? (
+                  terlambatHari > 0 ? (
+                    <span className="text-orange-700">Terlambat {terlambatHari} hari</span>
+                  ) : (
+                    <span className="text-emerald-700">{sisaHari === 0 ? 'Jatuh tempo hari ini' : `${sisaHari} hari lagi`}</span>
+                  )
+                ) : (
+                  <span className="text-emerald-700">Tidak ada tenggat</span>
+                )}
+              </dd>
             </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-              <CheckCircleIcon size={20} />
-            </span>
-          </div>
-          <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-            <span className="font-semibold text-emerald-700">{terakhirLunas ? 'Terverifikasi' : 'Belum ada'}</span>
-            {terakhirLunas && <span className="text-ink-soft">{terakhirLunas.periode} • Lunas</span>}
-          </div>
+            <div className="p-6">
+              <dt className="text-sm text-ink-soft">Pembayaran terakhir yang terverifikasi</dt>
+              <dd className="mt-1 font-display text-2xl font-bold text-ink">{terakhirLunas ? rupiah(terakhirLunas.nominal) : '—'}</dd>
+              <dd className="mt-1 text-[13px] text-ink-soft capitalize">
+                {terakhirLunas ? `Periode ${terakhirLunas.periode}` : 'Belum ada pembayaran'}
+              </dd>
+            </div>
+          </dl>
         </div>
       </section>
 
       {/* Daftar */}
-      <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label="Daftar tagihan">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <section className="mt-6 overflow-hidden rounded-2xl border border-field-line bg-field" aria-label="Daftar tagihan">
+        <div className="flex flex-col gap-3 border-b border-field-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="flex items-center gap-2 text-base font-bold text-ink">
             <ReceiptIcon size={19} className="text-kos-600" /> Daftar Tagihan &amp; Status
           </h2>
@@ -208,7 +179,7 @@ export default function TagihanSaya() {
                 aria-selected={filter === key}
                 onClick={() => setFilter(key)}
                 className={`cursor-pointer rounded-lg px-3 py-1.5 transition ${
-                  filter === key ? 'bg-white text-kos-700' : 'text-ink-soft hover:text-ink'
+                  filter === key ? 'bg-field text-kos-700' : 'text-ink-soft hover:text-ink'
                 }`}
               >
                 {label}
@@ -236,7 +207,7 @@ export default function TagihanSaya() {
               <span>Status</span>
               <span className="w-[212px] text-right">Aksi</span>
             </div>
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-field-line">
               {tampil.map((t) => (
                 <BarisTagihan key={t.id} t={t} />
               ))}
@@ -246,7 +217,7 @@ export default function TagihanSaya() {
       </section>
 
       {tagihanMendatang.length > 0 && (
-        <div className="mt-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4">
+        <div className="mt-4 rounded-2xl border border-field-line bg-white/80 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-xs text-ink-soft">
               <InfoCircleIcon size={15} className="shrink-0 text-kos-600" />
@@ -264,7 +235,7 @@ export default function TagihanSaya() {
             </button>
           </div>
           {lihatMendatang && (
-            <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100 pt-2">
+            <ul className="mt-3 divide-y divide-field-line border-t border-field-line pt-2">
               {tagihanMendatang.map((t) => (
                 <BarisTagihan key={t.id} t={t} />
               ))}
@@ -285,7 +256,7 @@ function BarisTagihan({ t }: { t: Tagihan }) {
   const { denda } = hitungDenda(t);
   const bisaBayar = PERLU_BAYAR.includes(t.status);
   return (
-    <li className="grid gap-3 px-5 py-4 transition hover:bg-slate-50/70 md:grid-cols-[2fr_1.1fr_1.1fr_1.3fr_auto] md:items-center md:gap-4 md:px-6">
+    <li className="grid gap-3 px-5 py-4 transition hover:bg-cream/40 md:grid-cols-[2fr_1.1fr_1.1fr_1.3fr_auto] md:items-center md:gap-4 md:px-6">
       <div className="flex items-center gap-3">
         <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${TILE[t.status] ?? 'bg-slate-100 text-slate-500'}`}>
           <ReceiptIcon size={20} />

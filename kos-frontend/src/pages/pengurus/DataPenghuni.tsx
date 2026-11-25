@@ -356,8 +356,8 @@ export default function DataPenghuni() {
         }
       />
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="overflow-hidden rounded-2xl border border-field-line bg-white">
+        <div className="flex flex-col gap-3 border-b border-field-line px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="flex items-center gap-2 text-base font-bold text-ink">
               Penghuni{" "}
@@ -409,7 +409,7 @@ export default function DataPenghuni() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/70">
+              <thead className="bg-cream/50">
                 <tr>
                   <th className={thCls}>Nama Lengkap</th>
                   <th className={thCls}>Email Akun</th>
@@ -420,9 +420,9 @@ export default function DataPenghuni() {
                   <th className={`${thCls} text-right`}>Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-field-line">
                 {baris.map((p) => (
-                  <tr key={p.id} className="transition hover:bg-slate-50/70">
+                  <tr key={p.id} className="transition hover:bg-cream/40">
                     <td className={tdCls}>
                       <div className="flex items-center gap-3">
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-kos-100/70 text-xs font-bold text-kos-700">
@@ -461,7 +461,7 @@ export default function DataPenghuni() {
                           <button
                             type="button"
                             onClick={() => bukaModalEdit(p, false)}
-                            className="cursor-pointer rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-ink transition hover:bg-slate-50"
+                            className="cursor-pointer rounded-lg border border-field-line px-2.5 py-1.5 text-xs font-semibold text-ink transition hover:bg-slate-50"
                           >
                             Edit / Pindah
                           </button>
@@ -864,7 +864,7 @@ export default function DataPenghuni() {
           ].map(([k, v]) => (
             <div
               key={k}
-              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-4 py-2.5"
+              className="flex items-center justify-between gap-3 rounded-lg border border-field-line px-4 py-2.5"
             >
               <div>
                 <dt className="text-[11px] font-semibold text-ink-soft">

@@ -18,7 +18,7 @@ export default function KeluhanSaya() {
 
   if (error) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-field-line bg-field p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
           <WarningIcon size={26} />
         </div>
@@ -48,10 +48,10 @@ export default function KeluhanSaya() {
         }
       />
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label="Daftar keluhan">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+      <section className="overflow-hidden rounded-2xl border border-field-line bg-field" aria-label="Daftar keluhan">
+        <div className="flex items-center justify-between border-b border-field-line px-5 py-4">
           <h2 className="text-base font-bold text-ink">Daftar Keluhan &amp; Status</h2>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-ink-soft">Total {total} Laporan</span>
+          <span className="rounded-md bg-cream px-2.5 py-1 text-xs font-semibold text-gerbang">Total {total} Laporan</span>
         </div>
 
         {total === 0 ? (
@@ -76,14 +76,14 @@ export default function KeluhanSaya() {
               <span>Status</span>
               <span className="w-[130px] text-right">Aksi</span>
             </div>
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-field-line">
               {baris.map((k) => (
                 <li
                   key={k.id}
-                  className="grid gap-2 px-5 py-4 transition hover:bg-slate-50/70 md:grid-cols-[1.1fr_2.2fr_1fr_1.2fr_auto] md:items-center md:gap-4 md:px-6"
+                  className="grid gap-2 px-5 py-4 transition hover:bg-cream/40 md:grid-cols-[1.1fr_2.2fr_1fr_1.2fr_auto] md:items-center md:gap-4 md:px-6"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cream text-gerbang">
                       <WrenchIcon size={18} />
                     </span>
                     <span className="font-semibold text-ink">{k.nama_kategori || 'Lainnya'}</span>
@@ -105,7 +105,7 @@ export default function KeluhanSaya() {
               ))}
             </ul>
 
-            <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 text-xs text-ink-soft sm:flex-row">
+            <div className="flex flex-col items-center justify-between gap-3 border-t border-field-line px-5 py-3.5 text-xs text-ink-soft sm:flex-row">
               <span>
                 Menampilkan {baris.length} dari {total} keluhan
               </span>

@@ -28,7 +28,7 @@ export default function GrafikPemasukan({ data, judul }: Props) {
               <div className="flex w-full flex-1 items-end">
                 <div
                   className={`w-full rounded-t-lg transition-all duration-500 ${
-                    d.nilai > 0 ? 'bg-kos-600/90 group-hover:bg-kos-700' : 'bg-slate-200'
+                    d.nilai > 0 ? 'hatch bg-kos-600 group-hover:bg-kos-700' : 'bg-slate-200'
                   }`}
                   style={{ height: d.nilai > 0 ? `${Math.max(4, (d.nilai / maks) * 100)}%` : 2 }}
                 />

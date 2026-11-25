@@ -147,3 +147,18 @@ body {
     print-color-adjust: exact;
   }
 }
+
+/* Scrollbar tipis untuk sidebar gelap */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+}
+
+/* Garis serong ala cat pagar, dipakai di batang grafik dan bar progres */
+.hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0.3) 0 2px,
+    transparent 2px 7px
+  );
+}

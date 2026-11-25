@@ -62,7 +62,7 @@ export default function RincianTagihan() {
   const t = tagihan.find((x) => String(x.id) === id);
   if (!t) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-field-line bg-field p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
           <ReceiptIcon size={26} />
         </div>
@@ -159,13 +159,13 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
 
       <div className="grid items-start gap-5 lg:grid-cols-[1.35fr_1fr]">
         {/* Rincian biaya */}
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <section className="overflow-hidden rounded-2xl border border-field-line bg-field">
+          <div className="flex items-center justify-between border-b border-field-line px-6 py-4">
             <h2 className="text-base font-bold text-ink">Rincian Biaya Sewa</h2>
             <span className="rounded-full bg-kos-100/60 px-3 py-1 text-xs font-semibold text-kos-700 capitalize">{t.periode}</span>
           </div>
 
-          <div className="divide-y divide-slate-100 px-6">
+          <div className="divide-y divide-field-line px-6">
             <Baris label="Periode Sewa">{periode ? `${labelPeriode} (${periode.mulai} - ${periode.selesai})` : labelPeriode}</Baris>
             <Baris label="Tipe Kamar" sub={berdua ? 'Tagihan kolektif 1 kamar untuk 2 penghuni' : undefined}>
               {noKamar ? `Kamar ${noKamar}` : '-'}
@@ -334,7 +334,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           )}
 
           {bolehAjukanDispensasi && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="rounded-2xl border border-field-line bg-field p-5">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="text-sm font-bold text-ink">Butuh Kelonggaran Waktu Bayar?</h3>
@@ -357,7 +357,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                   <ClockIcon size={16} /> Ajukan Perpanjangan Jatuh Tempo
                 </button>
               ) : (
-                <form onSubmit={kirimPengajuan} className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                <form onSubmit={kirimPengajuan} className="mt-4 space-y-3 border-t border-field-line pt-4">
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-ink">
                       Tanggal Kesanggupan Bayar (1–7 hari)
@@ -369,7 +369,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                       max={maksPerpanjangan}
                       value={tglPerpanjangan}
                       onChange={(e) => setTglPerpanjangan(e.target.value)}
-                      className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
+                      className="h-10 w-full rounded-lg border border-field-line px-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
                     />
                     <p className="mt-1 text-[11px] text-ink-soft">
                       Bisa lebih cepat (1–6 hari) atau maksimal hingga {tglPendek(maksPerpanjangan)}.
@@ -384,7 +384,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                       placeholder="Contoh: Menunggu jadwal gajian / transfer dari orang tua tanggal sekian..."
                       value={alasanPerpanjangan}
                       onChange={(e) => setAlasanPerpanjangan(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 p-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
+                      className="w-full rounded-lg border border-field-line p-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -405,7 +405,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           )}
 
           {bisaUpload && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="rounded-2xl border border-field-line bg-field p-5">
               <div className="flex gap-3">
                 <Link to={`/dashboard/tagihan-saya/${t.id}/upload`} className={`${btnPrimary} flex-1`}>
                   <UploadCloudIcon size={17} /> Upload Bukti
@@ -428,13 +428,13 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
 
 function BuktiKartu({ b, judul }: { b: import('../../types/kos').BuktiPembayaran; judul: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+    <div className="rounded-2xl border border-field-line bg-field p-5">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-ink">{judul}</h3>
         <StatusPill status={b.status === 'diterima' ? 'lunas' : b.status} />
       </div>
       <div className="mt-3 flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-kos-600 ring-1 ring-slate-200">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-field text-kos-600 ring-1 ring-slate-200">
           <FileImageIcon size={20} />
         </span>
         <div className="min-w-0 flex-1">

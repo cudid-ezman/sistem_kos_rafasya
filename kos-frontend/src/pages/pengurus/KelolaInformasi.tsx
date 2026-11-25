@@ -177,11 +177,11 @@ export default function KelolaInformasi() {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="overflow-hidden rounded-2xl border border-field-line bg-white">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/70">
+                <tr className="border-b border-field-line bg-cream/50">
                   <th className={thCls}>Kategori / Judul</th>
                   <th className={thCls}>Ringkasan & Cuplikan Isi</th>
                   <th className={thCls}>Status Konten</th>
@@ -189,7 +189,7 @@ export default function KelolaInformasi() {
                   <th className={`${thCls} text-right`}>Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-field-line">
                 {list.map((item) => {
                   const terisi = Boolean(
                     item.isi && item.isi.trim().length > 0,
@@ -197,7 +197,7 @@ export default function KelolaInformasi() {
                   return (
                     <tr
                       key={item.id}
-                      className="transition hover:bg-slate-50/60"
+                      className="transition hover:bg-cream/40"
                     >
                       <td className={tdCls}>
                         <div className="flex items-center gap-3">
@@ -242,7 +242,7 @@ export default function KelolaInformasi() {
                           <button
                             type="button"
                             onClick={() => bukaEdit(item)}
-                            className="cursor-pointer rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-ink transition hover:bg-slate-50"
+                            className="cursor-pointer rounded-lg border border-field-line px-3 py-1.5 text-xs font-semibold text-ink transition hover:bg-slate-50"
                           >
                             Edit
                           </button>
@@ -333,7 +333,7 @@ export default function KelolaInformasi() {
             />
           </div>
 
-          <div className="flex justify-end gap-2.5 border-t border-slate-100 pt-4">
+          <div className="flex justify-end gap-2.5 border-t border-field-line pt-4">
             <button
               type="button"
               disabled={isSubmitting}
@@ -369,7 +369,7 @@ export default function KelolaInformasi() {
             <span className="font-bold text-ink">{hapusItem?.kategori}</span>?
             Informasi ini tidak akan lagi muncul di portal penghuni.
           </p>
-          <div className="flex justify-end gap-2.5 border-t border-slate-100 pt-4">
+          <div className="flex justify-end gap-2.5 border-t border-field-line pt-4">
             <button
               type="button"
               disabled={isSubmitting}

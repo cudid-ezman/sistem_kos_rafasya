@@ -135,31 +135,31 @@ export default function KeluhanPemilik() {
   return (
     <div className="space-y-5">
       <PageHeader
-        crumbs={[{ label: 'Beranda', to: '/dashboard' }, { label: 'Keluhan & Perbaikan' }]}
-        title="Keluhan & Pengajuan Perbaikan"
+        crumbs={[{ label: 'Beranda', to: '/dashboard' }, { label: 'Pengajuan Perbaikan' }]}
+        title="Pengajuan Perbaikan"
         subtitle="Tinjau bukti kerusakan yang diteruskan pengurus dan catat pencairan dana perbaikan."
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-2xl border border-field-line bg-field p-5">
           <p className="text-xs font-semibold text-ink-soft">Menunggu Respon</p>
           <p className="mt-2 text-3xl font-bold text-amber-600 tabular-nums">{ringkasan.menunggu}</p>
           <p className="mt-1 text-xs text-ink-soft">Laporan kerusakan perlu ditinjau</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-2xl border border-field-line bg-field p-5">
           <p className="text-xs font-semibold text-ink-soft">Total Pengajuan Pengurus</p>
           <p className="mt-2 text-3xl font-bold text-ink tabular-nums">{rupiah(ringkasan.totalAjuan)}</p>
           <p className="mt-1 text-xs text-ink-soft">Akumulasi estimasi biaya perbaikan</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-2xl border border-field-line bg-field p-5">
           <p className="text-xs font-semibold text-ink-soft">Total Dana Dicairkan</p>
           <p className="mt-2 text-3xl font-bold text-emerald-600 tabular-nums">{rupiah(ringkasan.totalCair)}</p>
           <p className="mt-1 text-xs text-ink-soft">Transfer manual ke pengurus kos</p>
         </div>
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="overflow-hidden rounded-2xl border border-field-line bg-field">
+        <div className="flex flex-col gap-4 border-b border-field-line px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <FilterTabs
             value={filter}
             onChange={setFilter}
@@ -181,7 +181,7 @@ export default function KeluhanPemilik() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/70">
+              <thead className="bg-cream/50">
                 <tr>
                   <th className={thCls}>Tanggal</th>
                   <th className={thCls}>Kamar &amp; Penghuni</th>
@@ -191,13 +191,13 @@ export default function KeluhanPemilik() {
                   <th className={`${thCls} text-right`}>Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-field-line">
                 {tersaring.map((k) => {
                   const badge = LABEL_RESPON[k.status_pemilik || 'menunggu'] || LABEL_RESPON.menunggu;
                   const ajuan = Number(k.nominal_pengajuan || 0);
                   const cair = Number(k.nominal_pencairan || 0);
                   return (
-                    <tr key={k.id} className="align-top transition hover:bg-slate-50/70">
+                    <tr key={k.id} className="align-top transition hover:bg-cream/40">
                       <td className={`${tdCls} whitespace-nowrap text-ink-soft`}>{tglPendek(k.tanggal_kirim)}</td>
                       <td className={tdCls}>
                         <div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ export default function KeluhanPemilik() {
                         </div>
                       </td>
                       <td className={`${tdCls} max-w-sm`}>
-                        <span className="rounded-md bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">
+                        <span className="rounded-md bg-cream px-2 py-0.5 text-xs font-semibold text-gerbang">
                           {k.nama_kategori || 'Umum'}
                         </span>
                         <p className="mt-1.5 text-sm text-ink">{k.deskripsi}</p>
@@ -307,7 +307,7 @@ export default function KeluhanPemilik() {
                     className={`cursor-pointer rounded-lg border px-2.5 py-2.5 text-center text-xs font-semibold transition ${
                       statusRespon === opt.key
                         ? 'border-kos-600 bg-kos-100/50 text-kos-700 ring-1 ring-kos-600'
-                        : 'border-slate-200 text-ink-soft hover:border-slate-300'
+                        : 'border-field-line text-ink-soft hover:border-slate-300'
                     }`}
                   >
                     <input

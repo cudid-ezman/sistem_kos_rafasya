@@ -5,6 +5,7 @@ import { tagihanService } from "../services/tagihanService";
 import { keluhanService } from "../services/keluhanService";
 import ToastProvider from "../components/portal/ToastProvider";
 import UbahPasswordModal from "../components/portal/UbahPasswordModal";
+import PortalFrame, { type PortalNavItem } from "../components/portal/PortalFrame";
 import {
   ChartIcon,
   DoorIcon,
@@ -28,12 +29,23 @@ interface Props {
   onLogout: () => void;
 }
 
+interface SubItem {
+  to: string;
+  label: string;
+  /** Nilai parameter URL yang menandai submenu ini aktif; kosong berarti tanpa parameter. */
+  nilai?: string;
+  jumlah?: number;
+}
+
 interface NavItem {
   to: string;
   label: string;
   icon: typeof MenuHomeIcon;
   badge?: number;
   end?: boolean;
+  anak?: SubItem[];
+  /** Nama parameter URL yang membedakan submenu (mis. tab atau status). */
+  anakParam?: string;
 }
 
 export default function DashboardLayout({ user, onLogout }: Props) {
@@ -78,115 +90,143 @@ export default function DashboardLayout({ user, onLogout }: Props) {
   }, [location.pathname, isSuperadmin, isPenghuni]);
 
   // Penghuni memakai portalnya sendiri
-  if (isPenghuni) return <Navigate to="/dashboard/tagihan-saya" replace />;
+  if (isPenghuni) return <Navigate to="/dashboard/beranda" replace />;
 
+  const nama = user.nama_lengkap || user.username;
+
+  /* ───────── Pemilik: kerangka ponsel yang sama dengan penghuni ───────── */
+  if (isPemilik) {
+    const menungguPemilik =
+      keluhanList.filter((k) => k.status_pemilik === "menunggu").length ||
+      undefined;
+    const navPemilik: PortalNavItem[] = [
+      {
+        to: "/dashboard",
+        label: "Beranda",
+        short: "Beranda",
+        icon: MenuHomeIcon,
+        end: true,
+      },
+      {
+        to: "/dashboard/laporan",
+        label: "Laporan keuangan",
+        short: "Laporan",
+        icon: ChartIcon,
+      },
+      {
+        to: "/dashboard/keluhan-pemilik",
+        label: "Pengajuan perbaikan",
+        short: "Perbaikan",
+        icon: WarningIcon,
+        badge: menungguPemilik,
+      },
+      {
+        to: "/dashboard/kelola-akun",
+        label: "Kelola akun",
+        short: "Akun",
+        icon: UsersIcon,
+      },
+    ];
+    return (
+      <ToastProvider>
+        <PortalFrame
+          nav={navPemilik}
+          homeTo="/dashboard"
+          subtitle="Portal pemilik"
+          nama={nama}
+          roleLabel="Pemilik"
+          bell={
+            <AdminNotificationBell
+              user={user}
+              tagihan={tagihanList}
+              bukti={buktiList}
+              keluhan={keluhanList}
+            />
+          }
+          onUbahSandi={() => setUbahPwOpen(true)}
+          onLogout={onLogout}
+        >
+          <Outlet />
+        </PortalFrame>
+        <UbahPasswordModal
+          open={ubahPwOpen}
+          onClose={() => setUbahPwOpen(false)}
+        />
+      </ToastProvider>
+    );
+  }
+
+  /* ───────── Pengurus & superadmin: sidebar untuk layar laptop ───────── */
   const grup: { judul: string; items: NavItem[] }[] = isSuperadmin
     ? [
         {
-          judul: "Administrasi Sistem",
+          judul: "Administrasi sistem",
           items: [
-            {
-              to: "/dashboard",
-              label: "Beranda",
-              icon: MenuHomeIcon,
-              end: true,
-            },
+            { to: "/dashboard", label: "Beranda", icon: MenuHomeIcon, end: true },
             {
               to: "/dashboard/kelola-akun",
-              label: "Kelola Akun Pemilik",
+              label: "Kelola akun pemilik",
               icon: UsersIcon,
             },
           ],
         },
       ]
-    : isPemilik
-      ? [
-          {
-            judul: "Ringkasan",
-            items: [
-              {
-                to: "/dashboard",
-                label: "Beranda",
-                icon: MenuHomeIcon,
-                end: true,
-              },
-              {
-                to: "/dashboard/laporan",
-                label: "Laporan Keuangan",
-                icon: ChartIcon,
-              },
-              {
-                to: "/dashboard/keluhan-pemilik",
-                label: "Keluhan & Perbaikan",
-                icon: WarningIcon,
-                badge: keluhanList.filter((k) => k.status_pemilik === "menunggu").length || undefined,
-              },
-            ],
-          },
-          {
-            judul: "Manajemen Akun",
-            items: [
-              {
-                to: "/dashboard/kelola-akun",
-                label: "Kelola Akun Pengurus",
-                icon: UsersIcon,
-              },
-            ],
-          },
-        ]
-      : [
-          {
-            judul: "Ringkasan",
-            items: [
-              {
-                to: "/dashboard",
-                label: "Beranda",
-                icon: MenuHomeIcon,
-                end: true,
-              },
-            ],
-          },
-          {
-            judul: "Manajemen",
-            items: [
-              {
-                to: "/dashboard/kamar",
-                label: "Kamar & Denah",
-                icon: DoorIcon,
-              },
-              { to: "/dashboard/penghuni", label: "Penghuni", icon: UsersIcon },
-              { to: "/dashboard/tagihan", label: "Tagihan", icon: ReceiptIcon },
-              {
-                to: "/dashboard/verifikasi",
-                label: "Verifikasi Bayar",
-                icon: ShieldCheckIcon,
-                badge: antrean,
-              },
-              {
-                to: "/dashboard/keluhan",
-                label: "Keluhan",
-                icon: WarningIcon,
-                badge: keluhanAktif,
-              },
-              {
-                to: "/dashboard/informasi-kelola",
-                label: "Pusat Informasi",
-                icon: InfoCircleIcon,
-              },
-            ],
-          },
-        ];
+    : [
+        {
+          judul: "Ringkasan",
+          items: [
+            { to: "/dashboard", label: "Beranda", icon: MenuHomeIcon, end: true },
+          ],
+        },
+        {
+          judul: "Manajemen",
+          items: [
+            {
+              to: "/dashboard/kamar",
+              label: "Kamar",
+              icon: DoorIcon,
+              anakParam: "tab",
+              anak: [
+                { to: "/dashboard/kamar", label: "Daftar kamar" },
+                { to: "/dashboard/kamar?tab=denah", label: "Denah kamar", nilai: "denah" },
+              ],
+            },
+            { to: "/dashboard/penghuni", label: "Penghuni", icon: UsersIcon },
+            { to: "/dashboard/tagihan", label: "Tagihan", icon: ReceiptIcon },
+            {
+              to: "/dashboard/verifikasi",
+              label: "Verifikasi bayar",
+              icon: ShieldCheckIcon,
+              badge: antrean,
+            },
+            {
+              to: "/dashboard/keluhan",
+              label: "Keluhan",
+              icon: WarningIcon,
+              badge: keluhanAktif,
+            },
+            {
+              to: "/dashboard/informasi-kelola",
+              label: "Pusat informasi",
+              icon: InfoCircleIcon,
+            },
+          ],
+        },
+      ];
 
-  const nama = user.nama_lengkap || user.username;
-  const roleLabel = isSuperadmin
-    ? "Superadmin"
-    : isPemilik
-      ? "Pemilik"
-      : "Pengurus";
+  const roleLabel = isSuperadmin ? "Superadmin" : "Pengurus";
+  const paramUrl = new URLSearchParams(location.search);
+
+  const barisCls = (aktif: boolean) =>
+    `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
+      aktif
+        ? "bg-kos-600 text-white"
+        : "text-white/70 hover:bg-white/10 hover:text-white"
+    }`;
 
   const menu = (
     <nav
-      className="flex flex-1 flex-col gap-6 overflow-y-auto"
+      className="sidebar-scroll -mr-2 flex flex-1 flex-col gap-6 overflow-y-auto pr-2"
       aria-label="Menu utama"
     >
       {grup.map((g) => (
@@ -195,39 +235,89 @@ export default function DashboardLayout({ user, onLogout }: Props) {
             {g.judul}
           </p>
           <div className="flex flex-col gap-0.5">
-            {g.items.map((n) => (
-              <NavLink
-                key={n.to}
-                to={n.to}
-                end={n.end}
-                onClick={() => setDrawer(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
-                    isActive
-                      ? "bg-kos-600 text-white"
-                      : "text-white/70 hover:bg-white/10 hover:text-white"
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <n.icon size={19} />
-                    <span className="flex-1">{n.label}</span>
-                    {!!n.badge && n.badge > 0 && (
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                          isActive
-                            ? "bg-white/25 text-white"
-                            : "bg-cream text-gerbang"
-                        }`}
-                      >
-                        {n.badge}
-                      </span>
+            {g.items.map((n) => {
+              const badge = !!n.badge && n.badge > 0 ? n.badge : 0;
+              if (n.anak) {
+                const dalamBagian = location.pathname.startsWith(n.to);
+                return (
+                  <div key={n.to}>
+                    <Link
+                      to={n.anak[0].to}
+                      onClick={() => setDrawer(false)}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
+                        dalamBagian
+                          ? "text-white"
+                          : "text-white/70 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <n.icon size={19} />
+                      <span className="flex-1">{n.label}</span>
+                      {!dalamBagian && badge > 0 && (
+                        <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] font-bold text-gerbang">
+                          {badge}
+                        </span>
+                      )}
+                    </Link>
+                    {dalamBagian && (
+                      <div className="ml-[21px] mt-0.5 flex flex-col gap-0.5 border-l border-white/15 pl-3">
+                        {n.anak.map((a) => {
+                          const aktif =
+                            location.pathname === n.to &&
+                            (paramUrl.get(n.anakParam ?? "") ?? "") === (a.nilai ?? "");
+                          return (
+                            <Link
+                              key={a.to}
+                              to={a.to}
+                              onClick={() => setDrawer(false)}
+                              aria-current={aktif ? "page" : undefined}
+                              className={`flex items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
+                                aktif
+                                  ? "bg-kos-600 text-white"
+                                  : "text-white/65 hover:bg-white/10 hover:text-white"
+                              }`}
+                            >
+                              {a.label}
+                              {a.jumlah !== undefined && (
+                                <span className={`text-xs tabular-nums ${aktif ? "text-white/80" : "text-white/45"}`}>
+                                  {a.jumlah}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
                     )}
-                  </>
-                )}
-              </NavLink>
-            ))}
+                  </div>
+                );
+              }
+              return (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  end={n.end}
+                  onClick={() => setDrawer(false)}
+                  className={({ isActive }) => barisCls(isActive)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <n.icon size={19} />
+                      <span className="flex-1">{n.label}</span>
+                      {badge > 0 && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                            isActive
+                              ? "bg-white/25 text-white"
+                              : "bg-cream text-gerbang"
+                          }`}
+                        >
+                          {badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
           </div>
         </div>
       ))}
@@ -289,7 +379,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
       <div className="min-h-screen bg-page lg:grid lg:grid-cols-[264px_minmax(0,1fr)] print:block">
         <a
           href="#konten"
-          className="sr-only z-[90] rounded-lg bg-white px-3 py-2 text-sm font-semibold text-kos-700 shadow focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+          className="sr-only z-[90] rounded-lg bg-white px-3 py-2 text-sm font-semibold text-kos-700 focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
         >
           Lewati ke konten
         </a>
@@ -334,7 +424,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
           </main>
         </div>
 
-        {/* Drawer mobile */}
+        {/* Drawer (layar kecil) */}
         {drawer && (
           <div
             className="fixed inset-0 z-[70] lg:hidden print:hidden"

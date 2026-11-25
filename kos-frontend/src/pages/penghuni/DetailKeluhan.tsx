@@ -48,7 +48,7 @@ export default function DetailKeluhan() {
   const k = keluhan.find((x) => String(x.id) === id);
   if (!k) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-field-line bg-field p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
           <WarningIcon size={26} />
         </div>
@@ -85,7 +85,7 @@ export default function DetailKeluhan() {
       />
 
       <div className="grid items-start gap-5 lg:grid-cols-[1.3fr_1fr]">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <section className="rounded-2xl border border-field-line bg-field p-6">
           <h2 className="mb-5 flex items-center gap-2 text-base font-bold text-ink">
             <WrenchIcon size={19} className="text-kos-600" /> Informasi Keluhan
           </h2>
@@ -130,7 +130,7 @@ export default function DetailKeluhan() {
               </dt>
               <dd className="mt-2">
                 {k.foto ? (
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 p-3">
+                  <div className="flex items-center gap-3 rounded-2xl border border-field-line p-3">
                     <a
                       href={k.foto}
                       target="_blank"
@@ -171,7 +171,7 @@ export default function DetailKeluhan() {
         </section>
 
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-slate-200 bg-white p-6">
+          <section className="rounded-2xl border border-field-line bg-field p-6">
             <h2 className="mb-5 text-base font-bold text-ink">
               Riwayat Status
             </h2>
@@ -209,7 +209,7 @@ export default function DetailKeluhan() {
                         selesai
                           ? "bg-kos-600 text-white"
                           : saatIni
-                            ? "bg-white text-kos-700 ring-2 ring-kos-600"
+                            ? "bg-field text-kos-700 ring-2 ring-kos-600"
                             : "bg-slate-100 text-slate-400"
                       }`}
                     >
@@ -238,7 +238,7 @@ export default function DetailKeluhan() {
             </ol>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-6">
+          <section className="rounded-2xl border border-field-line bg-field p-6">
             <div className="mb-3 flex items-center justify-between gap-2">
               <div>
                 <h2 className="text-base font-bold text-ink">
@@ -265,7 +265,7 @@ export default function DetailKeluhan() {
             )}
 
             {(k.riwayat_status?.filter((r) => isCatatanPublik(r.catatan)).length ?? 0) > 1 && (
-              <div className="mt-4 border-t border-slate-100 pt-3">
+              <div className="mt-4 border-t border-field-line pt-3">
                 <p className="mb-2 text-[11px] font-bold text-ink-soft">
                   Riwayat Pembaruan Pengurus
                 </p>

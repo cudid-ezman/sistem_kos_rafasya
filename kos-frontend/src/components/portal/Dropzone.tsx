@@ -57,7 +57,7 @@ export default function Dropzone({ file, onChange, error, title = 'Pilih berkas 
             ? 'border-kos-600 bg-kos-100/40'
             : pesan
               ? 'border-rose-300 bg-rose-50/40'
-              : 'border-slate-300 bg-slate-50/60 hover:border-kos-500 hover:bg-kos-100/20'
+              : 'border-slate-300 bg-cream/40 hover:border-kos-500 hover:bg-kos-100/20'
         }`}
       >
         <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-kos-100/70 text-kos-600">
@@ -88,10 +88,10 @@ export default function Dropzone({ file, onChange, error, title = 'Pilih berkas 
               <CheckCircleIcon size={15} /> Berkas terverifikasi: format {file.type === 'image/png' ? 'PNG' : 'JPG'},{' '}
               {ukuranBerkas(file.size)} memenuhi syarat
             </span>
-            <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold">Valid</span>
+            <span className="rounded-md bg-field px-1.5 py-0.5 text-[10px] font-bold">Valid</span>
           </div>
 
-          <div className="mt-3 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white p-3">
+          <div className="mt-3 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-field p-3">
             {preview ? (
               <img src={preview} alt="Pratinjau berkas" className="h-14 w-14 shrink-0 rounded-lg object-cover ring-1 ring-slate-200" />
             ) : (

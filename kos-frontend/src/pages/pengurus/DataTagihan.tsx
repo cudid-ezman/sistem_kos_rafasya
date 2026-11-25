@@ -206,7 +206,7 @@ export default function DataTagihan() {
         ].map(([label, nilai, warna]) => (
           <div
             key={label as string}
-            className="rounded-2xl border border-slate-200 bg-white px-5 py-4"
+            className="rounded-2xl border border-field-line bg-white px-5 py-4"
           >
             <p className="text-xs text-ink-soft">{label}</p>
             <p className={`mt-0.5 text-2xl font-bold tabular-nums ${warna}`}>
@@ -216,8 +216,8 @@ export default function DataTagihan() {
         ))}
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="overflow-hidden rounded-2xl border border-field-line bg-white">
+        <div className="flex flex-col gap-4 border-b border-field-line px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <FilterTabs
             value={filter}
             onChange={(k) => {
@@ -273,7 +273,7 @@ export default function DataTagihan() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/70">
+              <thead className="bg-cream/50">
                 <tr>
                   <th className={thCls}>Penghuni</th>
                   <th className={thCls}>Kamar</th>
@@ -283,13 +283,13 @@ export default function DataTagihan() {
                   <th className={thCls}>Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-field-line">
                 {baris.map((t) => {
                   const { denda } = hitungDenda(t);
                   const nama =
                     t.nama_penghuni || t.penghuni?.nama_lengkap || "-";
                   return (
-                    <tr key={t.id} className="transition hover:bg-slate-50/70">
+                    <tr key={t.id} className="transition hover:bg-cream/40">
                       <td className={tdCls}>
                         <div className="flex items-center gap-3">
                           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-kos-100/70 text-xs font-bold text-kos-700">
