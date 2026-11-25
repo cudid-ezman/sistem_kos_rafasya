@@ -21,6 +21,7 @@ import {
 import type { BuktiPembayaran, Keluhan, Tagihan } from "../types/kos";
 import AdminNotificationBell from "../components/admin/AdminNotificationBell";
 import { BrandName, LogoMark } from "../components/brand/BrandLogo";
+import { inisial } from "../lib/format";
 
 interface Props {
   user: UserProfile;
@@ -34,19 +35,6 @@ interface NavItem {
   badge?: number;
   end?: boolean;
 }
-
-const JUDUL: Record<string, string> = {
-  "/dashboard": "Beranda",
-  "/dashboard/kamar": "Data Kamar",
-  "/dashboard/penghuni": "Data Penghuni",
-  "/dashboard/tagihan": "Data Tagihan",
-  "/dashboard/verifikasi": "Verifikasi Pembayaran",
-  "/dashboard/keluhan": "Keluhan Penghuni",
-  "/dashboard/informasi-kelola": "Pusat Informasi",
-  "/dashboard/laporan": "Laporan Keuangan",
-  "/dashboard/keluhan-pemilik": "Keluhan & Perbaikan",
-  "/dashboard/kelola-akun": "Kelola Akun",
-};
 
 export default function DashboardLayout({ user, onLogout }: Props) {
   const location = useLocation();
@@ -190,7 +178,6 @@ export default function DashboardLayout({ user, onLogout }: Props) {
         ];
 
   const nama = user.nama_lengkap || user.username;
-  const judulHalaman = JUDUL[location.pathname] ?? "Dashboard";
   const roleLabel = isSuperadmin
     ? "Superadmin"
     : isPemilik
@@ -204,10 +191,10 @@ export default function DashboardLayout({ user, onLogout }: Props) {
     >
       {grup.map((g) => (
         <div key={g.judul}>
-          <p className="mb-2 px-3 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+          <p className="mb-2 px-3 text-xs font-medium text-white/45">
             {g.judul}
           </p>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-0.5">
             {g.items.map((n) => (
               <NavLink
                 key={n.to}
@@ -215,10 +202,10 @@ export default function DashboardLayout({ user, onLogout }: Props) {
                 end={n.end}
                 onClick={() => setDrawer(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${
+                  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
                     isActive
-                      ? "bg-kos-600 text-white shadow-md shadow-kos-600/25"
-                      : "text-ink-soft hover:bg-white hover:text-ink hover:shadow-sm"
+                      ? "bg-kos-600 text-white"
+                      : "text-white/70 hover:bg-white/10 hover:text-white"
                   }`
                 }
               >
@@ -230,8 +217,8 @@ export default function DashboardLayout({ user, onLogout }: Props) {
                       <span
                         className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                           isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-amber-100 text-amber-800"
+                            ? "bg-white/25 text-white"
+                            : "bg-cream text-gerbang"
                         }`}
                       >
                         {n.badge}
@@ -247,9 +234,59 @@ export default function DashboardLayout({ user, onLogout }: Props) {
     </nav>
   );
 
+  const merek = (
+    <Link
+      to="/dashboard"
+      onClick={() => setDrawer(false)}
+      className="flex items-center gap-3 rounded-lg px-3 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400"
+    >
+      <LogoMark size={40} className="shrink-0 text-cream" roof="var(--color-atap-terang)" />
+      <span className="leading-tight">
+        <BrandName className="block text-[19px] text-white" accent="text-atap-terang" />
+        <span className="block text-xs text-white/55">Panel {roleLabel}</span>
+      </span>
+    </Link>
+  );
+
+  const akun = (
+    <div className="mt-4 border-t border-white/10 pt-4">
+      <div className="flex items-center gap-3 px-1">
+        <span
+          aria-hidden="true"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream text-[13px] font-bold text-gerbang"
+        >
+          {inisial(nama)}
+        </span>
+        <span className="min-w-0 leading-tight">
+          <span className="block truncate text-sm font-semibold text-white">
+            {nama}
+          </span>
+          <span className="block text-xs text-white/55">{roleLabel}</span>
+        </span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => setUbahPwOpen(true)}
+          className="h-9 cursor-pointer rounded-lg border border-white/15 text-[13px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400"
+        >
+          Ubah sandi
+        </button>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/15 text-[13px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400"
+        >
+          <LogoutIcon size={15} />
+          Keluar
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-page">
+      <div className="min-h-screen bg-page lg:grid lg:grid-cols-[264px_minmax(0,1fr)] print:block">
         <a
           href="#konten"
           className="sr-only z-[90] rounded-lg bg-white px-3 py-2 text-sm font-semibold text-kos-700 shadow focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
@@ -257,86 +294,41 @@ export default function DashboardLayout({ user, onLogout }: Props) {
           Lewati ke konten
         </a>
 
-        <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur-md print:hidden">
-          <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-4 lg:px-6">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setDrawer(true)}
-                aria-label="Buka menu"
-                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-ink-soft hover:bg-slate-100 lg:hidden"
-              >
-                <MenuIcon />
-              </button>
-              <Link to="/dashboard" className="flex items-center gap-3">
-                <LogoMark size={44} className="shrink-0 text-kos-950" />
-                <span className="hidden leading-tight sm:block">
-                  <BrandName className="block text-[18px] text-kos-950" />
-                  <span className="block text-xs text-ink-soft">
-                    Panel {roleLabel}
-                  </span>
-                </span>
-              </Link>
-              <span className="mx-2 hidden h-6 w-px bg-slate-200 lg:block" />
-              <h1 className="hidden text-[15px] font-semibold text-ink lg:block">
-                {judulHalaman}
-              </h1>
-            </div>
+        <aside className="sticky top-0 hidden h-screen flex-col bg-gerbang p-4 lg:flex print:hidden">
+          <div className="mb-8 mt-1">{merek}</div>
+          {menu}
+          {akun}
+        </aside>
 
-            <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="min-w-0">
+          <header className="sticky top-0 z-40 border-b border-field-line bg-page/90 backdrop-blur-md print:hidden">
+            <div className="flex h-16 items-center justify-between px-4 lg:px-8">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDrawer(true)}
+                  aria-label="Buka menu"
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-ink hover:bg-cream/60 lg:hidden"
+                >
+                  <MenuIcon />
+                </button>
+                <LogoMark size={34} className="shrink-0 text-gerbang lg:hidden" />
+                <span className="text-sm font-medium text-ink-soft">
+                  Sistem Manajemen Kos Rafasya
+                </span>
+              </div>
               <AdminNotificationBell
                 user={user}
                 tagihan={tagihanList}
                 bukti={buktiList}
                 keluhan={keluhanList}
               />
-              {!isSuperadmin && (
-                <span className="hidden h-7 w-px bg-slate-200 sm:block" />
-              )}
-              <div className="flex items-center gap-3">
-                <span className="hidden leading-tight sm:block">
-                  <span className="block max-w-[180px] truncate text-sm font-semibold text-ink">
-                    {nama}
-                  </span>
-                  <span className="mt-0.5 inline-block rounded-full bg-kos-100/70 px-2 py-px text-[10px] font-bold tracking-wide text-kos-700 uppercase">
-                    {roleLabel}
-                  </span>
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setUbahPwOpen(true)}
-                className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-ink transition hover:bg-slate-50"
-              >
-                <span className="hidden sm:inline">Ubah Sandi</span>
-                <span className="sm:hidden">Sandi</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={onLogout}
-                aria-label="Keluar"
-                className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-ink transition hover:bg-slate-50"
-              >
-                <LogoutIcon size={17} />
-                <span className="hidden sm:inline">Keluar</span>
-              </button>
             </div>
-          </div>
-        </header>
-
-        <div className="mx-auto flex max-w-[1500px]">
-          <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-[260px] shrink-0 flex-col p-5 lg:flex print:hidden">
-            {menu}
-            <p className="mt-4 rounded-2xl border border-dashed border-slate-300 p-4 text-xs leading-relaxed text-ink-soft">
-              Sistem Manajemen &amp; Administrasi Kos Rafasya
-            </p>
-          </aside>
+          </header>
 
           <main
             id="konten"
-            className="min-w-0 flex-1 px-4 pb-12 pt-6 lg:px-8 lg:pt-8 print:p-0"
+            className="mx-auto max-w-[1240px] px-4 pb-12 pt-6 lg:px-8 lg:pt-8 print:p-0"
           >
             <Outlet />
           </main>
@@ -351,25 +343,23 @@ export default function DashboardLayout({ user, onLogout }: Props) {
             aria-label="Menu"
           >
             <div
-              className="absolute inset-0 bg-kos-950/50 backdrop-blur-sm"
+              className="absolute inset-0 bg-gerbang/60 backdrop-blur-sm"
               onClick={() => setDrawer(false)}
             />
-            <div className="absolute inset-y-0 left-0 flex w-[280px] flex-col bg-page p-5 shadow-2xl motion-safe:animate-[pop-in_.18s_ease-out]">
+            <div className="absolute inset-y-0 left-0 flex w-[284px] flex-col bg-gerbang p-4 shadow-2xl motion-safe:animate-[pop-in_.18s_ease-out]">
               <div className="mb-6 flex items-center justify-between">
-                <span className="flex items-center gap-3">
-                  <LogoMark size={44} className="shrink-0 text-kos-950" />
-                  <BrandName className="text-[18px] text-kos-950" />
-                </span>
+                {merek}
                 <button
                   type="button"
                   onClick={() => setDrawer(false)}
                   aria-label="Tutup menu"
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-ink-soft hover:bg-slate-100"
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-white/70 hover:bg-white/10"
                 >
                   <XIcon size={18} />
                 </button>
               </div>
               {menu}
+              {akun}
             </div>
           </div>
         )}

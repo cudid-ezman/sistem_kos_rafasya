@@ -16,7 +16,7 @@ export default function SearchInput({ value, onChange, placeholder }: Props) {
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-10 w-full rounded-xl border border-field-line bg-field pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
+        className="h-10 w-full rounded-lg border border-field-line bg-field pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
       />
     </div>
   );

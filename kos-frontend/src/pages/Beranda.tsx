@@ -5,20 +5,27 @@ import type { BuktiPembayaran, Kamar, Keluhan, Tagihan } from '../types/kos';
 import { kamarService } from '../services/kamarService';
 import { tagihanService } from '../services/tagihanService';
 import { keluhanService } from '../services/keluhanService';
-import { rupiah, statusTampil, tglAngka } from '../lib/format';
+import { rupiah, statusTampil, tglAngka, tglPendek, totalTagihan } from '../lib/format';
 import StatusPill from '../components/portal/StatusPill';
 import { Skeleton } from '../components/portal/Skeleton';
-import { btnOutline, btnPrimary } from '../components/portal/buttons';
-import { Hero, Ring, StatCard, heroBtn } from '../components/admin/DashboardParts';
+import { btnPrimary } from '../components/portal/buttons';
+import {
+  DeretanKamar,
+  Hero,
+  IkonKotak,
+  StatCard,
+  heroBtn,
+  panelCls,
+  panelHeadCls,
+  panelTitleCls,
+} from '../components/admin/DashboardParts';
 import BerandaPemilik from './pemilik/BerandaPemilik';
 import {
-  ArrowRightIcon,
   CheckCircleIcon,
   DoorIcon,
   PlusIcon,
   ReceiptIcon,
   ShieldCheckIcon,
-  UsersIcon,
   WarningIcon,
 } from '../components/portal/icons';
 
@@ -84,7 +91,7 @@ function BerandaPengurus({ nama }: { nama: string }) {
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        <Skeleton className="h-40" />
+        <Skeleton className="h-64" />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-32" />
@@ -96,9 +103,19 @@ function BerandaPengurus({ nama }: { nama: string }) {
   }
 
   /* ───────────── PENGURUS ───────────── */
+  const ringkasanHari = `${ringkas.antrean.length} bukti menunggu diperiksa, ${ringkas.keluhanAktif.length} keluhan belum selesai.`;
+  const perluDitagih = [...ringkas.tunggakan]
+    .sort((x, y) => x.jatuh_tempo.localeCompare(y.jatuh_tempo))
+    .slice(0, 5);
+
   return (
     <div className="space-y-5">
-      <Hero nama={nama} role="Pengurus">
+      <Hero
+        nama={nama}
+        role="Pengurus"
+        ringkasan={ringkasanHari}
+        bawah={ringkas.total > 0 ? <DeretanKamar kamar={kamar} /> : undefined}
+      >
         <Link to="/dashboard/penghuni?tambah=1" className={heroBtn}>
           <PlusIcon size={16} /> Tambah penghuni
         </Link>
@@ -110,23 +127,27 @@ function BerandaPengurus({ nama }: { nama: string }) {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           to="/dashboard/kamar"
-          label="Kamar Tersedia"
+          label="Kamar kosong"
           value={ringkas.tersedia}
-          hint={`dari ${ringkas.total} kamar`}
+          hint={`dari ${ringkas.total} kamar, ${Math.round(ringkas.okupansi)}% terisi`}
           icon={<DoorIcon size={20} />}
           tone="emerald"
         />
         <StatCard
-          to="/dashboard/kamar?tab=denah"
-          label="Kamar Terisi"
-          value={ringkas.terisi}
-          hint={`${Math.round(ringkas.okupansi)}% okupansi`}
-          icon={<UsersIcon size={20} />}
-          tone="kos"
+          to="/dashboard/tagihan"
+          label="Tagihan belum lunas"
+          value={ringkas.tunggakan.length}
+          hint={
+            ringkas.terlambat.length > 0
+              ? `${rupiah(ringkas.totalTunggakan)}, ${ringkas.terlambat.length} terlambat`
+              : rupiah(ringkas.totalTunggakan)
+          }
+          icon={<ReceiptIcon size={20} />}
+          tone="rose"
         />
         <StatCard
           to="/dashboard/verifikasi"
-          label="Antrean Verifikasi"
+          label="Antrean verifikasi"
           value={ringkas.antrean.length}
           hint="Bukti menunggu diperiksa"
           icon={<ShieldCheckIcon size={20} />}
@@ -134,55 +155,73 @@ function BerandaPengurus({ nama }: { nama: string }) {
         />
         <StatCard
           to="/dashboard/keluhan"
-          label="Keluhan Belum Selesai"
+          label="Keluhan belum selesai"
           value={ringkas.keluhanAktif.length}
           hint="Perlu ditindaklanjuti"
           icon={<WarningIcon size={20} />}
-          tone="amber"
+          tone="kos"
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6">
-          <h2 className="text-base font-bold text-ink">Okupansi &amp; Tunggakan</h2>
-          <div className="mt-5 flex items-center gap-5">
-            <Ring persen={ringkas.okupansi} label="terisi" />
-            <div className="min-w-0">
-              <p className="text-sm text-ink-soft">Total tunggakan</p>
-              <p className="mt-0.5 text-2xl font-bold text-ink tabular-nums">{rupiah(ringkas.totalTunggakan)}</p>
-              <p className="mt-1 text-xs text-ink-soft">
-                {ringkas.tunggakan.length} tagihan belum lunas
-                {ringkas.terlambat.length > 0 && (
-                  <span className="font-semibold text-orange-600"> • {ringkas.terlambat.length} terlambat</span>
-                )}
-              </p>
-            </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className={panelCls}>
+          <div className={panelHeadCls}>
+            <h3 className={panelTitleCls}>Perlu ditagih</h3>
+            <Link to="/dashboard/tagihan" className="text-[13px] font-semibold text-kos-700 hover:underline">
+              Semua tagihan
+            </Link>
           </div>
-          <Link to="/dashboard/tagihan" className={`${btnOutline} mt-5 w-full`}>
-            Lihat tagihan <ArrowRightIcon size={15} />
-          </Link>
+          {perluDitagih.length === 0 ? (
+            <div className="px-6 py-10 text-center">
+              <CheckCircleIcon size={30} className="mx-auto text-kos-600" />
+              <p className="mt-2 text-sm font-semibold text-ink">Semua tagihan sudah lunas</p>
+              <p className="text-xs text-ink-soft">Tidak ada penghuni yang menunggak.</p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-field-line">
+              {perluDitagih.map((t) => (
+                <li key={t.id} className="flex items-center gap-4 px-6 py-3.5">
+                  <IkonKotak tone="rose">
+                    <ReceiptIcon size={19} />
+                  </IkonKotak>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-ink">
+                      {t.nama_penghuni || t.penghuni?.nama_lengkap || '-'}
+                    </p>
+                    <p className="text-xs text-ink-soft">
+                      Kamar {t.nomor_kamar || t.penghuni?.kamar?.nomor_kamar || '-'} • Jatuh tempo {tglPendek(t.jatuh_tempo)}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <p className="text-sm font-bold text-ink tabular-nums">{rupiah(totalTagihan(t))}</p>
+                    <StatusPill status={statusTampil(t)} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
-        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <h2 className="text-base font-bold text-ink">Antrean Verifikasi</h2>
+        <section className={panelCls}>
+          <div className={panelHeadCls}>
+            <h3 className={panelTitleCls}>Antrean verifikasi</h3>
             <Link to="/dashboard/verifikasi" className="text-[13px] font-semibold text-kos-700 hover:underline">
               Buka antrean
             </Link>
           </div>
           {ringkas.antrean.length === 0 ? (
             <div className="px-6 py-10 text-center">
-              <CheckCircleIcon size={30} className="mx-auto text-emerald-500" />
+              <CheckCircleIcon size={30} className="mx-auto text-kos-600" />
               <p className="mt-2 text-sm font-semibold text-ink">Antrean kosong</p>
               <p className="text-xs text-ink-soft">Semua bukti pembayaran sudah diperiksa.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-field-line">
               {ringkas.antrean.slice(0, 5).map((b) => (
                 <li key={b.id} className="flex items-center gap-4 px-6 py-3.5">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                    <ReceiptIcon size={19} />
-                  </span>
+                  <IkonKotak tone="sky">
+                    <ShieldCheckIcon size={19} />
+                  </IkonKotak>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-ink">{b.nama_penghuni || '-'}</p>
                     <p className="text-xs text-ink-soft capitalize">
@@ -197,9 +236,9 @@ function BerandaPengurus({ nama }: { nama: string }) {
         </section>
       </div>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-base font-bold text-ink">Keluhan Terbaru</h2>
+      <section className={panelCls}>
+        <div className={panelHeadCls}>
+          <h3 className={panelTitleCls}>Keluhan terbaru</h3>
           <Link to="/dashboard/keluhan" className={`${btnPrimary} h-9 text-[13px]`}>
             Kelola keluhan
           </Link>
@@ -207,12 +246,12 @@ function BerandaPengurus({ nama }: { nama: string }) {
         {ringkas.keluhanAktif.length === 0 ? (
           <p className="px-6 py-10 text-center text-sm text-ink-soft">Tidak ada keluhan yang perlu ditangani.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-field-line">
             {ringkas.keluhanAktif.slice(0, 5).map((k) => (
               <li key={k.id} className="flex items-center gap-4 px-6 py-3.5">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <IkonKotak tone="kos">
                   <WarningIcon size={19} />
-                </span>
+                </IkonKotak>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-ink">
                     {k.nama_kategori || 'Umum'} • Kamar {k.nomor_kamar || '-'}

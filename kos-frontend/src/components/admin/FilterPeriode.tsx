@@ -22,7 +22,7 @@ export default function FilterPeriode({ mode, anchor, onChange }: Props) {
 
   return (
     <div className="flex flex-wrap items-center gap-3 print:hidden">
-      <div role="tablist" aria-label="Rentang waktu pemasukan" className="inline-flex rounded-xl bg-slate-100 p-1 text-[13px] font-semibold">
+      <div role="tablist" aria-label="Rentang waktu pemasukan" className="inline-flex rounded-lg bg-slate-100 p-1 text-[13px] font-semibold">
         {OPSI.map(([key, label]) => (
           <button
             key={key}
@@ -31,7 +31,7 @@ export default function FilterPeriode({ mode, anchor, onChange }: Props) {
             aria-selected={mode === key}
             onClick={() => onChange(key, mode === 'semua' ? new Date() : anchor)}
             className={`cursor-pointer rounded-lg px-3.5 py-1.5 transition ${
-              mode === key ? 'bg-white text-kos-700 shadow-sm' : 'text-ink-soft hover:text-ink'
+              mode === key ? 'bg-white text-kos-700' : 'text-ink-soft hover:text-ink'
             }`}
           >
             {label}
@@ -41,7 +41,7 @@ export default function FilterPeriode({ mode, anchor, onChange }: Props) {
 
       {mode !== 'semua' && (
         <>
-          <div className="inline-flex items-center gap-0.5 rounded-xl border border-slate-200 bg-white p-1">
+          <div className="inline-flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-1">
             <button type="button" aria-label="Periode sebelumnya" onClick={() => onChange(mode, geser(mode, anchor, -1))} className={panah}>
               <ChevronLeftIcon size={18} />
             </button>

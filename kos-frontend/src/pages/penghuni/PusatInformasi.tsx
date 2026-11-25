@@ -44,7 +44,7 @@ export default function PusatInformasi() {
       />
 
       {daftar.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
+        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
           <p className="font-semibold text-ink">Belum ada informasi tersedia</p>
           <p className="mt-1 text-sm text-ink-soft">
             Pengurus belum menambahkan informasi kos.
@@ -58,7 +58,7 @@ export default function PusatInformasi() {
               <Link
                 key={info.id}
                 to={`/dashboard/informasi/${info.id}`}
-                className="group flex flex-col rounded-3xl border border-slate-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-kos-500/40 hover:shadow-xl hover:shadow-kos-950/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-600"
+                className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-kos-500/40 hover:shadow-xl hover:shadow-kos-950/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-600"
               >
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-kos-100/60 text-kos-700 transition group-hover:bg-kos-600 group-hover:text-white">
                   <Ikon size={26} />
@@ -74,7 +74,7 @@ export default function PusatInformasi() {
                   <CalendarIcon size={13} /> Diperbarui{" "}
                   {tglPendek(info.tanggal_pembaruan)}
                 </span>
-                <span className="mt-4 flex h-11 items-center justify-center gap-2 rounded-xl border border-kos-600 text-sm font-semibold text-kos-700 transition group-hover:bg-kos-600 group-hover:text-white">
+                <span className="mt-4 flex h-11 items-center justify-center gap-2 rounded-lg border border-kos-600 text-sm font-semibold text-kos-700 transition group-hover:bg-kos-600 group-hover:text-white">
                   Buka{" "}
                   <ArrowRightIcon
                     size={16}

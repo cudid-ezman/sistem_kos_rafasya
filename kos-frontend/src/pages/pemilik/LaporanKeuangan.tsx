@@ -117,7 +117,7 @@ export default function LaporanKeuangan() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.5fr]">
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-kos-950 via-kos-900 to-kos-600 p-6 text-white shadow-lg shadow-kos-950/20 print:border print:bg-none print:text-ink print:shadow-none">
+        <section className="relative overflow-hidden rounded-2xl bg-kos-700 p-6 text-white print:border print:bg-none print:text-ink print:shadow-none">
           <div className="pointer-events-none absolute -right-10 -top-14 h-48 w-48 rounded-full border border-white/10 print:hidden" />
           <div className="relative flex items-start justify-between">
             <div>
@@ -126,7 +126,7 @@ export default function LaporanKeuangan() {
                 {labelPeriode(mode, anchor)}
               </span>
             </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 print:hidden">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15 print:hidden">
               <TrendingUpIcon size={20} />
             </span>
           </div>
@@ -143,7 +143,7 @@ export default function LaporanKeuangan() {
           </p>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6">
+        <section className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-ink">
             <ChartIcon size={18} className="text-kos-600" /> {JUDUL_GRAFIK[mode]}
           </h2>
@@ -151,7 +151,7 @@ export default function LaporanKeuangan() {
         </section>
       </div>
 
-      <section className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-base font-bold text-ink">Rincian Pemasukan Sewa</h2>

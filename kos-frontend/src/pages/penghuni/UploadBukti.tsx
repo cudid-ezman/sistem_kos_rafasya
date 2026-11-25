@@ -45,7 +45,7 @@ export default function UploadBukti() {
 
   if (!t || !bisaUpload) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
           <ReceiptIcon size={26} />
         </div>
@@ -117,21 +117,21 @@ export default function UploadBukti() {
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,420px)_1fr]">
         {/* QRIS */}
-        <section className="rounded-3xl border border-slate-200 bg-white p-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5">
           <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-ink">
             <QrIcon size={19} className="text-kos-600" /> Bayar dengan QRIS
           </h2>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-md shadow-slate-900/5">
-            <div className="bg-gradient-to-r from-red-700 to-red-600 px-5 py-3 text-white">
+          <div className="overflow-hidden rounded-2xl border border-slate-200">
+            <div className="bg-red-700 px-5 py-3 text-white">
               <div className="flex items-center justify-between">
-                <span className="text-xl font-extrabold tracking-wide">QRIS</span>
+                <span className="text-xl font-extrabold">QRIS</span>
                 <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold">● GPN</span>
               </div>
-              <p className="mt-0.5 text-[10px] tracking-wider text-white/85 uppercase">QR Code Standar Pembayaran Nasional</p>
+              <p className="mt-0.5 text-[10px] text-white/85">QR Code Standar Pembayaran Nasional</p>
             </div>
             <div className="bg-white px-5 py-4 text-center">
-              <p className="text-lg font-extrabold tracking-wide text-ink">KOS RAFASYA</p>
+              <p className="text-lg font-extrabold text-ink">KOS RAFASYA</p>
             </div>
             <div className="border-t border-slate-100 bg-white p-5">
               {!qrisError ? (
@@ -139,10 +139,10 @@ export default function UploadBukti() {
                   src={QRIS_SRC}
                   alt="Kode QRIS pembayaran Kos Rafasya"
                   onError={() => setQrisError(true)}
-                  className="mx-auto aspect-square w-full max-w-[260px] rounded-xl object-contain"
+                  className="mx-auto aspect-square w-full max-w-[260px] rounded-lg object-contain"
                 />
               ) : (
-                <div className="mx-auto flex aspect-square w-full max-w-[260px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-center">
+                <div className="mx-auto flex aspect-square w-full max-w-[260px] flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-center">
                   <QrIcon size={36} className="text-slate-300" />
                   <p className="mt-3 text-sm font-semibold text-ink">QRIS belum dipasang</p>
                   <p className="mt-1 text-xs leading-relaxed text-ink-soft">
@@ -163,7 +163,7 @@ export default function UploadBukti() {
           </p>
 
           <div className="mt-5 rounded-2xl border border-kos-100 bg-kos-100/25 p-4">
-            <p className="text-[11px] font-semibold tracking-wider text-kos-700 uppercase">Total yang harus dibayar</p>
+            <p className="text-[11px] font-semibold text-kos-700">Total yang harus dibayar</p>
             <div className="mt-1 flex items-center justify-between gap-3">
               <p className="text-3xl font-bold text-kos-950 tabular-nums">{rupiah(total)}</p>
               <button
@@ -195,7 +195,7 @@ export default function UploadBukti() {
         </section>
 
         {/* Form */}
-        <form onSubmit={submit} className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6" noValidate>
+        <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" noValidate>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
             <p className="flex items-center gap-2 text-sm text-ink-soft">
               Periode Tagihan:
@@ -223,7 +223,7 @@ export default function UploadBukti() {
                 <span className="text-sm font-semibold text-ink">Nominal yang harus dibayar</span>
                 <span className="text-xs text-ink-soft">Terkunci otomatis</span>
               </div>
-              <div className="flex h-12 items-center justify-between rounded-xl border border-slate-200 bg-slate-100/70 px-4">
+              <div className="flex h-12 items-center justify-between rounded-lg border border-slate-200 bg-slate-100/70 px-4">
                 <span className="font-bold text-ink tabular-nums">{rupiah(total)}</span>
                 <span className="flex items-center gap-1.5 text-xs text-ink-soft">
                   Otomatis <LockIcon size={14} />
@@ -247,7 +247,7 @@ export default function UploadBukti() {
                 max={hariIniISO()}
                 value={tanggal}
                 onChange={(e) => setTanggal(e.target.value)}
-                className="h-12 w-full rounded-xl border border-field-line bg-field px-4 text-sm text-ink outline-none transition focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
+                className="h-12 w-full rounded-lg border border-field-line bg-field px-4 text-sm text-ink outline-none transition focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
               />
               <p className="mt-1.5 text-xs text-ink-soft">
                 Sesuaikan dengan tanggal transaksi pada bukti pembayaran Anda. Tanggal tidak boleh lebih dari hari ini.

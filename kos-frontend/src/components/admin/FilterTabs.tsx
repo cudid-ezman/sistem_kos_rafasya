@@ -20,17 +20,17 @@ export default function FilterTabs<T extends string>({ tabs, value, onChange }: 
           role="tab"
           aria-selected={value === t.key}
           onClick={() => onChange(t.key)}
-          className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition ${
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-600 ${
             value === t.key
-              ? 'bg-kos-600 text-white shadow-sm shadow-kos-600/25'
-              : 'border border-slate-200 bg-white text-ink-soft hover:border-slate-300 hover:text-ink'
+              ? 'bg-gerbang text-cream'
+              : 'text-ink-soft hover:bg-cream/70 hover:text-ink'
           }`}
         >
           {t.label}
           {t.count !== undefined && (
             <span
-              className={`rounded-full px-1.5 text-[11px] tabular-nums ${
-                value === t.key ? 'bg-white/20 text-white' : 'bg-slate-100 text-ink-soft'
+              className={`rounded px-1.5 text-[11px] tabular-nums ${
+                value === t.key ? 'bg-white/20 text-cream' : 'bg-slate-100 text-ink-soft'
               }`}
             >
               {t.count}

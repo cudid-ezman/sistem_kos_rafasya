@@ -1,3 +1,4 @@
+import LinkWhatsAppPengurus from "../components/common/LinkWhatsAppPengurus";
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import type { UserProfile } from "../types/auth";
@@ -15,7 +16,6 @@ import {
   WarningIcon,
 } from "../components/portal/icons";
 import { BrandName, LogoMark } from "../components/brand/BrandLogo";
-import LinkWhatsAppPengurus from "../components/common/LinkWhatsAppPengurus";
 
 interface Props {
   user: UserProfile;
@@ -101,7 +101,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
             <button
               type="button"
               onClick={() => setUbahPwOpen(true)}
-              className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-ink transition hover:bg-slate-50"
+              className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-ink transition hover:bg-slate-50"
             >
               <span className="hidden sm:inline">Ubah Sandi</span>
               <span className="sm:hidden">Sandi</span>
@@ -111,7 +111,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
               type="button"
               onClick={onLogout}
               aria-label="Keluar"
-              className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-ink transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-kos-600"
+              className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-ink transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-kos-600"
             >
               <LogoutIcon size={17} />
               <span className="hidden sm:inline">Keluar</span>
@@ -127,7 +127,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
             <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full border border-white/10" />
             <div className="pointer-events-none absolute -right-2 -top-2 h-24 w-24 rounded-full border border-white/10" />
             <div className="relative flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-kos-400/20 text-kos-400">
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-kos-400/20 text-kos-400">
                 <DoorIcon />
               </span>
               <div className="leading-tight">
@@ -151,9 +151,9 @@ function Shell({ onLogout }: { onLogout: () => void }) {
                 key={n.to}
                 to={n.to}
                 className={({ isActive }) =>
-                  `group flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition ${
+                  `group flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm font-semibold transition ${
                     isActive
-                      ? "bg-kos-600 text-white shadow-md shadow-kos-600/25"
+                      ? "bg-kos-600 text-white"
                       : "text-ink-soft hover:bg-white hover:text-ink hover:shadow-sm"
                   }`
                 }
@@ -180,12 +180,8 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           </nav>
 
           <p className="mt-auto rounded-2xl border border-dashed border-slate-300 p-4 text-xs leading-relaxed text-ink-soft">
-            Butuh bantuan?{' '}
-            <LinkWhatsAppPengurus
-              label="Hubungi pengurus kos"
-              pesan={`Halo Pengurus Kos Putra Raffasya, saya ${nama}${kamar ? ` (Kamar ${kamar.nomor})` : ''} membutuhkan bantuan.`}
-            />{' '}
-            atau kirim laporan lewat menu Keluhan.
+            Butuh bantuan?{' '}<LinkWhatsAppPengurus label="Hubungi pengurus kos" pesan={`Halo Pengurus Kos Putra Raffasya, saya ${nama}${kamar ? ` (Kamar ${kamar.nomor})` : ''} membutuhkan bantuan.`} />{' '}atau kirim laporan lewat menu
+            Keluhan.
           </p>
         </aside>
 
@@ -200,14 +196,14 @@ function Shell({ onLogout }: { onLogout: () => void }) {
       {/* Navigasi bawah (mobile) */}
       <nav
         aria-label="Menu utama"
-        className="fixed inset-x-3 bottom-3 z-40 flex rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-xl shadow-slate-900/10 backdrop-blur lg:hidden"
+        className="fixed inset-x-3 bottom-3 z-40 flex rounded-2xl border border-slate-200 bg-white/95 p-1.5 backdrop-blur lg:hidden"
       >
         {nav.map((n) => (
           <NavLink
             key={n.to}
             to={n.to}
             className={({ isActive }) =>
-              `relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 text-[11px] font-semibold transition ${
+              `relative flex flex-1 flex-col items-center gap-0.5 rounded-lg py-2 text-[11px] font-semibold transition ${
                 isActive ? "bg-kos-600 text-white" : "text-ink-soft"
               }`
             }

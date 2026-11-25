@@ -61,7 +61,7 @@ export default function Field({
           autoComplete={autoComplete}
           inputMode={inputMode}
           aria-invalid={invalid || undefined}
-          className={`h-11 w-full rounded-xl border bg-white pl-11 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 ${
+          className={`h-11 w-full rounded-lg border bg-white pl-11 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 ${
             isPassword ? (invalid ? 'pr-20' : 'pr-11') : invalid ? 'pr-11' : 'pr-4'
           } ${
             invalid

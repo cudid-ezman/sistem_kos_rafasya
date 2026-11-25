@@ -34,7 +34,7 @@ export default function PageHeader({ crumbs, title, subtitle, badge, action }: P
           ))}
         </nav>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-ink">{title}</h1>
+          <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-ink">{title}</h1>
           {badge}
         </div>
         {subtitle && <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-soft">{subtitle}</p>}

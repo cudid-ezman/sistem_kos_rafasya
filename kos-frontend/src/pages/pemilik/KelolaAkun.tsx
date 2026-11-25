@@ -166,7 +166,7 @@ export default function KelolaAkun() {
         }
       />
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="flex items-center gap-2 text-base font-bold text-ink">
             Daftar {labelRole}{" "}
@@ -338,10 +338,10 @@ export default function KelolaAkun() {
           ].map(([k, v]) => (
             <div
               key={k}
-              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-2.5"
+              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-4 py-2.5"
             >
               <div>
-                <dt className="text-[11px] font-semibold tracking-wide text-ink-soft uppercase">
+                <dt className="text-[11px] font-semibold text-ink-soft">
                   {k}
                 </dt>
                 <dd className="font-mono text-sm font-semibold text-ink">

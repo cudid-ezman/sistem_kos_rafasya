@@ -106,7 +106,7 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
       </section>
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6">
+        <section className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-ink-soft">Total Pemasukan</p>
@@ -150,7 +150,7 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
           )}
         </section>
 
-        <div className="flex items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex items-center gap-5 rounded-2xl border border-slate-200 bg-white p-6">
           <Ring persen={okupansi} label="terisi" />
           <div>
             <p className="text-sm text-ink-soft">Okupansi Kamar</p>
@@ -171,7 +171,7 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
         </p>
       )}
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-6">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-bold text-ink">{JUDUL_GRAFIK[mode]}</h2>
           <span className="text-xs text-ink-soft">{labelPeriode(mode, anchor)}</span>
@@ -179,7 +179,7 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
         <GrafikPemasukan data={grafik} judul={JUDUL_GRAFIK[mode]} />
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-base font-bold text-ink">Transaksi pada {mode === 'semua' ? 'semua waktu' : 'periode ini'}</h2>
           <Link to={`/dashboard/laporan${query}`} className="text-[13px] font-semibold text-kos-700 hover:underline">

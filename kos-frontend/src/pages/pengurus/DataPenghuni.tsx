@@ -356,7 +356,7 @@ export default function DataPenghuni() {
         }
       />
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="flex items-center gap-2 text-base font-bold text-ink">
@@ -788,7 +788,7 @@ export default function DataPenghuni() {
               const nyilang = asalFasilitas !== tujuanFasilitas;
               return (
                 <div
-                  className={`rounded-xl border px-3.5 py-2.5 text-xs leading-relaxed ${
+                  className={`rounded-lg border px-3.5 py-2.5 text-xs leading-relaxed ${
                     nyilang
                       ? "border-amber-200 bg-amber-50 text-amber-900"
                       : "border-emerald-200 bg-emerald-50 text-emerald-900"
@@ -864,10 +864,10 @@ export default function DataPenghuni() {
           ].map(([k, v]) => (
             <div
               key={k}
-              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-2.5"
+              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-4 py-2.5"
             >
               <div>
-                <dt className="text-[11px] font-semibold tracking-wide text-ink-soft uppercase">
+                <dt className="text-[11px] font-semibold text-ink-soft">
                   {k}
                 </dt>
                 <dd className="font-mono text-sm font-semibold text-ink">
