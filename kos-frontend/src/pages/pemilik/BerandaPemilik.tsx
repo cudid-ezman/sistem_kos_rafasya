@@ -14,11 +14,11 @@ import {
   totalNominal,
 } from '../../lib/periode';
 import { usePeriode } from '../../lib/usePeriode';
-import { Hero, IkonKotak, Ring, StatCard, heroBtn } from '../../components/admin/DashboardParts';
+import { DeretanKamar, Hero, IkonKotak, Ring, heroBtn, panelCls, panelHeadCls, panelTitleCls } from '../../components/admin/DashboardParts';
 import FilterPeriode from '../../components/admin/FilterPeriode';
 import GrafikPemasukan from '../../components/admin/GrafikPemasukan';
 import { Skeleton } from '../../components/portal/Skeleton';
-import { ArrowRightIcon, CheckCircleIcon, DoorIcon, TrendingUpIcon } from '../../components/portal/icons';
+import { ArrowRightIcon, CheckCircleIcon, } from '../../components/portal/icons';
 
 const JUDUL_GRAFIK = {
   semua: 'Pemasukan per bulan',
@@ -91,45 +91,43 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
 
   return (
     <div className="space-y-5">
-      <Hero nama={nama} role="Pemilik">
+      <Hero
+        nama={nama}
+        role="Pemilik"
+        ringkasan={`${terisi} dari ${kamar.length} kamar terisi, ${tersedia} siap disewakan.`}
+        bawah={kamar.length > 0 ? <DeretanKamar kamar={kamar} /> : undefined}
+      >
         <Link to={`/dashboard/laporan${query}`} className={heroBtn}>
           Lihat laporan <ArrowRightIcon size={15} />
         </Link>
       </Hero>
 
-      <section className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <section className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 className="text-lg font-bold text-ink">Pemasukan</h2>
-          <p className="text-xs text-ink-soft">Pilih rentang waktu untuk melihat pemasukan sewa yang sudah diverifikasi.</p>
+          <h2 className="font-display text-2xl font-extrabold text-ink">Pemasukan</h2>
+          <p className="mt-0.5 text-sm text-ink-soft">Pemasukan sewa yang sudah diverifikasi, sesuai rentang waktu yang dipilih.</p>
         </div>
         <FilterPeriode mode={mode} anchor={anchor} onChange={ubah} />
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-ink-soft">Total Pemasukan</p>
-              <span className="mt-1 inline-block rounded-full bg-kos-100/60 px-2.5 py-0.5 text-[11px] font-semibold text-kos-700">
-                {labelPeriode(mode, anchor)}
-              </span>
-            </div>
-            <IkonKotak tone="emerald">
-              <TrendingUpIcon size={20} />
-            </IkonKotak>
+      <section className={`${panelCls} grid lg:grid-cols-[1fr_300px]`}>
+        <div className="p-6 lg:p-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-medium text-ink-soft">Total pemasukan</p>
+            <span className="rounded-md bg-cream px-2 py-0.5 text-xs font-semibold text-gerbang">{labelPeriode(mode, anchor)}</span>
           </div>
 
-          <p className="mt-3 text-4xl font-bold tracking-tight text-emerald-600 tabular-nums">{rupiah(total)}</p>
+          <p className="mt-2 font-display text-5xl font-extrabold tracking-tight text-kos-700 tabular-nums">{rupiah(total)}</p>
 
           {kosongPadaPeriode ? (
-            <p className="mt-2 text-xs text-ink-soft">
+            <p className="mt-2 text-[13px] text-ink-soft">
               Belum ada pemasukan pada periode ini.{' '}
               <button type="button" onClick={lompatKeTerakhir} className="cursor-pointer font-semibold text-kos-700 hover:underline">
                 Lompat ke periode terakhir yang ada data
               </button>
             </p>
           ) : (
-            <p className="mt-2 text-xs text-ink-soft">
+            <p className="mt-2 text-[13px] text-ink-soft">
               {terfilter.length} transaksi lunas
               {sebelumnya !== null && (
                 <>
@@ -139,7 +137,7 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
                       <span>periode sebelumnya Rp 0</span>
                     ) : null
                   ) : (
-                    <span className={`font-semibold ${perubahan >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <span className={`font-semibold ${perubahan >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                       {perubahan >= 0 ? '▲' : '▼'} {Math.abs(perubahan).toFixed(1).replace('.', ',')}%
                     </span>
                   )}
@@ -148,40 +146,41 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
               )}
             </p>
           )}
-        </section>
 
-        <div className="flex items-center gap-5 rounded-2xl border border-slate-200 bg-white p-6">
-          <Ring persen={okupansi} label="terisi" />
-          <div>
-            <p className="text-sm text-ink-soft">Okupansi Kamar</p>
-            <p className="mt-1 text-xl font-bold text-ink">
-              {terisi} / {kamar.length}
-            </p>
-            <p className="text-xs text-ink-soft">kamar terisi</p>
+          <div className="mt-6 border-t border-field-line pt-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="font-display text-base font-bold text-ink">{JUDUL_GRAFIK[mode]}</h3>
+              <span className="text-xs text-ink-soft">{labelPeriode(mode, anchor)}</span>
+            </div>
+            <GrafikPemasukan data={grafik} judul={JUDUL_GRAFIK[mode]} />
           </div>
         </div>
 
-        <StatCard to="/dashboard/laporan" label="Kamar Kosong" value={tersedia} hint="Siap disewakan" icon={<DoorIcon size={20} />} tone="kos" />
-      </div>
+        <div className="flex flex-col justify-center gap-6 border-t border-field-line bg-cream/50 p-6 lg:border-l lg:border-t-0 lg:p-8">
+          <div>
+            <p className="text-sm text-ink-soft">Okupansi kamar</p>
+            <div className="mt-3">
+              <Ring persen={okupansi} label={`${terisi} dari ${kamar.length} kamar terisi`} />
+            </div>
+          </div>
+          <div className="border-t border-field-line pt-5">
+            <p className="text-sm text-ink-soft">Kamar kosong</p>
+            <p className="mt-1 font-display text-4xl font-extrabold text-ink tabular-nums">{tersedia}</p>
+            <p className="text-[13px] text-ink-soft">siap disewakan</p>
+          </div>
+        </div>
+      </section>
 
       {adaPerkiraan && (
-        <p className="rounded-2xl bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
+        <p className="rounded-xl bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
           Server belum mengirim tanggal pembayaran untuk sebagian transaksi, jadi tanggal jatuh tempo dipakai sebagai perkiraan. Perbarui endpoint laporan di
           backend agar filter minggu, bulan, dan tahun akurat.
         </p>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-bold text-ink">{JUDUL_GRAFIK[mode]}</h2>
-          <span className="text-xs text-ink-soft">{labelPeriode(mode, anchor)}</span>
-        </div>
-        <GrafikPemasukan data={grafik} judul={JUDUL_GRAFIK[mode]} />
-      </section>
-
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-base font-bold text-ink">Transaksi pada {mode === 'semua' ? 'semua waktu' : 'periode ini'}</h2>
+      <section className={panelCls}>
+        <div className={panelHeadCls}>
+          <h3 className={panelTitleCls}>Transaksi pada {mode === 'semua' ? 'semua waktu' : 'periode ini'}</h3>
           <Link to={`/dashboard/laporan${query}`} className="text-[13px] font-semibold text-kos-700 hover:underline">
             Lihat semua
           </Link>
@@ -189,7 +188,7 @@ export default function BerandaPemilik({ nama }: { nama: string }) {
         {terbaru.length === 0 ? (
           <p className="px-6 py-10 text-center text-sm text-ink-soft">Belum ada transaksi pemasukan pada periode ini.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-field-line">
             {terbaru.map((t) => (
               <li key={t.id} className="flex items-center gap-4 px-6 py-3.5">
                 <IkonKotak tone="emerald">

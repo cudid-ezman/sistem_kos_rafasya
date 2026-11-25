@@ -56,7 +56,7 @@ const JARAK_HEADER = 12;
 
 const CELL: Record<StatusDenah, { label: string; box: string; teks: string; dot: string }> = {
   lunas: { label: 'Lunas', box: 'border-emerald-300 bg-emerald-50', teks: 'text-emerald-600', dot: 'bg-emerald-500' },
-  menunggu: { label: 'Menunggu', box: 'border-blue-200 bg-blue-50', teks: 'text-blue-600', dot: 'bg-blue-500' },
+  menunggu: { label: 'Menunggu', box: 'border-sky-200 bg-sky-50', teks: 'text-sky-600', dot: 'bg-sky-500' },
   belum: { label: 'Belum Bayar', box: 'border-amber-300 bg-amber-50', teks: 'text-amber-600', dot: 'bg-amber-500' },
   terlambat: { label: 'Terlambat', box: 'border-orange-300 bg-orange-50', teks: 'text-orange-600', dot: 'bg-orange-500' },
   tanpa_tagihan: { label: 'Tanpa Tagihan', box: 'border-slate-300 bg-white', teks: 'text-slate-500', dot: 'bg-slate-400' },
@@ -76,11 +76,11 @@ const PERINGKAT: Record<StatusDenah, number> = { terlambat: 5, belum: 4, menungg
 type Nada = 'green' | 'blue' | 'amber' | 'orange' | 'gray' | 'violet';
 const NADA: Record<Nada, string> = {
   green: 'bg-emerald-100 text-emerald-700',
-  blue: 'bg-blue-100 text-blue-700',
+  blue: 'bg-sky-100 text-sky-700',
   amber: 'bg-amber-100 text-amber-700',
   orange: 'bg-orange-100 text-orange-700',
   gray: 'bg-slate-100 text-slate-600',
-  violet: 'bg-violet-100 text-violet-700',
+  violet: 'bg-stone-100 text-stone-700',
 };
 const NADA_STATUS: Record<StatusDenah, { nada: Nada; label: string }> = {
   lunas: { nada: 'green', label: 'Lunas' },
@@ -105,7 +105,7 @@ function statusDariTagihan(t: Tagihan): StatusDenah {
 
 const RUMAH_ISI: Record<StatusDenah, string> = {
   lunas: 'fill-emerald-50',
-  menunggu: 'fill-blue-50',
+  menunggu: 'fill-sky-50',
   belum: 'fill-amber-50',
   terlambat: 'fill-orange-50',
   tanpa_tagihan: 'fill-white',
@@ -113,7 +113,7 @@ const RUMAH_ISI: Record<StatusDenah, string> = {
 };
 const RUMAH_GARIS: Record<StatusDenah, string> = {
   lunas: 'stroke-emerald-400',
-  menunggu: 'stroke-blue-300',
+  menunggu: 'stroke-sky-300',
   belum: 'stroke-amber-400',
   terlambat: 'stroke-orange-400',
   tanpa_tagihan: 'stroke-slate-300',
@@ -287,7 +287,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
 
   if (galat) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+      <div className="rounded-2xl border border-field-line bg-white p-10 text-center">
         <WarningIcon size={28} className="mx-auto text-rose-500" />
         <p className="mt-3 font-semibold text-ink">Denah belum bisa dimuat</p>
         <p className="mt-1 text-sm text-ink-soft">Periksa koneksi atau pastikan server menyala, lalu muat ulang halaman.</p>
@@ -297,7 +297,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
 
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+      <div className="rounded-2xl border border-field-line bg-white p-10 text-center">
         <DoorIcon size={30} className="mx-auto text-slate-300" />
         <p className="mt-3 font-semibold text-ink">Belum ada kamar untuk digambar</p>
         <p className="mt-1 text-sm text-ink-soft">Tambahkan kamar di tab “Daftar Kamar”. Nomor seperti A12 atau A-01 otomatis masuk Blok A.</p>
@@ -318,7 +318,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
             value={periode ?? ''}
             disabled={daftarPeriode.length === 0}
             onChange={(e) => setPeriodePilihan(e.target.value)}
-            className="h-10 cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white pl-10 pr-9 text-sm font-semibold text-ink outline-none transition focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20 disabled:cursor-not-allowed disabled:text-ink-soft"
+            className="h-10 cursor-pointer appearance-none rounded-lg border border-field-line bg-white pl-10 pr-9 text-sm font-semibold text-ink outline-none transition focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20 disabled:cursor-not-allowed disabled:text-ink-soft"
           >
             {daftarPeriode.length === 0 && <option value="">Belum ada tagihan</option>}
             {daftarPeriode.map((p) => (
@@ -360,8 +360,8 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         {/* ───────── Denah ───────── */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-label="Denah kos">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+        <section className="rounded-2xl border border-field-line bg-white p-5 sm:p-6" aria-label="Denah kos">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-field-line pb-4">
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-kos-600" />
               <h2 className="text-[15px] font-bold text-ink">Denah Kos (1 lantai)</h2>
@@ -410,7 +410,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
                             {bi > 0 && <div className="w-px self-stretch bg-slate-400" aria-hidden="true" />}
                             <div className="flex flex-col" style={{ width: LEBAR_SEL }}>
                               <p
-                                className="flex items-center justify-center border-b border-slate-200 text-[11px] font-bold text-ink"
+                                className="flex items-center justify-center border-b border-field-line text-[11px] font-bold text-ink"
                                 style={{ height: TINGGI_HEADER, marginBottom: JARAK_HEADER }}
                               >
                                 Blok {b}&nbsp;<span className="font-normal text-ink-soft">({kol.jumlah})</span>
@@ -506,7 +506,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
 
         {/* ───────── Detail kamar terpilih ───────── */}
         {slotKosongTerpilih ? (
-          <aside className="rounded-2xl border border-slate-200 bg-white p-5 xl:sticky xl:top-24">
+          <aside className="rounded-2xl border border-field-line bg-white p-5 xl:sticky xl:top-24">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-bold text-kos-600">Detail Kamar Terpilih</span>
               <Pill nada="gray">Belum Terdaftar</Pill>
@@ -519,7 +519,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
               Slot kamar belum ditambahkan ke sistem
             </p>
 
-            <div className="mt-4 border-t border-slate-200 pt-4">
+            <div className="mt-4 border-t border-field-line pt-4">
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
                 <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-400 ring-1 ring-slate-200">
                   <DoorIcon size={22} />
@@ -542,7 +542,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
             </div>
           </aside>
         ) : dipilih && (
-          <aside className="rounded-2xl border border-slate-200 bg-white p-5 xl:sticky xl:top-24">
+          <aside className="rounded-2xl border border-field-line bg-white p-5 xl:sticky xl:top-24">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-bold text-kos-600">Detail Kamar Terpilih</span>
               <Pill nada={NADA_STATUS[dipilih.status].nada}>{NADA_STATUS[dipilih.status].label}</Pill>
@@ -555,7 +555,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
               {rupiah(dipilih.kamar.harga_sewa)} / bulan{dipilih.kamar.fasilitas ? ` • ${dipilih.kamar.fasilitas}` : ''}
             </p>
 
-            <div className="mt-4 border-t border-slate-200 pt-4">
+            <div className="mt-4 border-t border-field-line pt-4">
               {dipilih.penghuni.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
                   <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-400 ring-1 ring-slate-200">
@@ -580,7 +580,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
                     const { hari, denda } = tg ? hitungDenda(tg) : { hari: 0, denda: 0 };
                     const total = tg ? Number(tg.nominal) + denda : 0;
                     return (
-                      <div key={p.id} className="rounded-2xl border border-slate-200 p-3.5">
+                      <div key={p.id} className="rounded-2xl border border-field-line p-3.5">
                         <div className="flex items-center gap-3">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-600">
                             {inisial(p.nama_lengkap)}
@@ -592,7 +592,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
                           <Pill nada={NADA_STATUS[stTg].nada}>{NADA_STATUS[stTg].label}</Pill>
                         </div>
 
-                        <div className="mt-3 rounded-lg border border-slate-200 px-3 py-2.5 text-xs">
+                        <div className="mt-3 rounded-lg border border-field-line px-3 py-2.5 text-xs">
                           {tg ? (
                             <>
                               <div className="flex items-baseline justify-between gap-2">
@@ -605,7 +605,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
                                 </p>
                               )}
                               {stTg !== 'lunas' && (
-                                <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-2">
+                                <div className="mt-2 flex items-center justify-between border-t border-field-line pt-2">
                                   <span className="text-ink-soft">Jatuh tempo:</span>
                                   <span className="font-medium text-ink tabular-nums">{tglAngka(tg.jatuh_tempo)}</span>
                                 </div>
@@ -620,7 +620,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
                           to={`/dashboard/tagihan?cari=${encodeURIComponent(p.nama_lengkap)}`}
                           className={`mt-3 flex h-9 items-center justify-center gap-2 rounded-lg border text-[13px] font-semibold transition ${
                             stTg === 'lunas' || stTg === 'tanpa_tagihan'
-                              ? 'border-slate-200 text-ink hover:bg-slate-50'
+                              ? 'border-field-line text-ink hover:bg-slate-50'
                               : 'border-kos-600 text-kos-700 hover:bg-kos-100/40'
                           }`}
                         >
@@ -631,14 +631,14 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
                   })}
 
                   {dipilih.keluhanAktif.map((k) => (
-                    <div key={k.id} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5">
+                    <div key={k.id} className="rounded-2xl border border-field-line bg-cream/40 p-3.5">
                       <div className="flex items-center justify-between gap-2">
                         <span className="flex items-center gap-2 text-[13px] font-bold text-ink">
                           <WarningIcon size={16} className="text-red-500" /> Keluhan
                         </span>
                         <Pill nada={k.status === 'diproses' ? 'violet' : 'blue'}>{k.status === 'diproses' ? 'Diproses' : 'Diterima'}</Pill>
                       </div>
-                      <div className="mt-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+                      <div className="mt-2.5 rounded-lg border border-field-line bg-white px-3 py-2.5">
                         <p className="text-[13px] font-semibold text-ink">
                           {k.nama_kategori || 'Umum'} - {k.deskripsi.length > 40 ? `${k.deskripsi.slice(0, 40)}…` : k.deskripsi}
                         </p>
@@ -646,7 +646,7 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
                       </div>
                       <Link
                         to={`/dashboard/keluhan?cari=${encodeURIComponent(k.nama_penghuni || k.nomor_kamar || '')}`}
-                        className="mt-3 flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-[13px] font-semibold text-ink transition hover:bg-slate-50"
+                        className="mt-3 flex h-9 items-center justify-center rounded-lg border border-field-line bg-white text-[13px] font-semibold text-ink transition hover:bg-slate-50"
                       >
                         Lihat Detail
                       </Link>

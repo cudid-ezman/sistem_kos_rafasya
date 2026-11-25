@@ -18,8 +18,6 @@ import {
 } from "../../components/portal/buttons";
 import {
   DoorIcon,
-  GridIcon,
-  ListIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
@@ -189,9 +187,6 @@ export default function DataKamar() {
     }
   };
 
-  const pilihTab = (t: "daftar" | "denah") =>
-    setParams(t === "denah" ? { tab: "denah" } : {}, { replace: true });
-
   if (isLoading) {
     return (
       <div aria-busy="true">
@@ -207,43 +202,20 @@ export default function DataKamar() {
       <PageHeader
         crumbs={[
           { label: "Beranda", to: "/dashboard" },
-          { label: "Data Kamar" },
+          { label: tab === "denah" ? "Denah Kamar" : "Daftar Kamar" },
         ]}
-        title="Manajemen Data Kamar"
-        subtitle="Kelola tarif individu/berdua, tambahan biaya fasilitas, dan ketersediaan kamar."
+        title={tab === "denah" ? "Denah Kamar" : "Daftar Kamar"}
+        subtitle={
+          tab === "denah"
+            ? "Lihat status tiap kamar, penghuni, dan tagihan langsung di denah."
+            : "Kelola tarif individu/berdua, tambahan biaya fasilitas, dan ketersediaan kamar."
+        }
         action={
           <button type="button" onClick={bukaTambah} className={btnPrimary}>
             <PlusIcon size={17} /> Tambah Kamar
           </button>
         }
       />
-
-      <div
-        className="mb-5 inline-flex rounded-lg bg-slate-100 p-1 text-[13px] font-semibold"
-        role="tablist"
-      >
-        {(
-          [
-            ["daftar", "Daftar Kamar", ListIcon],
-            ["denah", "Denah Operasional", GridIcon],
-          ] as const
-        ).map(([key, label, Ikon]) => (
-          <button
-            key={key}
-            type="button"
-            role="tab"
-            aria-selected={tab === key}
-            onClick={() => pilihTab(key)}
-            className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 transition ${
-              tab === key
-                ? "bg-white text-kos-700"
-                : "text-ink-soft hover:text-ink"
-            }`}
-          >
-            <Ikon size={16} /> {label}
-          </button>
-        ))}
-      </div>
 
       {tab === "denah" ? (
         <DenahKamar
@@ -265,7 +237,7 @@ export default function DataKamar() {
             ].map(([label, nilai, warna]) => (
               <div
                 key={label as string}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5"
+                className="rounded-2xl border border-field-line bg-white px-4 py-3.5"
               >
                 <p className="text-xs text-ink-soft">{label}</p>
                 <p
@@ -277,8 +249,8 @@ export default function DataKamar() {
             ))}
           </div>
 
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <section className="overflow-hidden rounded-2xl border border-field-line bg-white">
+            <div className="flex flex-col gap-3 border-b border-field-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-base font-bold text-ink">Daftar Kamar</h2>
               <SearchInput
                 value={cari}
@@ -318,7 +290,7 @@ export default function DataKamar() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-slate-50/70">
+                  <thead className="bg-cream/50">
                     <tr>
                       <th className={thCls}>No. Kamar</th>
                       <th className={thCls}>Tipe Aktif</th>
@@ -329,21 +301,21 @@ export default function DataKamar() {
                       <th className={`${thCls} text-right`}>Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-field-line">
                     {baris.map((k) => {
                       const jml =
                         k.jumlah_penghuni ?? (k.status === "terisi" ? 1 : 0);
                       return (
                         <tr
                           key={k.id}
-                          className="transition hover:bg-slate-50/70"
+                          className="transition hover:bg-cream/40"
                         >
                           <td className={`${tdCls} font-bold`}>
                             {k.nomor_kamar}
                           </td>
                           <td className={tdCls}>
                             <span className="capitalize">{k.tipe}</span>
-                            <span className="ml-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
+                            <span className="ml-1.5 inline-block whitespace-nowrap rounded-md bg-cream px-2 py-0.5 text-[11px] font-semibold text-gerbang">
                               {jml}/2 org
                             </span>
                           </td>

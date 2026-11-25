@@ -16,7 +16,7 @@ export default function Pagination({ total, page, perPage, onChange }: Props) {
   if (total <= perPage) return null;
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 text-xs text-ink-soft sm:flex-row">
+    <div className="flex flex-col items-center justify-between gap-3 border-t border-field-line px-5 py-3.5 text-xs text-ink-soft sm:flex-row">
       <span>
         Menampilkan {dari}–{sampai} dari {total}
       </span>

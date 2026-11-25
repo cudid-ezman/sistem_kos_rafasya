@@ -41,7 +41,7 @@ export default function FilterPeriode({ mode, anchor, onChange }: Props) {
 
       {mode !== 'semua' && (
         <>
-          <div className="inline-flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-1">
+          <div className="inline-flex items-center gap-0.5 rounded-lg border border-field-line bg-white p-1">
             <button type="button" aria-label="Periode sebelumnya" onClick={() => onChange(mode, geser(mode, anchor, -1))} className={panah}>
               <ChevronLeftIcon size={18} />
             </button>

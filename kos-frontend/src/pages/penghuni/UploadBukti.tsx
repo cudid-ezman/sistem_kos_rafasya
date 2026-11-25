@@ -45,7 +45,7 @@ export default function UploadBukti() {
 
   if (!t || !bisaUpload) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-field-line bg-field p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
           <ReceiptIcon size={26} />
         </div>
@@ -117,12 +117,12 @@ export default function UploadBukti() {
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,420px)_1fr]">
         {/* QRIS */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <section className="rounded-2xl border border-field-line bg-field p-5">
           <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-ink">
             <QrIcon size={19} className="text-kos-600" /> Bayar dengan QRIS
           </h2>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <div className="overflow-hidden rounded-2xl border border-field-line">
             <div className="bg-red-700 px-5 py-3 text-white">
               <div className="flex items-center justify-between">
                 <span className="text-xl font-extrabold">QRIS</span>
@@ -130,10 +130,10 @@ export default function UploadBukti() {
               </div>
               <p className="mt-0.5 text-[10px] text-white/85">QR Code Standar Pembayaran Nasional</p>
             </div>
-            <div className="bg-white px-5 py-4 text-center">
+            <div className="bg-field px-5 py-4 text-center">
               <p className="text-lg font-extrabold text-ink">KOS RAFASYA</p>
             </div>
-            <div className="border-t border-slate-100 bg-white p-5">
+            <div className="border-t border-field-line bg-field p-5">
               {!qrisError ? (
                 <img
                   src={QRIS_SRC}
@@ -146,7 +146,7 @@ export default function UploadBukti() {
                   <QrIcon size={36} className="text-slate-300" />
                   <p className="mt-3 text-sm font-semibold text-ink">QRIS belum dipasang</p>
                   <p className="mt-1 text-xs leading-relaxed text-ink-soft">
-                    Simpan foto QRIS sebagai <code className="rounded bg-white px-1 py-0.5 text-[11px]">public/qris.png</code>
+                    Simpan foto QRIS sebagai <code className="rounded bg-field px-1 py-0.5 text-[11px]">public/qris.png</code>
                   </p>
                 </div>
               )}
@@ -169,7 +169,7 @@ export default function UploadBukti() {
               <button
                 type="button"
                 onClick={salin}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs font-semibold text-kos-700 ring-1 ring-kos-100 transition hover:bg-kos-100/40"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-field px-2.5 py-1.5 text-xs font-semibold text-kos-700 ring-1 ring-kos-100 transition hover:bg-kos-100/40"
               >
                 <CopyIcon size={14} /> Salin
               </button>
@@ -195,8 +195,8 @@ export default function UploadBukti() {
         </section>
 
         {/* Form */}
-        <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" noValidate>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
+        <form onSubmit={submit} className="rounded-2xl border border-field-line bg-field p-5 sm:p-6" noValidate>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-field-line pb-4">
             <p className="flex items-center gap-2 text-sm text-ink-soft">
               Periode Tagihan:
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-ink capitalize">{periodeLabel}</span>
@@ -223,7 +223,7 @@ export default function UploadBukti() {
                 <span className="text-sm font-semibold text-ink">Nominal yang harus dibayar</span>
                 <span className="text-xs text-ink-soft">Terkunci otomatis</span>
               </div>
-              <div className="flex h-12 items-center justify-between rounded-lg border border-slate-200 bg-slate-100/70 px-4">
+              <div className="flex h-12 items-center justify-between rounded-lg border border-field-line bg-slate-100/70 px-4">
                 <span className="font-bold text-ink tabular-nums">{rupiah(total)}</span>
                 <span className="flex items-center gap-1.5 text-xs text-ink-soft">
                   Otomatis <LockIcon size={14} />
@@ -262,7 +262,7 @@ export default function UploadBukti() {
             </div>
           </div>
 
-          <div className="mt-7 flex justify-end gap-3 border-t border-slate-100 pt-5">
+          <div className="mt-7 flex justify-end gap-3 border-t border-field-line pt-5">
             <Link to={`/dashboard/tagihan-saya/${t.id}`} className={btnOutline}>
               <ArrowLeftIcon size={16} /> Batal
             </Link>

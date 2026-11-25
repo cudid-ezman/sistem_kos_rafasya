@@ -17,7 +17,7 @@ import EmptyState from '../../components/admin/EmptyState';
 import { inputCls, labelCls, tdCls, thCls } from '../../components/admin/styles';
 
 type Status = Keluhan['status'];
-type Filter = 'semua' | Status;
+type Filter = 'perlu' | 'semua' | Status;
 const PER_HALAMAN = 8;
 
 const PILIHAN: { key: Status; label: string }[] = [
@@ -35,11 +35,22 @@ const BADGE_PEMILIK: Record<string, { label: string; cls: string }> = {
 
 export default function DaftarKeluhan() {
   const toast = useToast();
-  const [params] = useSearchParams();
   const [list, setList] = useState<Keluhan[]>([]);
   const [kategoriList, setKategoriList] = useState<KategoriKeluhan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>('semua');
+  // Filter disimpan di URL (?status=...) supaya tombol back dan refresh tidak mengembalikannya ke awal.
+  const [params, setParams] = useSearchParams();
+  const statusParam = params.get('status');
+  const filter: Filter =
+    statusParam === 'semua' || statusParam === 'diterima' || statusParam === 'diproses' || statusParam === 'selesai'
+      ? statusParam
+      : 'perlu';
+  const setFilter = (k: Filter) => {
+    const next = new URLSearchParams(params);
+    if (k === 'perlu') next.delete('status');
+    else next.set('status', k);
+    setParams(next, { replace: true });
+  };
   const [cari, setCari] = useState(params.get('cari') ?? '');
   const [halaman, setHalaman] = useState(1);
 
@@ -79,20 +90,23 @@ export default function DaftarKeluhan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const hitung = useMemo(
-    () => ({
+  const hitung = useMemo(() => {
+    const diterima = list.filter((k) => k.status === 'diterima').length;
+    const diproses = list.filter((k) => k.status === 'diproses').length;
+    return {
       semua: list.length,
-      diterima: list.filter((k) => k.status === 'diterima').length,
-      diproses: list.filter((k) => k.status === 'diproses').length,
+      diterima,
+      diproses,
       selesai: list.filter((k) => k.status === 'selesai').length,
-    }),
-    [list]
-  );
+      perlu: diterima + diproses,
+    };
+  }, [list]);
 
   const tersaring = useMemo(() => {
     const q = cari.trim().toLowerCase().replace(/\s+/g, ' ');
     return list.filter((k) => {
-      if (filter !== 'semua' && k.status !== filter) return false;
+      if (filter === 'perlu' && k.status === 'selesai') return false;
+      if (filter !== 'semua' && filter !== 'perlu' && k.status !== filter) return false;
       if (!q) return true;
       const kamar = (k.nomor_kamar || '').toLowerCase();
       if (/^\d+$/.test(q)) {
@@ -107,7 +121,8 @@ export default function DaftarKeluhan() {
       );
     });
   }, [list, filter, cari]);
-  const baris = tersaring.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
+  const halamanAktif = Math.min(halaman, Math.max(1, Math.ceil(tersaring.length / PER_HALAMAN)));
+  const baris = tersaring.slice((halamanAktif - 1) * PER_HALAMAN, halamanAktif * PER_HALAMAN);
 
   const buka = (k: Keluhan) => {
     setTerpilih(k);
@@ -233,8 +248,8 @@ export default function DaftarKeluhan() {
         }
       />
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="overflow-hidden rounded-2xl border border-field-line bg-white">
+        <div className="flex flex-col gap-4 border-b border-field-line px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <FilterTabs
             value={filter}
             onChange={(k) => {
@@ -242,10 +257,11 @@ export default function DaftarKeluhan() {
               setHalaman(1);
             }}
             tabs={[
-              { key: 'semua', label: 'Semua', count: hitung.semua },
+              { key: 'perlu', label: 'Perlu ditindak', count: hitung.perlu },
               { key: 'diterima', label: 'Diterima', count: hitung.diterima },
               { key: 'diproses', label: 'Diproses', count: hitung.diproses },
               { key: 'selesai', label: 'Selesai', count: hitung.selesai },
+              { key: 'semua', label: 'Semua', count: hitung.semua },
             ]}
           />
           <SearchInput
@@ -261,13 +277,13 @@ export default function DaftarKeluhan() {
         {tersaring.length === 0 ? (
           <EmptyState
             icon={<WarningIcon size={26} />}
-            title={list.length === 0 ? 'Belum ada keluhan masuk' : 'Tidak ada keluhan pada filter ini'}
+            title={list.length === 0 ? 'Belum ada keluhan masuk' : filter === 'perlu' ? 'Semua keluhan sudah beres' : 'Tidak ada keluhan pada filter ini'}
             text={list.length === 0 ? 'Laporan dari penghuni akan muncul di sini.' : undefined}
           />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/70">
+              <thead className="bg-cream/50">
                 <tr>
                   <th className={thCls}>Tanggal</th>
                   <th className={thCls}>Penghuni / Kamar</th>
@@ -277,11 +293,11 @@ export default function DaftarKeluhan() {
                   <th className={`${thCls} text-right`}>Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-field-line">
                 {baris.map((k) => {
                   const badgePemilik = k.dieskalasi_pemilik && k.status_pemilik ? BADGE_PEMILIK[k.status_pemilik] : null;
                   return (
-                    <tr key={k.id} className="align-top transition hover:bg-slate-50/70">
+                    <tr key={k.id} className="align-top transition hover:bg-cream/40">
                       <td className={`${tdCls} whitespace-nowrap text-ink-soft`}>{tglPendek(k.tanggal_kirim)}</td>
                       <td className={tdCls}>
                         <div className="flex items-center gap-3">
@@ -295,7 +311,7 @@ export default function DaftarKeluhan() {
                         </div>
                       </td>
                       <td className={`${tdCls} max-w-xs`}>
-                        <span className="rounded-md bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">{k.nama_kategori || 'Umum'}</span>
+                        <span className="rounded-md bg-cream px-2 py-0.5 text-xs font-semibold text-gerbang">{k.nama_kategori || 'Umum'}</span>
                         <p className="mt-1.5 line-clamp-2 text-ink-soft">{k.deskripsi}</p>
                         {k.foto && (
                           <a href={k.foto} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs font-semibold text-kos-700 hover:underline">
@@ -341,7 +357,7 @@ export default function DaftarKeluhan() {
             </table>
           </div>
         )}
-        <Pagination total={tersaring.length} page={halaman} perPage={PER_HALAMAN} onChange={setHalaman} />
+        <Pagination total={tersaring.length} page={halamanAktif} perPage={PER_HALAMAN} onChange={setHalaman} />
       </section>
 
       {/* Modal Tindak Lanjut */}
@@ -369,7 +385,7 @@ export default function DaftarKeluhan() {
                   <label
                     key={p.key}
                     className={`flex cursor-pointer items-center justify-center rounded-lg border px-3 py-2.5 text-center text-[13px] font-semibold transition ${
-                      statusBaru === p.key ? 'border-kos-600 bg-kos-100/50 text-kos-700 ring-1 ring-kos-600' : 'border-slate-200 text-ink-soft hover:border-slate-300'
+                      statusBaru === p.key ? 'border-kos-600 bg-kos-100/50 text-kos-700 ring-1 ring-kos-600' : 'border-field-line text-ink-soft hover:border-slate-300'
                     }`}
                   >
                     <input
@@ -451,7 +467,7 @@ export default function DaftarKeluhan() {
 
             {/* Bagian Eskalasi ke Pemilik hanya tampil jika status Diterima atau Diproses */}
             {statusBaru !== 'selesai' ? (
-              <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+              <div className="space-y-3 rounded-2xl border border-field-line bg-cream/50 p-4">
                 <label className="flex cursor-pointer items-start gap-3">
                   <input
                     type="checkbox"
@@ -472,7 +488,7 @@ export default function DaftarKeluhan() {
                 </label>
 
                 {eskalasiPemilik && (
-                  <div className="space-y-3 border-t border-slate-200 pt-3">
+                  <div className="space-y-3 border-t border-field-line pt-3">
                     <label className="flex cursor-pointer items-center gap-2.5 text-xs font-semibold text-ink">
                       <input
                         type="checkbox"
@@ -534,7 +550,7 @@ export default function DaftarKeluhan() {
               terpilih.dieskalasi_pemilik &&
               terpilih.status_pemilik &&
               terpilih.status_pemilik !== 'tidak_diajukan' && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-ink-soft">
+                <div className="rounded-2xl border border-field-line bg-slate-50 p-3.5 text-xs text-ink-soft">
                   <p className="font-semibold text-ink">
                     Arsip Eskalasi Pemilik: {BADGE_PEMILIK[terpilih.status_pemilik]?.label}
                     {Number(terpilih.nominal_pencairan || 0) > 0 ? ` • Dana cair ${rupiah(terpilih.nominal_pencairan || 0)}` : ''}
@@ -576,7 +592,7 @@ export default function DaftarKeluhan() {
             </button>
           </form>
 
-          <ul className="max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-2xl border border-slate-200">
+          <ul className="max-h-72 divide-y divide-field-line overflow-y-auto rounded-2xl border border-field-line">
             {kategoriList.map((kat) => (
               <li key={kat.id} className="flex items-center justify-between gap-2 px-4 py-2.5 text-sm">
                 {editKatId === kat.id ? (

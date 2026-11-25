@@ -46,7 +46,7 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
 
         <div className="flex w-full flex-1 items-center justify-center">
           <div
-            className={`w-full rounded-2xl border border-slate-200 bg-white p-8 sm:p-10 ${
+            className={`w-full rounded-2xl border border-field-line bg-white p-8 sm:p-10 ${
               wide ? 'max-w-[520px]' : 'max-w-[460px]'
             }`}
           >

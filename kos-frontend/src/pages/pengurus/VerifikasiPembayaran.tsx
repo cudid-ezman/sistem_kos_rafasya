@@ -113,7 +113,7 @@ export default function VerifikasiPembayaran() {
       </div>
 
       {tampil.length === 0 ? (
-        <section className="rounded-2xl border border-slate-200 bg-white">
+        <section className="rounded-2xl border border-field-line bg-white">
           <EmptyState
             icon={<ShieldCheckIcon size={26} />}
             title={tab === 'menunggu' ? 'Antrean kosong' : 'Belum ada pembayaran'}
@@ -133,7 +133,7 @@ export default function VerifikasiPembayaran() {
                     onClick={() => setTerpilih(b.id)}
                     aria-pressed={aktif}
                     className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl border bg-white p-4 text-left transition ${
-                      aktif ? 'border-kos-600 ring-1 ring-kos-600' : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                      aktif ? 'border-kos-600 ring-1 ring-kos-600' : 'border-field-line hover:border-slate-300 hover:shadow-sm'
                     }`}
                   >
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-kos-100/70 text-sm font-bold text-kos-700">
@@ -162,8 +162,8 @@ export default function VerifikasiPembayaran() {
 
           {/* Detail & pratinjau */}
           {dipilih && (
-            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white lg:sticky lg:top-24">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+            <section className="overflow-hidden rounded-2xl border border-field-line bg-white lg:sticky lg:top-24">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-field-line px-6 py-4">
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-kos-600 text-sm font-bold text-white">
                     {inisial(dipilih.nama_penghuni || '?')}
@@ -183,7 +183,7 @@ export default function VerifikasiPembayaran() {
                   href={dipilih.berkas}
                   target="_blank"
                   rel="noreferrer"
-                  className="group flex min-h-[260px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+                  className="group flex min-h-[260px] items-center justify-center overflow-hidden rounded-2xl border border-field-line bg-slate-50"
                   aria-label="Buka bukti pembayaran ukuran penuh"
                 >
                   {gambarError === dipilih.id || !dipilih.berkas ? (
@@ -228,7 +228,7 @@ export default function VerifikasiPembayaran() {
               </div>
 
               {dipilih.status === 'menunggu_verifikasi' && (
-                <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/60 px-6 py-4 sm:flex-row sm:justify-end">
+                <div className="flex flex-col-reverse gap-3 border-t border-field-line bg-cream/40 px-6 py-4 sm:flex-row sm:justify-end">
                   <button type="button" onClick={() => setTolakOpen(true)} className={`${btnOutline} text-rose-600 hover:!border-rose-200 hover:!bg-rose-50`}>
                     <XIcon size={17} /> Tolak
                   </button>
@@ -259,7 +259,7 @@ export default function VerifikasiPembayaran() {
             <textarea id="alasan" rows={3} required value={alasan} onChange={(e) => setAlasan(e.target.value)} placeholder="Jelaskan kenapa bukti ditolak..." className={inputCls} />
             <div className="mt-2 flex flex-wrap gap-2">
               {ALASAN_CEPAT.map((a) => (
-                <button key={a} type="button" onClick={() => setAlasan(a)} className="cursor-pointer rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-ink-soft transition hover:border-kos-500 hover:text-kos-700">
+                <button key={a} type="button" onClick={() => setAlasan(a)} className="cursor-pointer rounded-full border border-field-line px-3 py-1 text-xs font-medium text-ink-soft transition hover:border-kos-500 hover:text-kos-700">
                   {a}
                 </button>
               ))}

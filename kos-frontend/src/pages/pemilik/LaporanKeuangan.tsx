@@ -143,7 +143,7 @@ export default function LaporanKeuangan() {
           </p>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <section className="rounded-2xl border border-field-line bg-field p-6">
           <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-ink">
             <ChartIcon size={18} className="text-kos-600" /> {JUDUL_GRAFIK[mode]}
           </h2>
@@ -151,8 +151,8 @@ export default function LaporanKeuangan() {
         </section>
       </div>
 
-      <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <section className="mt-5 overflow-hidden rounded-2xl border border-field-line bg-field">
+        <div className="flex flex-col gap-3 border-b border-field-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-base font-bold text-ink">Rincian Pemasukan Sewa</h2>
             <p className="text-xs text-ink-soft">Tagihan berstatus Lunas pada {mode === 'semua' ? 'semua waktu' : labelPeriode(mode, anchor)}.</p>
@@ -178,7 +178,7 @@ export default function LaporanKeuangan() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/70">
+              <thead className="bg-cream/50">
                 <tr>
                   <th className={thCls}>Tanggal Bayar</th>
                   <th className={thCls}>Periode</th>
@@ -188,9 +188,9 @@ export default function LaporanKeuangan() {
                   <th className={thCls}>Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-field-line">
                 {baris.map((t) => (
-                  <tr key={t.id} className="transition hover:bg-slate-50/70 print:break-inside-avoid">
+                  <tr key={t.id} className="transition hover:bg-cream/40 print:break-inside-avoid">
                     <td className={`${tdCls} whitespace-nowrap tabular-nums`}>{tglAngka(t.tanggal_bayar || t.tanggal_verifikasi || t.jatuh_tempo)}</td>
                     <td className={`${tdCls} font-semibold capitalize`}>{t.periode}</td>
                     <td className={tdCls}>{t.nama_penghuni || t.penghuni?.nama_lengkap || '-'}</td>

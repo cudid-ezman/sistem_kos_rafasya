@@ -1,6 +1,17 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
+/** Pita atap seng merah bata, penanda visual khas Kost Raffasya. */
+export function Atap({ className = '' }: { className?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`h-3.5 bg-terracotta ${className}`}
+      style={{ backgroundImage: 'repeating-linear-gradient(90deg, rgb(0 0 0 / .18) 0 2px, transparent 2px 12px)' }}
+    />
+  );
+}
+
 /** Panel dasar untuk blok konten di beranda. */
 export const panelCls = 'overflow-hidden rounded-2xl border border-field-line bg-field';
 export const panelHeadCls = 'flex items-center justify-between border-b border-field-line px-6 py-4';
@@ -108,11 +119,7 @@ export function Hero({
   const tanggal = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <section className="overflow-hidden rounded-2xl border border-gerbang/15">
-      <div
-        aria-hidden="true"
-        className="h-3.5 bg-terracotta"
-        style={{ backgroundImage: 'repeating-linear-gradient(90deg, rgb(0 0 0 / .18) 0 2px, transparent 2px 12px)' }}
-      />
+      <Atap />
       <div className="bg-cream px-6 py-6 lg:px-8 lg:py-7">
         <p className="text-sm font-medium text-gerbang/65">{tanggal}</p>
         <h2 className="mt-1 font-display text-3xl font-extrabold tracking-tight text-gerbang lg:text-4xl">Halo, {nama}</h2>
