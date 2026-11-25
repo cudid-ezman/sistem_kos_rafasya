@@ -57,7 +57,7 @@ export default function PortalFrame({
   }, [akunBuka]);
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-screen bg-page print:min-h-0 print:bg-white">
       <a
         href="#konten"
         className="sr-only z-[70] rounded-lg bg-white px-3 py-2 text-sm font-semibold text-kos-700 focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
@@ -65,8 +65,8 @@ export default function PortalFrame({
         Lewati ke konten
       </a>
 
-      <header className="sticky top-0 z-40 border-b border-field-line bg-page/90 backdrop-blur-md">
-        <div className="mx-auto max-w-[1120px] px-4 lg:px-6">
+      <header className="sticky top-0 z-40 border-b border-field-line bg-page/90 backdrop-blur-md print:hidden">
+        <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-10">
           <div className="flex h-16 items-center justify-between">
             <Link
               to={homeTo}
@@ -179,7 +179,7 @@ export default function PortalFrame({
 
       <main
         id="konten"
-        className="mx-auto max-w-[1120px] px-4 pb-28 pt-6 lg:px-6 lg:pb-12 lg:pt-8"
+        className="mx-auto w-full max-w-screen-2xl px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8 print:max-w-none print:p-0"
       >
         {children}
       </main>
@@ -187,7 +187,7 @@ export default function PortalFrame({
       {/* Navigasi bawah (ponsel) */}
       <nav
         aria-label="Menu utama"
-        className="fixed inset-x-3 bottom-3 z-40 flex rounded-2xl bg-gerbang p-1.5 lg:hidden"
+        className="fixed inset-x-3 bottom-3 z-40 flex rounded-2xl bg-gerbang p-1.5 lg:hidden print:hidden"
       >
         {nav.map((n) => (
           <NavLink

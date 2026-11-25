@@ -1,3 +1,4 @@
+import { DEFAULT_TEMPLATE_LOKAL, renderTemplatePesan, templateWaService } from "../../services/templateWaService";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
@@ -71,10 +72,14 @@ export default function DataPenghuni() {
   const [formOpen, setFormOpen] = useState(params.get("tambah") === "1");
   const [form, setForm] = useState<CreatePenghuniPayload>(formKosong());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [templateSambutan, setTemplateSambutan] = useState<string>(DEFAULT_TEMPLATE_LOKAL.sambutan);
   const [akunBaru, setAkunBaru] = useState<{
     nama: string;
     email: string;
     password: string;
+    noKontak: string;
+    nomorKamar: string;
+    tanggalMasuk: string;
   } | null>(null);
 
   // Modal edit / pindah kamar / aktifkan kembali
@@ -135,6 +140,10 @@ export default function DataPenghuni() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchData();
+    void templateWaService.getAll().then((res) => {
+      const t = res.data.find((x) => x.kode === "sambutan");
+      if (t?.isi) setTemplateSambutan(t.isi);
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -195,10 +204,14 @@ export default function DataPenghuni() {
     setIsSubmitting(true);
     try {
       await kamarService.createPenghuni(form);
+      const kamarTerpilih = kamarList.find((k) => k.id === form.kamar);
       setAkunBaru({
-        nama: form.nama_lengkap,
+        nama: form.nama_lengkap.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
+        noKontak: form.no_kontak.trim(),
+        nomorKamar: kamarTerpilih?.nomor_kamar || "-",
+        tanggalMasuk: form.tanggal_masuk,
       });
       tutupForm();
       setForm(formKosong());
@@ -844,58 +857,131 @@ export default function DataPenghuni() {
         confirmLabel="Ya, Checkout Penghuni"
       />
 
-      {/* Modal Info Akun Baru */}
+      {/* Modal Info Akun Baru + Sambutan WhatsApp */}
       <Modal
         open={!!akunBaru}
         onClose={() => setAkunBaru(null)}
         title="Penghuni berhasil ditambahkan"
         size="sm"
       >
-        <div className="mb-4 flex items-center gap-3 rounded-2xl bg-emerald-50 p-3.5 text-sm text-emerald-800">
-          <CheckCircleIcon size={20} className="shrink-0" />
-          <span>
-            Akun login untuk <b>{akunBaru?.nama}</b> sudah dibuat.
-          </span>
-        </div>
-        <dl className="space-y-3">
-          {[
-            ["Email Login", akunBaru?.email ?? ""],
-            ["Kata Sandi Awal", akunBaru?.password ?? ""],
-          ].map(([k, v]) => (
-            <div
-              key={k}
-              className="flex items-center justify-between gap-3 rounded-lg border border-field-line px-4 py-2.5"
-            >
-              <div>
-                <dt className="text-[11px] font-semibold text-ink-soft">
-                  {k}
-                </dt>
-                <dd className="font-mono text-sm font-semibold text-ink">
-                  {v}
-                </dd>
+        {akunBaru && (() => {
+          const digits = akunBaru.noKontak.replace(/\D/g, "");
+          const waNumber = digits.startsWith("0")
+            ? "62" + digits.slice(1)
+            : digits.startsWith("8")
+              ? "62" + digits
+              : digits;
+          const loginUrl = window.location.origin;
+          const tglJatuhTempo = akunBaru.tanggalMasuk.split("-")[2] || "-";
+          const pesanSambutan = renderTemplatePesan(templateSambutan, {
+            nama: akunBaru.nama,
+            kamar: akunBaru.nomorKamar,
+            jatuh_tempo: tglJatuhTempo,
+            link_login: loginUrl,
+            email: akunBaru.email,
+            password: akunBaru.password,
+          });
+          const waHref = waNumber
+            ? `https://wa.me/${waNumber}?text=${encodeURIComponent(pesanSambutan)}`
+            : "";
+
+          return (
+            <>
+              <div className="mb-4 flex items-center gap-3 rounded-2xl bg-emerald-50 p-3.5 text-sm text-emerald-800">
+                <CheckCircleIcon size={20} className="shrink-0" />
+                <span>
+                  Akun &amp; tagihan pertama untuk <b>{akunBaru.nama}</b> (Kamar{" "}
+                  <b>{akunBaru.nomorKamar}</b>) sudah dibuat otomatis.
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={() => salin(v)}
-                aria-label={`Salin ${k}`}
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-ink-soft hover:bg-slate-100"
-              >
-                <CopyIcon size={17} />
-              </button>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-3 text-xs leading-relaxed text-ink-soft">
-          Berikan kredensial ini ke penghuni dan minta mereka segera mengganti
-          kata sandi setelah login.
-        </p>
-        <button
-          type="button"
-          onClick={() => setAkunBaru(null)}
-          className={`${btnPrimary} mt-5 w-full`}
-        >
-          Selesai
-        </button>
+              <dl className="space-y-2.5">
+                {[
+                  ["Link Login", loginUrl],
+                  ["Email Login", akunBaru.email],
+                  ["Kata Sandi Awal", akunBaru.password],
+                ].map(([k, v]) => (
+                  <div
+                    key={k}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-field-line px-4 py-2.5"
+                  >
+                    <div className="min-w-0">
+                      <dt className="text-[11px] font-semibold text-ink-soft">
+                        {k}
+                      </dt>
+                      <dd className="truncate font-mono text-sm font-semibold text-ink">
+                        {v}
+                      </dd>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => salin(v)}
+                      aria-label={`Salin ${k}`}
+                      className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-ink-soft hover:bg-slate-100"
+                    >
+                      <CopyIcon size={17} />
+                    </button>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+                Kirimkan pesan sambutan berisi tautan login dan akun di atas ke
+                WhatsApp penghuni, serta sarankan untuk langsung mengganti kata
+                sandi secara mandiri.
+              </p>
+
+              <div className="mt-5 space-y-2.5">
+                {waHref ? (
+                  <a
+                    href={waHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${btnPrimary} w-full justify-center`}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="17"
+                      height="17"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                    </svg>
+                    Kirim Sambutan via WhatsApp
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => salin(pesanSambutan)}
+                    className={`${btnPrimary} w-full`}
+                  >
+                    <CopyIcon size={16} /> Salin Pesan Sambutan
+                  </button>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => salin(pesanSambutan)}
+                    className={`${btnOutline} flex-1`}
+                  >
+                    <CopyIcon size={15} /> Salin Pesan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAkunBaru(null)}
+                    className={`${btnOutline} flex-1`}
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </Modal>
     </div>
   );

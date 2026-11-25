@@ -241,3 +241,83 @@ class PasswordResetOTP(models.Model):
 
     def __str__(self):
         return f"OTP {self.user.email} - {self.kode} ({'dipakai' if self.sudah_dipakai else 'aktif'})"
+
+
+DEFAULT_TEMPLATE_WA = {
+    'sambutan': {
+        'judul': 'Sambutan Penghuni Baru',
+        'deskripsi': 'Dikirim melalui tombol WhatsApp setelah pengurus mendaftarkan akun penghuni baru.',
+        'variabel': '{nama}, {kamar}, {jatuh_tempo}, {link_login}, {email}, {password}',
+        'isi': (
+            "Halo *{nama}*, selamat datang di *Kost Putra Raffasya*!\n\n"
+            "Akun portal penghuni Anda telah aktif untuk *Kamar {kamar}* (jatuh tempo setiap tanggal *{jatuh_tempo}*).\n\n"
+            "Link Login: {link_login}\n"
+            "Email Login: {email}\n"
+            "Kata Sandi Awal: {password}\n\n"
+            "Tagihan bulan pertama Anda sudah diterbitkan otomatis dan dapat dilihat pada menu *Tagihan Saya*.\n"
+            "Demi keamanan akun, mohon segera ubah kata sandi Anda secara mandiri melalui tombol *Ubah Sandi* setelah berhasil login."
+        ),
+    },
+    'tagihan': {
+        'judul': 'Pengingat & Rincian Tagihan',
+        'deskripsi': 'Digunakan untuk pengingat tagihan jatuh tempo maupun pesan tagihan manual ke penghuni.',
+        'variabel': '{nama}, {kamar}, {periode}, {nominal}, {denda}, {total}, {jatuh_tempo}, {link_login}',
+        'isi': (
+            "*[Kos Putra Raffasya]*\n"
+            "Halo *{nama}*, berikut rincian tagihan sewa *Kamar {kamar}* periode *{periode}*:\n\n"
+            "• Pokok Sewa: {nominal}\n"
+            "• Denda Keterlambatan: {denda}\n"
+            "• Total Tagihan: *{total}*\n"
+            "• Jatuh Tempo: *{jatuh_tempo}*\n\n"
+            "Silakan lakukan pembayaran dan unggah bukti transfer melalui portal penghuni: {link_login}"
+        ),
+    },
+    'kuitansi': {
+        'judul': 'Kuitansi Pembayaran Lunas',
+        'deskripsi': 'Dikirim otomatis saat pengurus menyetujui bukti pembayaran penghuni.',
+        'variabel': '{nama}, {kamar}, {periode}, {nominal}, {denda}, {total}, {tanggal_bayar}',
+        'isi': (
+            "*[Kos Putra Raffasya - KUITANSI LUNAS]*\n"
+            "Halo *{nama}*, pembayaran sewa *Kamar {kamar}* periode *{periode}* sebesar *{total}* telah *DIVERIFIKASI & LUNAS* pada tanggal *{tanggal_bayar}*.\n\n"
+            "Terima kasih telah melakukan pembayaran tepat waktu."
+        ),
+    },
+}
+
+
+class TemplatePesanWA(models.Model):
+    KODE_CHOICES = (
+        ('sambutan', 'Sambutan Penghuni Baru'),
+        ('tagihan', 'Pengingat & Rincian Tagihan'),
+        ('kuitansi', 'Kuitansi Pembayaran Lunas'),
+    )
+    kode = models.CharField(max_length=30, unique=True, choices=KODE_CHOICES)
+    judul = models.CharField(max_length=100)
+    isi = models.TextField()
+    diperbarui_pada = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.judul} ({self.kode})"
+
+    @classmethod
+    def pastikan_default(cls):
+        hasil = []
+        for kode, meta in DEFAULT_TEMPLATE_WA.items():
+            obj, _ = cls.objects.get_or_create(
+                kode=kode,
+                defaults={'judul': meta['judul'], 'isi': meta['isi']},
+            )
+            hasil.append(obj)
+        return hasil
+
+    @classmethod
+    def render_pesan(cls, kode: str, konteks: dict) -> str:
+        meta = DEFAULT_TEMPLATE_WA.get(kode, {'judul': kode, 'isi': ''})
+        obj = cls.objects.filter(kode=kode).first()
+        teks = obj.isi if obj and obj.isi.strip() else meta['isi']
+        for k, v in konteks.items():
+            teks = teks.replace('{' + str(k) + '}', str(v if v is not None else ''))
+        return teks

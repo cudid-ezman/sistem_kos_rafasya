@@ -3,6 +3,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 
 urlpatterns = [
+    path('template-wa/', views.template_wa_list_api, name='api_template_wa'),
+    path('template-wa/<str:kode>/', views.template_wa_detail_api, name='api_template_wa_detail'),
     path('login/', views.CustomLoginView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', views.data_diri, name='api_me'),

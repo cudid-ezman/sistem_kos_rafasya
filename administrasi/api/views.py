@@ -1382,3 +1382,60 @@ def respon_perpanjangan_api(request, pk):
     tagihan.save(update_fields=['status_perpanjangan'])
 
     return Response(TagihanSerializer(tagihan).data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def template_wa_list_api(request):
+    from administrasi.models import DEFAULT_TEMPLATE_WA, TemplatePesanWA
+    items = TemplatePesanWA.pastikan_default()
+    data = []
+    for item in items:
+        meta = DEFAULT_TEMPLATE_WA.get(item.kode, {})
+        data.append({
+            'kode': item.kode,
+            'judul': item.judul,
+            'deskripsi': meta.get('deskripsi', ''),
+            'variabel': meta.get('variabel', ''),
+            'isi': item.isi,
+            'isi_default': meta.get('isi', ''),
+            'diperbarui_pada': item.diperbarui_pada,
+        })
+    return Response(data)
+
+
+@api_view(['PUT', 'PATCH', 'POST'])
+@permission_classes([IsAuthenticated])
+def template_wa_detail_api(request, kode):
+    from administrasi.models import DEFAULT_TEMPLATE_WA, TemplatePesanWA
+    if kode not in DEFAULT_TEMPLATE_WA:
+        return Response({'detail': 'Kode template tidak dikenali.'}, status=404)
+    profil = ProfilUser.objects.filter(user=request.user).first()
+    role_user = 'superadmin' if request.user.is_superuser else (profil.role if profil else '')
+    if role_user not in ('pengurus', 'pemilik', 'superadmin'):
+        return Response({'detail': 'Akses ditolak.'}, status=403)
+
+    TemplatePesanWA.pastikan_default()
+    obj = TemplatePesanWA.objects.get(kode=kode)
+    meta = DEFAULT_TEMPLATE_WA[kode]
+
+    if request.data.get('reset'):
+        obj.judul = meta['judul']
+        obj.isi = meta['isi']
+        obj.save()
+    else:
+        isi_baru = str(request.data.get('isi', '')).strip()
+        if not isi_baru:
+            return Response({'detail': 'Isi template pesan tidak boleh kosong.'}, status=400)
+        obj.isi = isi_baru
+        obj.save()
+
+    return Response({
+        'kode': obj.kode,
+        'judul': obj.judul,
+        'deskripsi': meta.get('deskripsi', ''),
+        'variabel': meta.get('variabel', ''),
+        'isi': obj.isi,
+        'isi_default': meta.get('isi', ''),
+        'diperbarui_pada': obj.diperbarui_pada,
+    })

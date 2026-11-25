@@ -25,6 +25,7 @@ import DataPenghuni from "./pages/pengurus/DataPenghuni";
 import DataTagihan from "./pages/pengurus/DataTagihan";
 import DaftarKeluhan from "./pages/pengurus/DaftarKeluhan";
 import KelolaInformasi from "./pages/pengurus/KelolaInformasi";
+import PengaturanTemplateWA from "./pages/pengurus/PengaturanTemplateWA";
 import Beranda from "./pages/Beranda";
 import LaporanKeuangan from "./pages/pemilik/LaporanKeuangan";
 import KeluhanPemilik from "./pages/pemilik/KeluhanPemilik";
@@ -169,6 +170,10 @@ function App() {
           <Route
             path="/dashboard/informasi-kelola"
             element={<KelolaInformasi />}
+          />
+          <Route
+            path="/dashboard/pengaturan"
+            element={<PengaturanTemplateWA />}
           />
 
           {/* Rute Pemilik */}
