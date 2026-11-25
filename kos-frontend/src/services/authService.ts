@@ -43,11 +43,14 @@ export const registerPenghuni = (payload: RegisterPayload) =>
 export const requestPasswordReset = (email: string) =>
   api.post("/password-reset/", { email });
 
+export const verifyPasswordResetOtp = (email: string, otp: string) =>
+  api.post("/password-reset/verify-otp/", { email, otp });
+
 export const confirmPasswordReset = (
-  uid: string,
-  token: string,
+  email: string,
+  otp: string,
   password: string,
-) => api.post("/password-reset/confirm/", { uid, token, password });
+) => api.post("/password-reset/confirm/", { email, otp, password });
 
 /**
  * Ambil pesan error dari respons Django REST Framework.

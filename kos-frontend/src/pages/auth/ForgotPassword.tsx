@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AuthLayout from '../../components/auth/AuthLayout';
 import Alert from '../../components/auth/Alert';
@@ -8,27 +8,33 @@ import SubmitButton from '../../components/auth/SubmitButton';
 import AuthIconBadge from '../../components/auth/AuthIconBadge';
 import { ArrowLeftIcon, KeyIcon, MailIcon, SendIcon } from '../../components/auth/icons';
 import { requestPasswordReset } from '../../services/authService';
+import LinkWhatsAppPengurus from '../../components/common/LinkWhatsAppPengurus';
 
-type Status = { kind: 'idle' } | { kind: 'success' } | { kind: 'error'; message: string };
+type Status = { kind: 'idle' } | { kind: 'error'; message: string };
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const emailBersih = email.trim().toLowerCase();
     setStatus({ kind: 'idle' });
     setIsLoading(true);
     try {
-      await requestPasswordReset(email.trim());
-      setStatus({ kind: 'success' });
+      await requestPasswordReset(emailBersih);
+      navigate('/atur-ulang-kata-sandi', {
+        state: { email: emailBersih, baruTerkirim: true },
+      });
     } catch (err) {
       const notFound = axios.isAxiosError(err) && [400, 404].includes(err.response?.status ?? 0);
+      const detail = axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
       setStatus({
         kind: 'error',
         message: notFound
-          ? 'Email tidak terdaftar'
+          ? (detail || 'Email tidak terdaftar')
           : 'Tidak dapat terhubung ke server. Pastikan backend menyala.',
       });
     } finally {
@@ -43,16 +49,11 @@ export default function ForgotPassword() {
       <AuthIconBadge icon={<KeyIcon size={20} />} />
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">Lupa Kata Sandi</h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-        Masukkan alamat email yang terdaftar pada akun Kost Raffasya Anda. Kami akan mengirimkan tautan
-        untuk mengatur ulang kata sandi Anda.
+        Masukkan alamat email yang terdaftar pada akun Kost Raffasya Anda. Kami akan mengirimkan{' '}
+        <span className="font-semibold text-ink">kode OTP 6 digit</span> untuk mengatur ulang kata sandi.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
-        {status.kind === 'success' && (
-          <Alert variant="success" onClose={() => setStatus({ kind: 'idle' })}>
-            Tautan atur ulang telah dikirim ke email Anda.
-          </Alert>
-        )}
         {hasError && (
           <Alert variant="error" onClose={() => setStatus({ kind: 'idle' })}>
             {status.message}
@@ -79,11 +80,11 @@ export default function ForgotPassword() {
 
         <SubmitButton
           loading={isLoading}
-          loadingText="Mengirim..."
+          loadingText="Mengirim Kode OTP..."
           disabled={!email.trim()}
           icon={<SendIcon size={16} />}
         >
-          Kirim Tautan
+          Kirim Kode OTP
         </SubmitButton>
       </form>
 
@@ -102,7 +103,7 @@ export default function ForgotPassword() {
       </div>
       <p className="mt-5 border-t border-slate-200 pt-5 text-center text-xs text-ink-soft">
         Butuh bantuan?{' '}
-        <span className="font-semibold text-kos-600">Hubungi pengurus kos.</span>
+        <LinkWhatsAppPengurus pesan="Halo Pengurus Kos Putra Raffasya, saya lupa kata sandi akun dan membutuhkan bantuan." />
       </p>
     </AuthLayout>
   );

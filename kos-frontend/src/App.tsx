@@ -96,12 +96,12 @@ function App() {
         }
       />
       <Route
-        path="/atur-ulang-kata-sandi/:uid/:token"
+        path="/atur-ulang-kata-sandi"
         element={<ResetPassword />}
       />
       <Route
         path="/atur-ulang-kata-sandi/*"
-        element={<Navigate to="/lupa-kata-sandi" replace />}
+        element={<ResetPassword />}
       />
 
       {/* Portal Penghuni (layout & halaman khusus penghuni) */}

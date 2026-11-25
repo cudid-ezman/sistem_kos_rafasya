@@ -226,3 +226,18 @@ class LogNotifikasiWA(models.Model):
 
     def __str__(self):
         return f"[{self.status_kirim}] {self.tujuan_role} ({self.nomor_tujuan}) - {self.jenis_event}"
+
+
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_otps')
+    kode = models.CharField(max_length=6)
+    dibuat_pada = models.DateTimeField(auto_now_add=True)
+    kedaluwarsa_pada = models.DateTimeField()
+    percobaan_gagal = models.PositiveSmallIntegerField(default=0)
+    sudah_dipakai = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-dibuat_pada']
+
+    def __str__(self):
+        return f"OTP {self.user.email} - {self.kode} ({'dipakai' if self.sudah_dipakai else 'aktif'})"

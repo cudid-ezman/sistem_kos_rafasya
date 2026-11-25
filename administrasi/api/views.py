@@ -1,3 +1,4 @@
+from administrasi.models import PasswordResetOTP
 from datetime import timedelta
 from django.utils.timezone import now
 from django.db import transaction
@@ -1018,9 +1019,30 @@ def laporan_keuangan_api(request):
         'transaksi': transaksi
     })
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def kontak_pengurus_api(request):
+    from administrasi.whatsapp import normalisasi_nomor_wa
+    raw = getattr(settings, 'WA_PENGURUS', '') or ''
+    if not raw:
+        env_file = settings.BASE_DIR / '.env'
+        if env_file.exists():
+            for line in env_file.read_text(encoding='utf-8').splitlines():
+                line = line.strip()
+                if line.startswith('WA_PENGURUS='):
+                    raw = line.split('=', 1)[1].strip().strip('"').strip("'")
+                    break
+    wa = normalisasi_nomor_wa(raw)
+    return Response({'wa_pengurus': wa})
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def request_password_reset_api(request):
+    import secrets
+    from datetime import timedelta
+    from django.utils.timezone import now
+
     email = (request.data.get('email') or '').strip().lower()
     if not email:
         return Response({'detail': 'Email wajib diisi.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -1034,45 +1056,139 @@ def request_password_reset_api(request):
     if not user.is_active:
         return Response({'detail': 'Akun ini sudah dinonaktifkan (checkout). Hubungi pengurus.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
-    reset_link = f"{getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')}/atur-ulang-kata-sandi/{uid}/{token}"
+    # Nonaktifkan kode OTP lama milik user ini
+    PasswordResetOTP.objects.filter(user=user, sudah_dipakai=False).update(sudah_dipakai=True)
+
+    kode_otp = f"{secrets.randbelow(1000000):06d}"
+    PasswordResetOTP.objects.create(
+        user=user,
+        kode=kode_otp,
+        kedaluwarsa_pada=now() + timedelta(minutes=10),
+    )
+
+    nama_sapaan = user.first_name or user.username
+    pesan_teks = (
+        f"Halo {nama_sapaan},\n\n"
+        f"Kode verifikasi (OTP) untuk mengatur ulang kata sandi akun Kost Putra Raffasya Anda adalah:\n\n"
+        f"{kode_otp}\n\n"
+        f"Kode ini berlaku selama 10 menit. Demi keamanan akun, jangan bagikan kode ini kepada siapa pun.\n"
+        f"Jika Anda tidak merasa meminta pengaturan ulang kata sandi, abaikan email ini."
+    )
+    pesan_html = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; color: #0f172a;">
+      <h2 style="margin: 0 0 12px; font-size: 20px; color: #064e3b;">Kost Putra Raffasya</h2>
+      <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6;">Halo <strong>{nama_sapaan}</strong>,</p>
+      <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6;">
+        Gunakan kode verifikasi (OTP) berikut untuk mengatur ulang kata sandi akun Anda:
+      </p>
+      <div style="margin: 20px 0; padding: 16px; background-color: #f0fdf4; border: 1px dashed #10b981; border-radius: 12px; text-align: center;">
+        <span style="font-size: 30px; font-weight: bold; letter-spacing: 8px; color: #065f46;">{kode_otp}</span>
+      </div>
+      <p style="margin: 0 0 8px; font-size: 13px; color: #475569;">
+        Kode berlaku selama <strong>10 menit</strong>. Jangan bagikan kode ini kepada siapa pun.
+      </p>
+      <p style="margin: 16px 0 0; font-size: 12px; color: #94a3b8;">
+        Jika Anda tidak merasa mengajukan permintaan ini, silakan abaikan email ini.
+      </p>
+    </div>
+    """
 
     send_mail(
-        subject='Atur Ulang Kata Sandi - Kos Rafasya',
-        message=(
-            f"Halo {user.first_name or user.username},\n\n"
-            f"Kami menerima permintaan untuk mengatur ulang kata sandi akun Kos Rafasya Anda.\n"
-            f"Silakan buka tautan berikut untuk membuat kata sandi baru:\n\n"
-            f"{reset_link}\n\n"
-            f"Jika Anda tidak merasa meminta perubahan ini, abaikan pesan ini."
-        ),
+        subject=f"{kode_otp} adalah kode verifikasi akun Kost Putra Raffasya Anda",
+        message=pesan_teks,
         from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'admin@kosrafasya.id'),
         recipient_list=[user.email],
+        html_message=pesan_html,
         fail_silently=False,
     )
 
-    return Response({'detail': 'Tautan atur ulang telah dikirim ke email Anda.'}, status=status.HTTP_200_OK)
+    return Response({'detail': 'Kode OTP 6 digit telah dikirim ke email Anda.'}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_password_reset_otp_api(request):
+    from django.utils.timezone import now
+
+    email = (request.data.get('email') or '').strip().lower()
+    kode = re.sub(r'\D', '', str(request.data.get('otp') or ''))
+
+    if not email:
+        return Response({'detail': 'Email wajib diisi.'}, status=status.HTTP_400_BAD_REQUEST)
+    if len(kode) != 6:
+        return Response({'detail': 'Masukkan 6 digit kode OTP yang dikirim ke email.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = (
+        User.objects.filter(email__iexact=email).first()
+        or User.objects.filter(username__iexact=email).first()
+    )
+    if not user:
+        return Response({'detail': 'Kode OTP tidak valid atau sudah kedaluwarsa.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    otp_obj = PasswordResetOTP.objects.filter(user=user, sudah_dipakai=False).order_by('-dibuat_pada').first()
+    if not otp_obj:
+        return Response({'detail': 'Kode OTP tidak ditemukan atau sudah digunakan. Silakan minta kode baru.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if now() > otp_obj.kedaluwarsa_pada:
+        otp_obj.sudah_dipakai = True
+        otp_obj.save(update_fields=['sudah_dipakai'])
+        return Response({'detail': 'Kode OTP sudah kedaluwarsa (lebih dari 10 menit). Silakan minta kode baru.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if otp_obj.kode != kode:
+        otp_obj.percobaan_gagal += 1
+        if otp_obj.percobaan_gagal >= 5:
+            otp_obj.sudah_dipakai = True
+            otp_obj.save(update_fields=['percobaan_gagal', 'sudah_dipakai'])
+            return Response({'detail': 'Terlalu banyak percobaan salah. Silakan minta kode OTP baru.'}, status=status.HTTP_400_BAD_REQUEST)
+        otp_obj.save(update_fields=['percobaan_gagal'])
+        return Response({'detail': 'Kode OTP tidak sesuai. Periksa kembali email Anda.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({'detail': 'Kode OTP terverifikasi.'}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def confirm_password_reset_api(request):
-    uidb64 = request.data.get('uid', '')
-    token = request.data.get('token', '')
+    from django.utils.timezone import now
+
+    email = (request.data.get('email') or '').strip().lower()
+    kode = re.sub(r'\D', '', str(request.data.get('otp') or ''))
     password = request.data.get('password', '')
 
+    if not email:
+        return Response({'detail': 'Email wajib diisi.'}, status=status.HTTP_400_BAD_REQUEST)
+    if len(kode) != 6:
+        return Response({'detail': 'Masukkan 6 digit kode OTP yang dikirim ke email.'}, status=status.HTTP_400_BAD_REQUEST)
     if len(password) < 8:
         return Response({'password': ['Kata sandi minimal 8 karakter.']}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        return Response({'detail': 'Tautan tidak valid atau sudah kedaluwarsa.'}, status=status.HTTP_400_BAD_REQUEST)
+    user = (
+        User.objects.filter(email__iexact=email).first()
+        or User.objects.filter(username__iexact=email).first()
+    )
+    if not user:
+        return Response({'detail': 'Kode OTP tidak valid atau sudah kedaluwarsa.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not default_token_generator.check_token(user, token):
-        return Response({'detail': 'Tautan tidak valid atau sudah kedaluwarsa.'}, status=status.HTTP_400_BAD_REQUEST)
+    otp_obj = PasswordResetOTP.objects.filter(user=user, sudah_dipakai=False).order_by('-dibuat_pada').first()
+    if not otp_obj:
+        return Response({'detail': 'Kode OTP tidak ditemukan atau sudah digunakan. Silakan minta kode baru.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if now() > otp_obj.kedaluwarsa_pada:
+        otp_obj.sudah_dipakai = True
+        otp_obj.save(update_fields=['sudah_dipakai'])
+        return Response({'detail': 'Kode OTP sudah kedaluwarsa (lebih dari 10 menit). Silakan minta kode baru.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if otp_obj.kode != kode:
+        otp_obj.percobaan_gagal += 1
+        if otp_obj.percobaan_gagal >= 5:
+            otp_obj.sudah_dipakai = True
+            otp_obj.save(update_fields=['percobaan_gagal', 'sudah_dipakai'])
+            return Response({'detail': 'Terlalu banyak percobaan salah. Silakan minta kode OTP baru.'}, status=status.HTTP_400_BAD_REQUEST)
+        otp_obj.save(update_fields=['percobaan_gagal'])
+        return Response({'detail': 'Kode OTP tidak sesuai. Periksa kembali email Anda.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    otp_obj.sudah_dipakai = True
+    otp_obj.save(update_fields=['sudah_dipakai'])
 
     user.set_password(password)
     user.save()

@@ -15,6 +15,7 @@ import {
   WarningIcon,
 } from "../components/portal/icons";
 import { BrandName, LogoMark } from "../components/brand/BrandLogo";
+import LinkWhatsAppPengurus from "../components/common/LinkWhatsAppPengurus";
 
 interface Props {
   user: UserProfile;
@@ -179,8 +180,12 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           </nav>
 
           <p className="mt-auto rounded-2xl border border-dashed border-slate-300 p-4 text-xs leading-relaxed text-ink-soft">
-            Butuh bantuan? Hubungi pengurus kos atau kirim laporan lewat menu
-            Keluhan.
+            Butuh bantuan?{' '}
+            <LinkWhatsAppPengurus
+              label="Hubungi pengurus kos"
+              pesan={`Halo Pengurus Kos Putra Raffasya, saya ${nama}${kamar ? ` (Kamar ${kamar.nomor})` : ''} membutuhkan bantuan.`}
+            />{' '}
+            atau kirim laporan lewat menu Keluhan.
           </p>
         </aside>
 

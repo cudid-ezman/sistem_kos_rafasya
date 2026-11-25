@@ -26,3 +26,13 @@ class LogNotifikasiWAAdmin(admin.ModelAdmin):
     list_filter = ('status_kirim', 'tujuan_role', 'jenis_event')
     search_fields = ('nomor_tujuan', 'pesan', 'referensi_kode')
     readonly_fields = ('waktu_kirim',)
+
+
+from .models import PasswordResetOTP
+
+@admin.register(PasswordResetOTP)
+class PasswordResetOTPAdmin(admin.ModelAdmin):
+    list_display = ('user', 'kode', 'dibuat_pada', 'kedaluwarsa_pada', 'percobaan_gagal', 'sudah_dipakai')
+    list_filter = ('sudah_dipakai',)
+    search_fields = ('user__email', 'user__username', 'kode')
+    readonly_fields = ('dibuat_pada',)
