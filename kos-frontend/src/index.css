@@ -4,31 +4,126 @@
   --font-brand: "Nunito", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-subtitle: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
-  --color-kos-950: #103e3b;
-  --color-kos-900: #1c5249;
-  --color-kos-700: #0f6b5b;
-  --color-kos-600: #14806c;
-  --color-kos-500: #1f9a82;
-  --color-kos-400: #5fe3b5;
-  --color-kos-100: #c6f0df;
+  /* Hijau cat dinding kos */
+  --color-kos-950: #11301a;
+  --color-kos-900: #1a4524;
+  --color-kos-700: #1c6e2a;
+  --color-kos-600: #248632;
+  --color-kos-500: #3dae48;
+  --color-kos-400: #7ccb7f;
+  --color-kos-100: #d9efd4;
 
   /* Token lama untuk layout pengurus/pemilik (dulu di tailwind.config.js, yang diabaikan Tailwind v4) */
-  --color-primary: #0d9488;
-  --color-primary-light: #e6f7f5;
-  --color-primary-dark: #0f766e;
-  --color-surface: #f9fafb;
+  --color-primary: #248632;
+  --color-primary-light: #d9efd4;
+  --color-primary-dark: #1c6e2a;
+  --color-surface: #fbf6e4;
 
-  /* Identitas merek Kost Putra Raffasya */
-  --color-terracotta: #b5543c;
-  --color-mint: #d9f2ea;
-  --color-cream: #f6ebc8;
+  /* Identitas merek Kost Putra Raffasya, diambil dari foto bangunan */
+  --color-terracotta: #a2432f;   /* atap seng merah bata */
+  --color-mint: #d9efd4;
+  --color-cream: #f3e6b0;        /* dinding krem kuning */
+  --color-gerbang: #1b1d19;      /* pagar & gerbang hitam */
+  --color-gerbang-soft: #2a2d27;
+  --color-atap-terang: #e0705a;  /* atap, versi terang untuk latar hitam */
 
-  --color-page: #f8f9fb;
-  --color-ink: #12202b;
-  --color-ink-soft: #55636e;
-  --color-field: #f8faf9;
-  --color-field-line: #cfdcd7;
+  --color-page: #faf5e3;
+  --color-ink: #1b1d19;
+  --color-ink-soft: #5d6054;
+  --color-field: #fffdf4;
+  --color-field-line: #ddd3ae;
+
+  /* Palet bawaan Tailwind diganti ke warna bangunan kos */
+  --color-slate-50: #f7f2dd;
+  --color-slate-100: #f0e9cc;
+  --color-slate-200: #e3dab4;
+  --color-slate-300: #cfc597;
+  --color-slate-400: #8d8a72;
+  --color-slate-500: #75735f;
+  --color-slate-600: #5d6054;
+  --color-slate-700: #45483f;
+  --color-slate-800: #2a2d27;
+  --color-slate-900: #1b1d19;
+  --color-slate-950: #11120f;
+  --color-emerald-50: #eaf6e6;
+  --color-emerald-100: #d9efd4;
+  --color-emerald-200: #b5e0ae;
+  --color-emerald-300: #8acf84;
+  --color-emerald-400: #5cbd5e;
+  --color-emerald-500: #3dae48;
+  --color-emerald-600: #248632;
+  --color-emerald-700: #1c6e2a;
+  --color-emerald-800: #17561f;
+  --color-emerald-900: #11421a;
+  --color-emerald-950: #0a2a10;
+  --color-sky-50: #f1f0e8;
+  --color-sky-100: #e4e2d4;
+  --color-sky-200: #cfccb8;
+  --color-sky-300: #b0ad94;
+  --color-sky-400: #8b8870;
+  --color-sky-500: #6b6954;
+  --color-sky-600: #55543f;
+  --color-sky-700: #403f30;
+  --color-sky-800: #2e2d22;
+  --color-sky-900: #1f1e16;
+  --color-sky-950: #13130d;
+  --color-amber-50: #fcf5d9;
+  --color-amber-100: #f6e7a6;
+  --color-amber-200: #eed67a;
+  --color-amber-300: #e3c24f;
+  --color-amber-400: #d4aa2c;
+  --color-amber-500: #b98f15;
+  --color-amber-600: #99730f;
+  --color-amber-700: #7a5a0e;
+  --color-amber-800: #5f470f;
+  --color-amber-900: #473510;
+  --color-amber-950: #2e2209;
+  --color-rose-50: #fbefeb;
+  --color-rose-100: #f6dcd4;
+  --color-rose-200: #ecbbad;
+  --color-rose-300: #de9482;
+  --color-rose-400: #c9654f;
+  --color-rose-500: #b44a35;
+  --color-rose-600: #a2432f;
+  --color-rose-700: #85341f;
+  --color-rose-800: #682a1c;
+  --color-rose-900: #4d2016;
+  --color-rose-950: #31140d;
+  --color-red-50: #fbefeb;
+  --color-red-100: #f6dcd4;
+  --color-red-200: #ecbbad;
+  --color-red-300: #de9482;
+  --color-red-400: #c9654f;
+  --color-red-500: #b44a35;
+  --color-red-600: #a2432f;
+  --color-red-700: #85341f;
+  --color-red-800: #682a1c;
+  --color-red-900: #4d2016;
+  --color-red-950: #31140d;
+  --color-orange-50: #fdf0e3;
+  --color-orange-100: #fadcbd;
+  --color-orange-200: #f4bd89;
+  --color-orange-300: #ec9a52;
+  --color-orange-400: #e17b2b;
+  --color-orange-500: #cc6217;
+  --color-orange-600: #b0500f;
+  --color-orange-700: #8c3f0f;
+  --color-orange-800: #6d3210;
+  --color-orange-900: #532811;
+  --color-orange-950: #331806;
+
+  /* Status */
+  --color-ok-fg: #1c6e2a;
+  --color-info-fg: #1c6e2a;
+  --color-warn-fg: #9a6a12;
+  --color-danger-fg: #a2432f;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 body {

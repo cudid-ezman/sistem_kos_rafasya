@@ -17,7 +17,7 @@ export default function Alert({ variant, title, children, onClose }: AlertProps)
   return (
     <div
       role={variant === 'error' ? 'alert' : 'status'}
-      className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-xs ${styles[variant]}`}
+      className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-xs ${styles[variant]}`}
     >
       <span className="mt-0.5 shrink-0">
         {variant === 'error' ? <AlertCircleIcon size={18} /> : <CheckCircleFillIcon size={18} />}

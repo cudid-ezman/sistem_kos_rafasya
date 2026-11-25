@@ -133,7 +133,7 @@ export default function AdminNotificationBell({
         onClick={() => setOpen((v) => !v)}
         aria-label={`Notifikasi${belumDibaca.length ? `, ${belumDibaca.length} belum dibaca` : ""}`}
         aria-expanded={open}
-        className={`relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl transition focus-visible:outline-2 focus-visible:outline-kos-600 ${
+        className={`relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg transition focus-visible:outline-2 focus-visible:outline-kos-600 ${
           open
             ? "bg-kos-100/60 text-kos-700"
             : "text-ink-soft hover:bg-slate-100"
@@ -148,7 +148,7 @@ export default function AdminNotificationBell({
       </button>
 
       {open && (
-        <div className="fixed inset-x-3 top-[72px] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15 motion-safe:animate-[pop-in_.18s_ease-out] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[390px]">
+        <div className="fixed inset-x-3 top-[72px] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl motion-safe:animate-[pop-in_.18s_ease-out] sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[390px]">
           <div className="flex items-center justify-between px-5 pb-1 pt-4">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-ink">Notifikasi</h2>
@@ -222,7 +222,7 @@ export default function AdminNotificationBell({
                       }`}
                     >
                       <span
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${t.box}`}
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.box}`}
                       >
                         <Ikon size={19} />
                       </span>

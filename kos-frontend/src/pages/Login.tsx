@@ -125,7 +125,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         </SubmitButton>
       </form>
 
-      <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[13px] leading-relaxed text-ink-soft">
+      <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[13px] leading-relaxed text-ink-soft">
         <InfoIcon size={16} className="mt-0.5 shrink-0" />
         <span>
           Akun dibuat oleh pengelola kos. Gunakan email &amp; kata sandi yang

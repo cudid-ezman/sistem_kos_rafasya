@@ -1,10 +1,12 @@
 interface MarkProps {
   size?: number;
   className?: string;
+  /** Warna atap; default terakota, pakai versi terang di latar gelap. */
+  roof?: string;
 }
 
 /** Siluet 3 puncak atap terhubung (terakota) + badan rumah dengan jendela kembar. */
-export function LogoMark({ size = 48, className = '' }: MarkProps) {
+export function LogoMark({ size = 48, className = '', roof = 'var(--color-terracotta)' }: MarkProps) {
   return (
     <svg
       width={size}
@@ -18,7 +20,7 @@ export function LogoMark({ size = 48, className = '' }: MarkProps) {
     >
       <path
         d="M5 27 16 12l8 8 8-12 8 12 8-8 11 15"
-        stroke="var(--color-terracotta)"
+        stroke={roof}
         strokeWidth="4.5"
       />
       <g stroke="currentColor" strokeWidth="3.5">
@@ -66,10 +68,10 @@ export function BrandLockup({ tone = 'onLight', className = '' }: LockupProps) {
 }
 
 /** Nama merek untuk header/sidebar: "Raffasya" dengan huruf R terakota. */
-export function BrandName({ className = '' }: { className?: string }) {
+export function BrandName({ className = '', accent = 'text-terracotta' }: { className?: string; accent?: string }) {
   return (
     <span className={`font-brand font-extrabold tracking-tight ${className}`}>
-      <span className="text-terracotta">R</span>affasya
+      <span className={accent}>R</span>affasya
     </span>
   );
 }

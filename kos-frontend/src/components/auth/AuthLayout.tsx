@@ -15,11 +15,7 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
     <div className="min-h-screen bg-page lg:flex">
       {/* Panel kiri */}
       <aside
-        className="relative hidden overflow-hidden text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[55%] lg:flex-col"
-        style={{
-          background:
-            'radial-gradient(60% 28% at 50% 88%, rgba(196,170,60,.16), transparent 70%), linear-gradient(180deg,#092b28 0%,#0f3d36 38%,#17342b 72%,#1c2a1f 100%)',
-        }}
+        className="relative hidden overflow-hidden bg-kos-700 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[55%] lg:flex-col"
       >
         <span className="absolute bottom-4 left-3 top-8 w-[3px] rounded-full bg-kos-100/60" aria-hidden="true" />
 
@@ -28,13 +24,12 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
         </div>
 
         <div className="mt-14 px-14">
-          <h1 className="text-[34px] font-bold leading-[1.2] tracking-tight">
+          <h1 className="text-4xl font-extrabold leading-[1.15] tracking-tight">
             Sistem Manajemen &amp;
             <br />
             Administrasi Kos
           </h1>
-          <div className="mt-5 h-[2px] w-12 rounded-full bg-white/80" />
-          <p className="mt-4 text-[15px] text-white/75">
+          <p className="mt-5 max-w-sm text-[15px] text-white/80">
             Pantau kamar, penghuni, dan tagihan dalam satu tempat.
           </p>
         </div>
@@ -50,7 +45,7 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
 
         <div className="flex w-full flex-1 items-center justify-center">
           <div
-            className={`w-full rounded-3xl border border-slate-200/70 bg-white p-8 shadow-[0_24px_60px_-24px_rgba(15,61,54,0.22)] sm:p-10 ${
+            className={`w-full rounded-2xl border border-slate-200 bg-white p-8 sm:p-10 ${
               wide ? 'max-w-[520px]' : 'max-w-[460px]'
             }`}
           >

@@ -216,7 +216,7 @@ export default function DataTagihan() {
         ))}
       </div>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <FilterTabs
             value={filter}
@@ -316,7 +316,7 @@ export default function DataTagihan() {
                         </div>
                         {t.status_perpanjangan === "menunggu" &&
                           t.tanggal_perpanjangan && (
-                            <div className="mt-1.5 max-w-[230px] rounded-xl border border-sky-200 bg-sky-50 p-2 text-[11px] text-sky-900">
+                            <div className="mt-1.5 max-w-[230px] rounded-lg border border-sky-200 bg-sky-50 p-2 text-[11px] text-sky-900">
                               <p className="font-semibold">
                                 Minta undur s/d{" "}
                                 {tglPendek(t.tanggal_perpanjangan)}

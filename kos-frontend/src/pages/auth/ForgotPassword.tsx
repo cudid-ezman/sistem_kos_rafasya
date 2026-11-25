@@ -87,7 +87,7 @@ export default function ForgotPassword() {
         </SubmitButton>
       </form>
 
-      <div className="my-5 flex items-center gap-3 text-[11px] font-medium tracking-wider text-slate-400">
+      <div className="my-5 flex items-center gap-3 text-[11px] font-medium text-slate-400">
         <span className="h-px flex-1 bg-slate-200" />
         ATAU
         <span className="h-px flex-1 bg-slate-200" />

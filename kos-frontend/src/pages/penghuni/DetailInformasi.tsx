@@ -43,7 +43,7 @@ export default function DetailInformasi() {
 
   if (!info) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
         <h2 className="text-lg font-bold text-ink">
           Informasi tidak ditemukan
         </h2>
@@ -75,10 +75,10 @@ export default function DetailInformasi() {
         }
       />
 
-      <article className="max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
+      <article className="max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-5">
           <h2 className="flex items-center gap-3 text-lg font-bold text-ink">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-kos-100/60 text-kos-700">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-kos-100/60 text-kos-700">
               <Ikon size={20} />
             </span>
             {info.kategori}

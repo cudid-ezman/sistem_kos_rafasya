@@ -177,7 +177,7 @@ export default function KelolaInformasi() {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
@@ -201,7 +201,7 @@ export default function KelolaInformasi() {
                     >
                       <td className={tdCls}>
                         <div className="flex items-center gap-3">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-kos-100/60 text-kos-700">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-kos-100/60 text-kos-700">
                             {renderIkon(item.ikon)}
                           </span>
                           <span className="font-bold text-ink">
@@ -242,14 +242,14 @@ export default function KelolaInformasi() {
                           <button
                             type="button"
                             onClick={() => bukaEdit(item)}
-                            className="cursor-pointer rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-ink transition hover:bg-slate-50"
+                            className="cursor-pointer rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-ink transition hover:bg-slate-50"
                           >
                             Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => setHapusItem(item)}
-                            className="cursor-pointer rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                            className="cursor-pointer rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
                           >
                             Hapus
                           </button>
@@ -382,7 +382,7 @@ export default function KelolaInformasi() {
               type="button"
               disabled={isSubmitting}
               onClick={() => void konfirmasiHapus()}
-              className="cursor-pointer rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50"
+              className="cursor-pointer rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50"
             >
               {isSubmitting ? "Menghapus..." : "Ya, Hapus"}
             </button>

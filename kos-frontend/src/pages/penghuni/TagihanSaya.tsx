@@ -71,7 +71,7 @@ export default function TagihanSaya() {
 
   if (error) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
           <WarningIcon size={26} />
         </div>
@@ -98,14 +98,14 @@ export default function TagihanSaya() {
 
       {/* Ringkasan */}
       <section className="grid gap-4 lg:grid-cols-[1.7fr_1fr_1fr]" aria-label="Ringkasan tagihan">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-kos-950 via-kos-900 to-kos-600 p-6 text-white shadow-lg shadow-kos-950/20">
+        <div className="relative overflow-hidden rounded-2xl bg-kos-700 p-6 text-white">
           <div className="pointer-events-none absolute -right-10 -top-16 h-52 w-52 rounded-full border border-white/10" />
           <div className="pointer-events-none absolute -right-2 -top-8 h-52 w-52 rounded-full border border-white/10" />
           <div className="pointer-events-none absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-kos-400/10 blur-2xl" />
 
           <div className="relative flex items-start justify-between">
             <p className="text-sm font-medium text-white/80">Total yang harus dibayar</p>
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15 backdrop-blur">
               <WalletIcon size={20} />
             </span>
           </div>
@@ -124,7 +124,7 @@ export default function TagihanSaya() {
                 {terdekat && (
                   <Link
                     to={`/dashboard/tagihan-saya/${terdekat.id}/upload`}
-                    className="ml-auto inline-flex h-9 items-center gap-2 rounded-xl bg-white px-4 text-[13px] font-semibold text-kos-950 transition hover:bg-kos-100"
+                    className="ml-auto inline-flex h-9 items-center gap-2 rounded-lg bg-white px-4 text-[13px] font-semibold text-kos-950 transition hover:bg-kos-100"
                   >
                     Bayar sekarang
                   </Link>
@@ -142,7 +142,7 @@ export default function TagihanSaya() {
           )}
         </div>
 
-        <div className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5">
+        <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-ink-soft">Jatuh Tempo</p>
@@ -150,7 +150,7 @@ export default function TagihanSaya() {
                 {terdekat ? tglPendek(terdekat.jatuh_tempo) : '—'}
               </p>
             </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
               <CalendarIcon size={20} />
             </span>
           </div>
@@ -170,13 +170,13 @@ export default function TagihanSaya() {
           </div>
         </div>
 
-        <div className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5">
+        <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-ink-soft">Verifikasi Terakhir</p>
               <p className="mt-1 text-xl font-bold text-ink">{terakhirLunas ? rupiah(terakhirLunas.nominal) : '—'}</p>
             </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
               <CheckCircleIcon size={20} />
             </span>
           </div>
@@ -188,12 +188,12 @@ export default function TagihanSaya() {
       </section>
 
       {/* Daftar */}
-      <section className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white" aria-label="Daftar tagihan">
+      <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label="Daftar tagihan">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="flex items-center gap-2 text-base font-bold text-ink">
             <ReceiptIcon size={19} className="text-kos-600" /> Daftar Tagihan &amp; Status
           </h2>
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 text-[13px] font-semibold" role="tablist">
+          <div className="inline-flex rounded-lg bg-slate-100 p-1 text-[13px] font-semibold" role="tablist">
             {(
               [
                 ['semua', 'Semua'],
@@ -208,7 +208,7 @@ export default function TagihanSaya() {
                 aria-selected={filter === key}
                 onClick={() => setFilter(key)}
                 className={`cursor-pointer rounded-lg px-3 py-1.5 transition ${
-                  filter === key ? 'bg-white text-kos-700 shadow-sm' : 'text-ink-soft hover:text-ink'
+                  filter === key ? 'bg-white text-kos-700' : 'text-ink-soft hover:text-ink'
                 }`}
               >
                 {label}
@@ -229,7 +229,7 @@ export default function TagihanSaya() {
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[2fr_1.1fr_1.1fr_1.3fr_auto] gap-4 px-6 py-2.5 text-[11px] font-semibold tracking-wide text-ink-soft uppercase md:grid">
+            <div className="hidden grid-cols-[2fr_1.1fr_1.1fr_1.3fr_auto] gap-4 px-6 py-2.5 text-[11px] font-semibold text-ink-soft md:grid">
               <span>Periode</span>
               <span>Nominal</span>
               <span>Jatuh tempo</span>
@@ -246,7 +246,7 @@ export default function TagihanSaya() {
       </section>
 
       {tagihanMendatang.length > 0 && (
-        <div className="mt-4 rounded-3xl border border-slate-200/80 bg-white/80 p-4">
+        <div className="mt-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-xs text-ink-soft">
               <InfoCircleIcon size={15} className="shrink-0 text-kos-600" />
@@ -287,7 +287,7 @@ function BarisTagihan({ t }: { t: Tagihan }) {
   return (
     <li className="grid gap-3 px-5 py-4 transition hover:bg-slate-50/70 md:grid-cols-[2fr_1.1fr_1.1fr_1.3fr_auto] md:items-center md:gap-4 md:px-6">
       <div className="flex items-center gap-3">
-        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${TILE[t.status] ?? 'bg-slate-100 text-slate-500'}`}>
+        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${TILE[t.status] ?? 'bg-slate-100 text-slate-500'}`}>
           <ReceiptIcon size={20} />
         </span>
         <div className="min-w-0">

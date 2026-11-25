@@ -219,7 +219,7 @@ export default function DataKamar() {
       />
 
       <div
-        className="mb-5 inline-flex rounded-xl bg-slate-100 p-1 text-[13px] font-semibold"
+        className="mb-5 inline-flex rounded-lg bg-slate-100 p-1 text-[13px] font-semibold"
         role="tablist"
       >
         {(
@@ -236,7 +236,7 @@ export default function DataKamar() {
             onClick={() => pilihTab(key)}
             className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 transition ${
               tab === key
-                ? "bg-white text-kos-700 shadow-sm"
+                ? "bg-white text-kos-700"
                 : "text-ink-soft hover:text-ink"
             }`}
           >
@@ -277,7 +277,7 @@ export default function DataKamar() {
             ))}
           </div>
 
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-base font-bold text-ink">Daftar Kamar</h2>
               <SearchInput

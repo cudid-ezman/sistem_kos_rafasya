@@ -62,7 +62,7 @@ export default function RincianTagihan() {
   const t = tagihan.find((x) => String(x.id) === id);
   if (!t) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
           <ReceiptIcon size={26} />
         </div>
@@ -126,19 +126,19 @@ export default function RincianTagihan() {
     const w = window.open('', '_blank', 'width=720,height=900');
     if (!w) return;
     const baris = (k: string, v: string) =>
-      `<tr><td style="padding:8px 0;color:#55636e">${esc(k)}</td><td style="padding:8px 0;text-align:right;font-weight:600">${esc(v)}</td></tr>`;
+      `<tr><td style="padding:8px 0;color:#5d6054">${esc(k)}</td><td style="padding:8px 0;text-align:right;font-weight:600">${esc(v)}</td></tr>`;
     w.document.write(`<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Bukti Pembayaran ${esc(t.periode)}</title>
-<style>body{font-family:Inter,Arial,sans-serif;color:#12202b;padding:40px;max-width:560px;margin:auto}h1{font-size:20px;margin:0}
-.badge{display:inline-block;background:#e8fbf3;color:#067647;border-radius:99px;padding:4px 12px;font-size:12px;font-weight:700}
-table{width:100%;border-collapse:collapse;margin-top:20px}td{border-bottom:1px solid #e5e9ec;font-size:14px}
-.total{margin-top:20px;background:#103e3b;color:#fff;border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
+<style>body{font-family:Inter,Arial,sans-serif;color:#1b1d19;padding:40px;max-width:560px;margin:auto}h1{font-size:20px;margin:0}
+.badge{display:inline-block;background:#eaf6e6;color:#1c6e2a;border-radius:99px;padding:4px 12px;font-size:12px;font-weight:700}
+table{width:100%;border-collapse:collapse;margin-top:20px}td{border-bottom:1px solid #e3dab4;font-size:14px}
+.total{margin-top:20px;background:#11301a;color:#fff;border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
 .total b{font-size:22px}</style></head><body>
-<div style="display:flex;align-items:center;gap:12px"><svg width="44" height="39" viewBox="0 0 64 56" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 27 16 12l8 8 8-12 8 12 8-8 11 15" stroke="#b5543c" stroke-width="4.5"/><g stroke="#0f3d36" stroke-width="3.5"><path d="M11 27v21h42V27"/><rect x="18" y="32" width="10" height="10" rx="1.5" stroke-width="2.5"/><rect x="36" y="32" width="10" height="10" rx="1.5" stroke-width="2.5"/><path d="M23 32v10M18 37h10M41 32v10M36 37h10" stroke-width="1.8"/></g></svg><div><div style="font-size:9px;letter-spacing:.25em;color:#157f6b;font-weight:600">— KOST PUTRA —</div><h1 style="font-family:Nunito,Inter,Arial,sans-serif;font-weight:800;font-size:26px;line-height:1.1"><span style="color:#b5543c">R</span>affasya</h1></div></div><p style="color:#55636e;margin:14px 0 20px">Bukti Pembayaran Sewa</p><span class="badge">LUNAS</span>
+<div style="display:flex;align-items:center;gap:12px"><svg width="44" height="39" viewBox="0 0 64 56" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 27 16 12l8 8 8-12 8 12 8-8 11 15" stroke="#a2432f" stroke-width="4.5"/><g stroke="#1b1d19" stroke-width="3.5"><path d="M11 27v21h42V27"/><rect x="18" y="32" width="10" height="10" rx="1.5" stroke-width="2.5"/><rect x="36" y="32" width="10" height="10" rx="1.5" stroke-width="2.5"/><path d="M23 32v10M18 37h10M41 32v10M36 37h10" stroke-width="1.8"/></g></svg><div><div style="font-size:9px;letter-spacing:.25em;color:#248632;font-weight:600">— KOST PUTRA —</div><h1 style="font-family:Nunito,Inter,Arial,sans-serif;font-weight:800;font-size:26px;line-height:1.1"><span style="color:#a2432f">R</span>affasya</h1></div></div><p style="color:#5d6054;margin:14px 0 20px">Bukti Pembayaran Sewa</p><span class="badge">LUNAS</span>
 <table>${baris('Nama penghuni', user.nama_lengkap || user.username)}${baris('Kamar', noKamar ? `Kamar ${noKamar}` : '-')}
 ${baris('Periode', t.periode)}${baris('Nominal tagihan', rupiah(t.nominal))}${denda > 0 ? baris(`Denda keterlambatan (${hari} hari)`, rupiah(denda)) : ''}
 ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tanggal verifikasi', tglAngka(buktiDiterima?.tanggal_verifikasi))}</table>
 <div class="total"><span>Total dibayar</span><b>${esc(rupiah(total))}</b></div>
-<p style="margin-top:28px;font-size:12px;color:#55636e">Dokumen ini dibuat otomatis oleh Sistem Kost Putra Raffasya dan sah tanpa tanda tangan.</p>
+<p style="margin-top:28px;font-size:12px;color:#5d6054">Dokumen ini dibuat otomatis oleh Sistem Kost Putra Raffasya dan sah tanpa tanda tangan.</p>
 <script>window.onload=function(){window.print()}</script></body></html>`);
     w.document.close();
   };
@@ -159,7 +159,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
 
       <div className="grid items-start gap-5 lg:grid-cols-[1.35fr_1fr]">
         {/* Rincian biaya */}
-        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <h2 className="text-base font-bold text-ink">Rincian Biaya Sewa</h2>
             <span className="rounded-full bg-kos-100/60 px-3 py-1 text-xs font-semibold text-kos-700 capitalize">{t.periode}</span>
@@ -226,9 +226,9 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
             )}
           </div>
 
-          <div className="m-4 flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-kos-950 to-kos-700 px-5 py-4 text-white">
+          <div className="m-4 flex items-center justify-between gap-4 rounded-2xl bg-kos-900 px-5 py-4 text-white">
             <div>
-              <p className="text-xs font-semibold tracking-wide text-white/70 uppercase">
+              <p className="text-xs font-semibold text-white/70">
                 {t.status === 'lunas' ? 'Total dibayar' : 'Total harus dibayar'}
               </p>
               <p className="mt-0.5 text-xs text-white/60">
@@ -247,7 +247,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
         <aside className="space-y-4">
           {t.status === 'ditolak' && (
             <>
-              <div className="rounded-3xl border border-rose-200 bg-rose-50/60 p-5">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-5">
                 <div className="flex items-center gap-2 text-rose-700">
                   <XCircleIcon size={20} />
                   <h3 className="font-bold">Alasan Verifikasi Ditolak</h3>
@@ -267,7 +267,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           )}
 
           {t.status === 'lunas' && (
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50/60 p-5">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
               <div className="flex items-center gap-2 text-emerald-700">
                 <CheckCircleIcon size={20} />
                 <h3 className="font-bold">Pembayaran Telah Diverifikasi</h3>
@@ -288,7 +288,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
 
           {t.status === 'menunggu_verifikasi' && (
             <>
-              <div className="rounded-3xl border border-sky-200 bg-sky-50/60 p-5">
+              <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-5">
                 <div className="flex items-center gap-2 text-sky-700">
                   <ClockIcon size={20} />
                   <h3 className="font-bold">Pembayaran Sedang Diperiksa</h3>
@@ -303,7 +303,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           )}
 
           {(t.status === 'belum_dibayar' || t.status === 'terlambat') && (
-            <div className="rounded-3xl border border-amber-200 bg-amber-50/60 p-5">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
               <div className="flex items-center gap-2 text-amber-700">
                 <WarningIcon size={20} />
                 <h3 className="font-bold">Menunggu pembayaran Anda</h3>
@@ -313,20 +313,20 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                 pengurus.
               </p>
               {statusPerpanjangan === 'disetujui' && t.tanggal_perpanjangan && (
-                <p className="mt-2.5 rounded-xl bg-emerald-100/80 px-3 py-2 text-xs font-medium text-emerald-800">
+                <p className="mt-2.5 rounded-lg bg-emerald-100/80 px-3 py-2 text-xs font-medium text-emerald-800">
                   Dispensasi aktif: batas pembayaran diperpanjang hingga{' '}
                   <strong>{tglPendek(t.tanggal_perpanjangan)}</strong>. Denda keterlambatan akan otomatis berjalan jika
                   melewati tanggal tersebut.
                 </p>
               )}
               {statusPerpanjangan === 'menunggu' && t.tanggal_perpanjangan && (
-                <p className="mt-2.5 rounded-xl bg-sky-100/80 px-3 py-2 text-xs font-medium text-sky-800">
+                <p className="mt-2.5 rounded-lg bg-sky-100/80 px-3 py-2 text-xs font-medium text-sky-800">
                   Pengajuan perpanjangan hingga <strong>{tglPendek(t.tanggal_perpanjangan)}</strong> sedang ditinjau
                   pengurus.
                 </p>
               )}
               {statusPerpanjangan === 'ditolak' && (
-                <p className="mt-2.5 rounded-xl bg-rose-100/80 px-3 py-2 text-xs font-medium text-rose-800">
+                <p className="mt-2.5 rounded-lg bg-rose-100/80 px-3 py-2 text-xs font-medium text-rose-800">
                   Pengajuan perpanjangan sebelumnya ditolak pengurus. Pembayaran tetap mengacu pada jatuh tempo asli.
                 </p>
               )}
@@ -334,7 +334,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           )}
 
           {bolehAjukanDispensasi && (
-            <div className="rounded-3xl border border-slate-200 bg-white p-5">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="text-sm font-bold text-ink">Butuh Kelonggaran Waktu Bayar?</h3>
@@ -369,7 +369,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                       max={maksPerpanjangan}
                       value={tglPerpanjangan}
                       onChange={(e) => setTglPerpanjangan(e.target.value)}
-                      className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
+                      className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
                     />
                     <p className="mt-1 text-[11px] text-ink-soft">
                       Bisa lebih cepat (1–6 hari) atau maksimal hingga {tglPendek(maksPerpanjangan)}.
@@ -384,7 +384,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                       placeholder="Contoh: Menunggu jadwal gajian / transfer dari orang tua tanggal sekian..."
                       value={alasanPerpanjangan}
                       onChange={(e) => setAlasanPerpanjangan(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
+                      className="w-full rounded-lg border border-slate-200 p-3 text-sm text-ink outline-none focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -405,7 +405,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           )}
 
           {bisaUpload && (
-            <div className="rounded-3xl border border-slate-200 bg-white p-5">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <div className="flex gap-3">
                 <Link to={`/dashboard/tagihan-saya/${t.id}/upload`} className={`${btnPrimary} flex-1`}>
                   <UploadCloudIcon size={17} /> Upload Bukti
@@ -428,13 +428,13 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
 
 function BuktiKartu({ b, judul }: { b: import('../../types/kos').BuktiPembayaran; judul: string }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-ink">{judul}</h3>
         <StatusPill status={b.status === 'diterima' ? 'lunas' : b.status} />
       </div>
       <div className="mt-3 flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-kos-600 ring-1 ring-slate-200">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-kos-600 ring-1 ring-slate-200">
           <FileImageIcon size={20} />
         </span>
         <div className="min-w-0 flex-1">

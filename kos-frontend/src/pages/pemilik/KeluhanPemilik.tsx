@@ -141,24 +141,24 @@ export default function KeluhanPemilik() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5">
-          <p className="text-xs font-semibold text-ink-soft uppercase">Menunggu Respon</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <p className="text-xs font-semibold text-ink-soft">Menunggu Respon</p>
           <p className="mt-2 text-3xl font-bold text-amber-600 tabular-nums">{ringkasan.menunggu}</p>
           <p className="mt-1 text-xs text-ink-soft">Laporan kerusakan perlu ditinjau</p>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5">
-          <p className="text-xs font-semibold text-ink-soft uppercase">Total Pengajuan Pengurus</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <p className="text-xs font-semibold text-ink-soft">Total Pengajuan Pengurus</p>
           <p className="mt-2 text-3xl font-bold text-ink tabular-nums">{rupiah(ringkasan.totalAjuan)}</p>
           <p className="mt-1 text-xs text-ink-soft">Akumulasi estimasi biaya perbaikan</p>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5">
-          <p className="text-xs font-semibold text-ink-soft uppercase">Total Dana Dicairkan</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <p className="text-xs font-semibold text-ink-soft">Total Dana Dicairkan</p>
           <p className="mt-2 text-3xl font-bold text-emerald-600 tabular-nums">{rupiah(ringkasan.totalCair)}</p>
           <p className="mt-1 text-xs text-ink-soft">Transfer manual ke pengurus kos</p>
         </div>
       </div>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <FilterTabs
             value={filter}
@@ -223,7 +223,7 @@ export default function KeluhanPemilik() {
                             <img
                               src={k.foto}
                               alt="Bukti kerusakan"
-                              className="h-20 w-28 rounded-xl object-cover ring-1 ring-slate-200 transition hover:opacity-90"
+                              className="h-20 w-28 rounded-lg object-cover ring-1 ring-slate-200 transition hover:opacity-90"
                             />
                           </a>
                         )}
@@ -288,7 +288,7 @@ export default function KeluhanPemilik() {
                   <img
                     src={terpilih.foto}
                     alt="Foto kerusakan"
-                    className="mt-3 max-h-48 w-full rounded-xl object-cover ring-1 ring-slate-200"
+                    className="mt-3 max-h-48 w-full rounded-lg object-cover ring-1 ring-slate-200"
                   />
                 </a>
               )}
@@ -304,7 +304,7 @@ export default function KeluhanPemilik() {
                 ].map((opt) => (
                   <label
                     key={opt.key}
-                    className={`cursor-pointer rounded-xl border px-2.5 py-2.5 text-center text-xs font-semibold transition ${
+                    className={`cursor-pointer rounded-lg border px-2.5 py-2.5 text-center text-xs font-semibold transition ${
                       statusRespon === opt.key
                         ? 'border-kos-600 bg-kos-100/50 text-kos-700 ring-1 ring-kos-600'
                         : 'border-slate-200 text-ink-soft hover:border-slate-300'

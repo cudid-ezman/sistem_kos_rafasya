@@ -18,7 +18,7 @@ export default function KeluhanSaya() {
 
   if (error) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto mt-10 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
           <WarningIcon size={26} />
         </div>
@@ -48,7 +48,7 @@ export default function KeluhanSaya() {
         }
       />
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white" aria-label="Daftar keluhan">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label="Daftar keluhan">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-base font-bold text-ink">Daftar Keluhan &amp; Status</h2>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-ink-soft">Total {total} Laporan</span>
@@ -56,7 +56,7 @@ export default function KeluhanSaya() {
 
         {total === 0 ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-kos-100/60 text-kos-600">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-kos-100/60 text-kos-600">
               <SparkleIcon size={30} />
             </div>
             <p className="text-lg font-bold text-ink">Belum ada keluhan</p>
@@ -69,7 +69,7 @@ export default function KeluhanSaya() {
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[1.1fr_2.2fr_1fr_1.2fr_auto] gap-4 px-6 py-2.5 text-[11px] font-semibold tracking-wide text-ink-soft uppercase md:grid">
+            <div className="hidden grid-cols-[1.1fr_2.2fr_1fr_1.2fr_auto] gap-4 px-6 py-2.5 text-[11px] font-semibold text-ink-soft md:grid">
               <span>Kategori</span>
               <span>Deskripsi</span>
               <span>Tanggal</span>
@@ -83,7 +83,7 @@ export default function KeluhanSaya() {
                   className="grid gap-2 px-5 py-4 transition hover:bg-slate-50/70 md:grid-cols-[1.1fr_2.2fr_1fr_1.2fr_auto] md:items-center md:gap-4 md:px-6"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
                       <WrenchIcon size={18} />
                     </span>
                     <span className="font-semibold text-ink">{k.nama_kategori || 'Lainnya'}</span>

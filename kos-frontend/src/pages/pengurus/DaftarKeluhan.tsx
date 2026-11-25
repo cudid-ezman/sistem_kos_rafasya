@@ -233,7 +233,7 @@ export default function DaftarKeluhan() {
         }
       />
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <FilterTabs
             value={filter}
@@ -356,7 +356,7 @@ export default function DaftarKeluhan() {
             {terpilih.foto && (
               <div className="rounded-2xl bg-slate-50 p-3">
                 <a href={terpilih.foto} target="_blank" rel="noreferrer">
-                  <img src={terpilih.foto} alt="Foto keluhan" className="max-h-44 w-full rounded-xl object-cover ring-1 ring-slate-200" />
+                  <img src={terpilih.foto} alt="Foto keluhan" className="max-h-44 w-full rounded-lg object-cover ring-1 ring-slate-200" />
                 </a>
                 <p className="mt-1.5 text-[11px] text-ink-soft">Klik gambar untuk membuka ukuran penuh.</p>
               </div>
@@ -368,7 +368,7 @@ export default function DaftarKeluhan() {
                 {PILIHAN.map((p) => (
                   <label
                     key={p.key}
-                    className={`flex cursor-pointer items-center justify-center rounded-xl border px-3 py-2.5 text-center text-[13px] font-semibold transition ${
+                    className={`flex cursor-pointer items-center justify-center rounded-lg border px-3 py-2.5 text-center text-[13px] font-semibold transition ${
                       statusBaru === p.key ? 'border-kos-600 bg-kos-100/50 text-kos-700 ring-1 ring-kos-600' : 'border-slate-200 text-ink-soft hover:border-slate-300'
                     }`}
                   >
@@ -501,7 +501,7 @@ export default function DaftarKeluhan() {
                         />
                       </div>
                     ) : (
-                      <p className="rounded-xl bg-white px-3 py-2 text-xs text-ink-soft ring-1 ring-slate-200">
+                      <p className="rounded-lg bg-white px-3 py-2 text-xs text-ink-soft ring-1 ring-slate-200">
                         Keluhan akan diteruskan ke Pemilik sebagai laporan kerusakan tanpa pengajuan dana.
                       </p>
                     )}
@@ -519,7 +519,7 @@ export default function DaftarKeluhan() {
                     </div>
 
                     {terpilih.status_pemilik && terpilih.status_pemilik !== 'tidak_diajukan' && terpilih.status_pemilik !== 'menunggu' && (
-                      <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs">
+                      <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3 text-xs">
                         <p className="font-bold text-emerald-900">
                           Respon Pemilik: {BADGE_PEMILIK[terpilih.status_pemilik]?.label}
                           {Number(terpilih.nominal_pencairan || 0) > 0 ? ` (${rupiah(terpilih.nominal_pencairan || 0)})` : ''}

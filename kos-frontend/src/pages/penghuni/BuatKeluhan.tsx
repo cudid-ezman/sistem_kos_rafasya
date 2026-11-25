@@ -67,7 +67,7 @@ export default function BuatKeluhan() {
   };
 
   const fieldCls =
-    'w-full rounded-xl border border-field-line bg-field px-4 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20';
+    'w-full rounded-lg border border-field-line bg-field px-4 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20';
 
   return (
     <div>
@@ -77,7 +77,7 @@ export default function BuatKeluhan() {
         subtitle="Sampaikan kendala fasilitas agar segera ditangani pengurus."
       />
 
-      <form onSubmit={submit} noValidate className="max-w-3xl rounded-3xl border border-slate-200 bg-white p-5 sm:p-8">
+      <form onSubmit={submit} noValidate className="max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 sm:p-8">
         {galat && (
           <div role="alert" className="mb-6 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
             <WarningIcon size={18} className="shrink-0" />
@@ -90,7 +90,7 @@ export default function BuatKeluhan() {
 
         <div className="space-y-6">
           <div>
-            <label htmlFor="kategori" className="mb-1.5 block text-xs font-bold tracking-wide text-ink uppercase">
+            <label htmlFor="kategori" className="mb-1.5 block text-xs font-bold text-ink">
               Kategori <span className="text-rose-600">*</span>
             </label>
             <select
@@ -125,7 +125,7 @@ export default function BuatKeluhan() {
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="deskripsi" className="text-xs font-bold tracking-wide text-ink uppercase">
+              <label htmlFor="deskripsi" className="text-xs font-bold text-ink">
                 Deskripsi <span className="text-rose-600">*</span>
               </label>
               <span className={`text-xs tabular-nums ${deskripsi.length >= MAKS ? 'font-semibold text-rose-600' : 'text-ink-soft'}`}>
@@ -144,7 +144,7 @@ export default function BuatKeluhan() {
           </div>
 
           <div>
-            <p className="mb-1.5 text-xs font-bold tracking-wide text-ink uppercase">
+            <p className="mb-1.5 text-xs font-bold text-ink">
               Foto <span className="font-medium text-ink-soft normal-case">(opsional)</span>
             </p>
             <Dropzone file={foto} onChange={setFoto} title="Klik untuk mengunggah atau seret file ke area ini" />

@@ -113,7 +113,7 @@ export default function VerifikasiPembayaran() {
       </div>
 
       {tampil.length === 0 ? (
-        <section className="rounded-3xl border border-slate-200 bg-white">
+        <section className="rounded-2xl border border-slate-200 bg-white">
           <EmptyState
             icon={<ShieldCheckIcon size={26} />}
             title={tab === 'menunggu' ? 'Antrean kosong' : 'Belum ada pembayaran'}
@@ -133,7 +133,7 @@ export default function VerifikasiPembayaran() {
                     onClick={() => setTerpilih(b.id)}
                     aria-pressed={aktif}
                     className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl border bg-white p-4 text-left transition ${
-                      aktif ? 'border-kos-600 shadow-md shadow-kos-600/10 ring-1 ring-kos-600' : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                      aktif ? 'border-kos-600 ring-1 ring-kos-600' : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
                     }`}
                   >
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-kos-100/70 text-sm font-bold text-kos-700">
@@ -162,7 +162,7 @@ export default function VerifikasiPembayaran() {
 
           {/* Detail & pratinjau */}
           {dipilih && (
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white lg:sticky lg:top-24">
+            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white lg:sticky lg:top-24">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-kos-600 text-sm font-bold text-white">
@@ -214,12 +214,12 @@ export default function VerifikasiPembayaran() {
                     ...(dipilih.tanggal_verifikasi ? [['Diverifikasi', tglAngka(dipilih.tanggal_verifikasi)]] : []),
                   ].map(([k, v]) => (
                     <div key={k}>
-                      <dt className="text-[11px] font-semibold tracking-wide text-ink-soft uppercase">{k}</dt>
+                      <dt className="text-[11px] font-semibold text-ink-soft">{k}</dt>
                       <dd className="mt-0.5 font-semibold text-ink tabular-nums">{v}</dd>
                     </div>
                   ))}
                   {dipilih.catatan_penolakan && (
-                    <div className="rounded-xl bg-rose-50 p-3 text-xs leading-relaxed text-rose-800">
+                    <div className="rounded-lg bg-rose-50 p-3 text-xs leading-relaxed text-rose-800">
                       <p className="font-bold">Alasan penolakan</p>
                       {dipilih.catatan_penolakan}
                     </div>
@@ -267,7 +267,7 @@ export default function VerifikasiPembayaran() {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setTolakOpen(false)} className={btnOutline}>Batal</button>
-            <button type="submit" disabled={memproses || alasan.trim().length < 3} className="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="submit" disabled={memproses || alasan.trim().length < 3} className="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50">
               {memproses ? 'Memproses...' : 'Tolak Pembayaran'}
             </button>
           </div>
