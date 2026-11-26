@@ -7,11 +7,9 @@ import AuthLayout from "../components/auth/AuthLayout";
 import Alert from "../components/auth/Alert";
 import Field from "../components/auth/Field";
 import SubmitButton from "../components/auth/SubmitButton";
-import AuthIconBadge from "../components/auth/AuthIconBadge";
 import {
   ArrowRightIcon,
   LockIcon,
-  LoginIcon,
   MailIcon,
   InfoIcon,
 } from "../components/auth/icons";
@@ -63,7 +61,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
   return (
     <AuthLayout showHelp={false}>
-      <AuthIconBadge icon={<LoginIcon size={20} />} />
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">
         Masuk ke Sistem
       </h2>
@@ -71,7 +68,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         Silakan masukkan username, atau email beserta kata sandi Anda.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
+      <form onSubmit={handleSubmit} className="mt-5 space-y-4" noValidate>
         {error && (
           <Alert
             variant="error"
@@ -125,7 +122,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         </SubmitButton>
       </form>
 
-      <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-field-line bg-slate-50 px-4 py-3 text-[13px] leading-relaxed text-ink-soft">
+      <div className="mt-5 flex items-start gap-2.5 rounded-lg border border-field-line bg-cream/50 px-3.5 py-2.5 text-[13px] leading-relaxed text-ink-soft">
         <InfoIcon size={16} className="mt-0.5 shrink-0" />
         <span>
           Akun dibuat oleh pengelola kos. Gunakan email &amp; kata sandi yang

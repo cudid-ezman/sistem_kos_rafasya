@@ -34,7 +34,7 @@ export function LogoMark({ size = 48, className = '', roof = 'var(--color-terrac
 }
 
 interface LockupProps {
-  /** onDark: untuk latar hijau tua. onLight: untuk latar terang. */
+  /** onDark: untuk latar hitam gerbang. onLight: untuk latar terang. */
   tone?: 'onDark' | 'onLight';
   className?: string;
 }
@@ -44,7 +44,11 @@ export function BrandLockup({ tone = 'onLight', className = '' }: LockupProps) {
   const onDark = tone === 'onDark';
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <LogoMark size={46} className={onDark ? 'text-mint' : 'text-kos-950'} />
+      <LogoMark
+        size={46}
+        className={onDark ? 'text-cream' : 'text-kos-950'}
+        roof={onDark ? 'var(--color-atap-terang)' : undefined}
+      />
       <div className="flex flex-col leading-none">
         <span
           className={`flex items-center gap-2 font-subtitle text-[10px] font-semibold uppercase tracking-[0.25em] ${
@@ -60,7 +64,7 @@ export function BrandLockup({ tone = 'onLight', className = '' }: LockupProps) {
             onDark ? 'text-white' : 'text-kos-950'
           }`}
         >
-          <span className="text-terracotta">R</span>affasya
+          <span className={onDark ? 'text-atap-terang' : 'text-terracotta'}>R</span>affasya
         </span>
       </div>
     </div>

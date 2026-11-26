@@ -16,15 +16,15 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
     <div className="min-h-screen bg-page lg:flex">
       {/* Panel kiri */}
       <aside
-        className="relative hidden overflow-hidden bg-kos-700 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[55%] lg:flex-col"
+        className="relative hidden overflow-hidden bg-hijau-tua text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[55%] lg:flex-col"
       >
-        <span className="absolute bottom-4 left-3 top-8 w-[3px] rounded-full bg-kos-100/60" aria-hidden="true" />
+        <span className="absolute bottom-4 left-3 top-8 w-[3px] rounded-full bg-kos-500" aria-hidden="true" />
 
         <div className="px-14 pt-10">
           <BrandLockup tone="onDark" />
         </div>
 
-        <div className="mt-14 px-14">
+        <div className="mt-10 px-14">
           <h1 className="text-4xl font-extrabold leading-[1.15] tracking-tight">
             Sistem Manajemen &amp;
             <br />
@@ -35,18 +35,18 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
           </p>
         </div>
 
-        <div className="mt-auto px-8 pb-8">
-          <KosIllustration className="mx-auto w-full max-w-[600px]" />
+        <div className="flex min-h-0 flex-1 items-end px-10 pt-8">
+          <KosIllustration className="h-full w-full" />
         </div>
       </aside>
 
       {/* Panel kanan */}
       <main className="flex min-h-screen flex-1 flex-col items-center px-4 py-8 lg:py-6">
-        <BrandLockup tone="onLight" className="mb-8 lg:hidden" />
+        <BrandLockup tone="onLight" className="mb-6 lg:hidden" />
 
         <div className="flex w-full flex-1 items-center justify-center">
           <div
-            className={`w-full rounded-2xl border border-field-line bg-white p-8 sm:p-10 ${
+            className={`w-full rounded-2xl border border-field-line bg-white p-6 sm:p-8 ${
               wide ? 'max-w-[520px]' : 'max-w-[460px]'
             }`}
           >
@@ -54,7 +54,7 @@ export default function AuthLayout({ children, wide = false, showHelp = true }: 
           </div>
         </div>
 
-        <footer className="mt-8 text-center text-xs text-ink-soft">
+        <footer className="mt-6 text-center text-xs text-ink-soft">
           {showHelp && <p className="mb-1">Butuh bantuan?{' '}<LinkWhatsAppPengurus pesan="Halo Pengurus Kos Putra Raffasya, saya butuh bantuan untuk masuk ke sistem kos." /></p>}
           <p>© 2026 Kost Putra Raffasya</p>
         </footer>

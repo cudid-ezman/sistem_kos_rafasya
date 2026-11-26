@@ -26,6 +26,7 @@
   --color-mint: #d9efd4;
   --color-cream: #f3e6b0;        /* dinding krem kuning */
   --color-gerbang: #1b1d19;      /* pagar & gerbang hitam */
+  --color-hijau-tua: #143a22;    /* latar panel login & sidebar */
   --color-gerbang-soft: #2a2d27;
   --color-atap-terang: #e0705a;  /* atap, versi terang untuk latar hitam */
 
@@ -161,4 +162,15 @@ body {
     rgb(255 255 255 / 0.3) 0 2px,
     transparent 2px 7px
   );
+}
+
+/* Autofill Chrome memberi latar biru muda; samakan dengan warna input */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: var(--color-ink) !important;
+  caret-color: var(--color-ink);
+  transition: background-color 9999s ease-in-out 0s;
 }

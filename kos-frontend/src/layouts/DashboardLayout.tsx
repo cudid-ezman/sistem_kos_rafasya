@@ -398,7 +398,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
           Lewati ke konten
         </a>
 
-        <aside className="sticky top-0 hidden h-screen flex-col bg-gerbang p-4 lg:flex print:hidden">
+        <aside className="sticky top-0 hidden h-screen flex-col bg-hijau-tua p-4 lg:flex print:hidden">
           <div className="mb-8 mt-1">{merek}</div>
           {menu}
           {akun}
@@ -450,7 +450,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
               className="absolute inset-0 bg-gerbang/60 backdrop-blur-sm"
               onClick={() => setDrawer(false)}
             />
-            <div className="absolute inset-y-0 left-0 flex w-[284px] flex-col bg-gerbang p-4 shadow-2xl motion-safe:animate-[pop-in_.18s_ease-out]">
+            <div className="absolute inset-y-0 left-0 flex w-[284px] flex-col bg-hijau-tua p-4 shadow-2xl motion-safe:animate-[pop-in_.18s_ease-out]">
               <div className="mb-6 flex items-center justify-between">
                 {merek}
                 <button

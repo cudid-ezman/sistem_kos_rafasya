@@ -8,10 +8,16 @@ const doorX = (i: number) => 24 + i * SLOT;
 /** Ilustrasi bangunan kos untuk panel kiri halaman auth. */
 export default function KosIllustration({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 560 310" className={className} fill="none" aria-hidden="true">
+    <svg
+      viewBox="-6 96 572 206"
+      preserveAspectRatio="xMidYMax meet"
+      className={className}
+      fill="none"
+      aria-hidden="true"
+    >
       <g transform="translate(50 92)">
         {/* Pohon */}
-        <rect x="-31" y="122" width="6" height="76" fill={DARK} />
+        <rect x="-31" y="122" width="6" height="76" fill="#5d6054" />
         <circle cx="-28" cy="114" r="16" fill="#3dae48" />
         <circle cx="-38" cy="128" r="14" fill="#2a9438" />
         <circle cx="-18" cy="128" r="14" fill="#2a9438" />
@@ -19,7 +25,7 @@ export default function KosIllustration({ className = '' }: { className?: string
 
         {/* Badan bangunan */}
         <rect x="14" y="60" width="442" height="118" fill="#f3e6b0" />
-        <rect x="14" y="178" width="442" height="20" fill="#11301a" />
+        <rect x="14" y="178" width="442" height="20" fill="#2a9438" />
         <path d="M14 186h442M14 192h442" stroke={DARK} strokeOpacity=".45" />
 
         {/* Atap 3 puncak */}

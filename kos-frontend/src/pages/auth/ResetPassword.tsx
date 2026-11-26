@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/auth/AuthLayout';
-import AuthIconBadge from '../../components/auth/AuthIconBadge';
 import Alert from '../../components/auth/Alert';
 import Field from '../../components/auth/Field';
 import SubmitButton from '../../components/auth/SubmitButton';
@@ -169,7 +168,6 @@ export default function ResetPassword() {
   // === TAHAP 1 (VERIFIKASI OTP) & TAHAP 2 (INPUT SANDI BARU) ===
   return (
     <AuthLayout>
-      <AuthIconBadge icon={tahap === 'otp' ? <KeyIcon size={20} /> : <LockResetIcon size={20} />} />
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">
         {tahap === 'otp' ? 'Verifikasi Kode OTP' : 'Buat Kata Sandi Baru'}
       </h2>
@@ -191,7 +189,7 @@ export default function ResetPassword() {
       )}
 
       {tahap === 'otp' ? (
-        <form onSubmit={handleVerifikasiOtp} className="mt-6 space-y-5" noValidate>
+        <form onSubmit={handleVerifikasiOtp} className="mt-5 space-y-4" noValidate>
           <Field
             label="Email Terdaftar"
             required
@@ -218,7 +216,7 @@ export default function ResetPassword() {
                 {resending
                   ? 'Mengirim...'
                   : cooldown > 0
-                    ? `Kirim ulang (${cooldown}d)`
+                    ? `Kirim ulang dalam ${cooldown} detik`
                     : 'Kirim ulang kode'}
               </button>
             </div>
@@ -256,7 +254,7 @@ export default function ResetPassword() {
           </SubmitButton>
         </form>
       ) : (
-        <form onSubmit={handleSimpanSandi} className="mt-6 space-y-5" noValidate>
+        <form onSubmit={handleSimpanSandi} className="mt-5 space-y-4" noValidate>
           <Field
             label="Kata sandi baru"
             required

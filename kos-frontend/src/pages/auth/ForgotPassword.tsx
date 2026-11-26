@@ -5,8 +5,7 @@ import AuthLayout from '../../components/auth/AuthLayout';
 import Alert from '../../components/auth/Alert';
 import Field from '../../components/auth/Field';
 import SubmitButton from '../../components/auth/SubmitButton';
-import AuthIconBadge from '../../components/auth/AuthIconBadge';
-import { ArrowLeftIcon, KeyIcon, MailIcon, SendIcon } from '../../components/auth/icons';
+import { ArrowLeftIcon, MailIcon, SendIcon } from '../../components/auth/icons';
 import { requestPasswordReset } from '../../services/authService';
 import LinkWhatsAppPengurus from '../../components/common/LinkWhatsAppPengurus';
 
@@ -46,14 +45,13 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout showHelp={false}>
-      <AuthIconBadge icon={<KeyIcon size={20} />} />
       <h2 className="text-2xl font-bold tracking-tight text-kos-950">Lupa Kata Sandi</h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
         Masukkan alamat email yang terdaftar pada akun Kost Raffasya Anda. Kami akan mengirimkan{' '}
         <span className="font-semibold text-ink">kode OTP 6 digit</span> untuk mengatur ulang kata sandi.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
+      <form onSubmit={handleSubmit} className="mt-5 space-y-4" noValidate>
         {hasError && (
           <Alert variant="error" onClose={() => setStatus({ kind: 'idle' })}>
             {status.message}
@@ -88,12 +86,7 @@ export default function ForgotPassword() {
         </SubmitButton>
       </form>
 
-      <div className="my-5 flex items-center gap-3 text-[11px] font-medium tracking-wider text-slate-400">
-        <span className="h-px flex-1 bg-slate-200" />
-        ATAU
-        <span className="h-px flex-1 bg-slate-200" />
-      </div>
-      <div className="text-center">
+      <div className="mt-5 text-center">
         <Link
           to="/"
           className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-kos-600 hover:text-kos-700 hover:underline"
