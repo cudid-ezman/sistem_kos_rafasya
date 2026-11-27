@@ -647,7 +647,7 @@ export default function DataPenghuni() {
                 />
               </div>
             </div>
-            <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
+            <div className="sticky -bottom-6 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
               <button type="button" onClick={tutupForm} className={btnOutline}>
                 Batal
               </button>

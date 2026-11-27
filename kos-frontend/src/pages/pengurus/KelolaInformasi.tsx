@@ -335,7 +335,7 @@ export default function KelolaInformasi() {
             />
           </div>
 
-          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-2.5 border-t border-field-line bg-white px-6 py-4">
+          <div className="sticky -bottom-6 -mx-6 -mb-6 flex justify-end gap-2.5 border-t border-field-line bg-white px-6 py-4">
             <button
               type="button"
               disabled={isSubmitting}
@@ -371,7 +371,7 @@ export default function KelolaInformasi() {
             <span className="font-bold text-ink">{hapusItem?.kategori}</span>?
             Informasi ini tidak akan lagi muncul di portal penghuni.
           </p>
-          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-2.5 border-t border-field-line bg-white px-6 py-4">
+          <div className="sticky -bottom-6 -mx-6 -mb-6 flex justify-end gap-2.5 border-t border-field-line bg-white px-6 py-4">
             <button
               type="button"
               disabled={isSubmitting}

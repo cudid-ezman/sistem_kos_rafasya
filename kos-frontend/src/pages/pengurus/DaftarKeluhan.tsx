@@ -560,7 +560,7 @@ export default function DaftarKeluhan() {
               )
             )}
 
-            <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
+            <div className="sticky -bottom-6 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
               <button type="button" onClick={() => setTerpilih(null)} className={btnOutline}>Batal</button>
               <button type="submit" disabled={isSubmitting} className={btnPrimary}>{isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
             </div>
