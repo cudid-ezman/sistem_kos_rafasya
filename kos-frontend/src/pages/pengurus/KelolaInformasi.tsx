@@ -159,9 +159,11 @@ export default function KelolaInformasi() {
         title="Manajemen Pusat Informasi"
         subtitle="Kelola tata tertib, jadwal gerbang, status Wi-Fi, dan pengumuman yang tampil di portal penghuni."
         action={
-          <button type="button" onClick={bukaTambah} className={btnPrimary}>
-            + Tambah Informasi
-          </button>
+          list.length > 0 ? (
+            <button type="button" onClick={bukaTambah} className={btnPrimary}>
+              + Tambah Informasi
+            </button>
+          ) : undefined
         }
       />
 
@@ -333,7 +335,7 @@ export default function KelolaInformasi() {
             />
           </div>
 
-          <div className="flex justify-end gap-2.5 border-t border-field-line pt-4">
+          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-2.5 border-t border-field-line bg-white px-6 py-4">
             <button
               type="button"
               disabled={isSubmitting}
@@ -369,7 +371,7 @@ export default function KelolaInformasi() {
             <span className="font-bold text-ink">{hapusItem?.kategori}</span>?
             Informasi ini tidak akan lagi muncul di portal penghuni.
           </p>
-          <div className="flex justify-end gap-2.5 border-t border-field-line pt-4">
+          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-2.5 border-t border-field-line bg-white px-6 py-4">
             <button
               type="button"
               disabled={isSubmitting}

@@ -347,7 +347,6 @@ export default function DenahKamar({ onTambahKamar, refreshKey = 0 }: DenahKamar
               <span className="tabular-nums text-ink-soft">({hitung[l.key]})</span>
             </button>
           ))}
-          <span className="hidden h-4 w-px bg-slate-300 sm:block" />
           <span className="inline-flex items-center gap-2">
             <span className="font-semibold text-ink-soft">Penanda:</span>
             <span className="relative h-5 w-6 rounded-md border border-slate-300 bg-slate-100">

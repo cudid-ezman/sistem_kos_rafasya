@@ -372,12 +372,6 @@ export default function DataPenghuni() {
       <section className="overflow-hidden rounded-2xl border border-field-line bg-white">
         <div className="flex flex-col gap-3 border-b border-field-line px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="flex items-center gap-2 text-base font-bold text-ink">
-              Penghuni{" "}
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-ink-soft">
-                {hitungStatus.aktif}
-              </span>
-            </h2>
             <FilterTabs
               value={filterStatus}
               onChange={(v) => {
@@ -474,9 +468,10 @@ export default function DataPenghuni() {
                           <button
                             type="button"
                             onClick={() => bukaModalEdit(p, false)}
+                            title="Edit data atau pindah kamar"
                             className="cursor-pointer rounded-lg border border-field-line px-2.5 py-1.5 text-xs font-semibold text-ink transition hover:bg-slate-50"
                           >
-                            Edit / Pindah
+                            Edit
                           </button>
                           <button
                             type="button"
@@ -490,9 +485,10 @@ export default function DataPenghuni() {
                         <button
                           type="button"
                           onClick={() => bukaModalEdit(p, true)}
+                          title="Aktifkan kembali penghuni ini"
                           className="cursor-pointer rounded-lg border border-kos-200 bg-kos-50/70 px-2.5 py-1.5 text-xs font-semibold text-kos-700 transition hover:bg-kos-100/70"
                         >
-                          Aktifkan Kembali
+                          Aktifkan
                         </button>
                       )}
                     </td>
@@ -651,7 +647,7 @@ export default function DataPenghuni() {
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
               <button type="button" onClick={tutupForm} className={btnOutline}>
                 Batal
               </button>
@@ -749,7 +745,7 @@ export default function DataPenghuni() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
+              <div className="col-span-2">
                 <label htmlFor="edit-kamar" className={labelCls}>
                   Kamar Ditempati
                 </label>
@@ -821,7 +817,7 @@ export default function DataPenghuni() {
                 </div>
               );
             })()}
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
               <button
                 type="button"
                 onClick={tutupModalEdit}

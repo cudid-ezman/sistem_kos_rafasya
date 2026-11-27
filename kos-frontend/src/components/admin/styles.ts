@@ -4,5 +4,5 @@ export const inputCls =
 
 export const labelCls = 'mb-1.5 block text-[13px] font-semibold text-ink';
 
-export const thCls = 'px-5 py-3 text-left text-xs font-semibold text-ink-soft whitespace-nowrap';
-export const tdCls = 'px-5 py-3.5 text-sm text-ink';
+export const thCls = 'px-4 py-3 text-left text-xs font-semibold text-ink-soft whitespace-nowrap';
+export const tdCls = 'px-4 py-3.5 text-sm text-ink';

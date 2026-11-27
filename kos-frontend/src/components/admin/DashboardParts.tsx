@@ -56,8 +56,8 @@ export function StatCard({
       to={to}
       className="group flex flex-col gap-4 rounded-2xl border border-field-line bg-field p-5 transition hover:border-kos-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-600"
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-ink-soft">{label}</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="pt-2.5 text-sm font-medium leading-snug text-ink-soft">{label}</p>
         <IkonKotak tone={tone}>{icon}</IkonKotak>
       </div>
       <div>

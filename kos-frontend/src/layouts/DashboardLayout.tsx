@@ -66,6 +66,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
 
   const [drawer, setDrawer] = useState(false);
   const [ubahPwOpen, setUbahPwOpen] = useState(false);
+  const [akunBuka, setAkunBuka] = useState(false);
   const [tagihanList, setTagihanList] = useState<Tagihan[]>([]);
   const [buktiList, setBuktiList] = useState<BuktiPembayaran[]>([]);
   const [keluhanList, setKeluhanList] = useState<Keluhan[]>([]);
@@ -232,7 +233,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
   const paramUrl = new URLSearchParams(location.search);
 
   const barisCls = (aktif: boolean) =>
-    `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
+    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
       aktif
         ? "bg-kos-600 text-white"
         : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -240,12 +241,12 @@ export default function DashboardLayout({ user, onLogout }: Props) {
 
   const menu = (
     <nav
-      className="sidebar-scroll -mr-2 flex flex-1 flex-col gap-6 overflow-y-auto pr-2"
+      className="sidebar-scroll -mr-2 flex flex-1 flex-col gap-4 overflow-y-auto pr-2"
       aria-label="Menu utama"
     >
       {grup.map((g) => (
         <div key={g.judul}>
-          <p className="mb-2 px-3 text-xs font-medium text-white/45">
+          <p className="mb-1 px-3 text-xs font-medium text-white/45">
             {g.judul}
           </p>
           <div className="flex flex-col gap-0.5">
@@ -258,7 +259,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
                     <Link
                       to={n.anak[0].to}
                       onClick={() => setDrawer(false)}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400 ${
                         dalamBagian
                           ? "text-white"
                           : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -353,38 +354,75 @@ export default function DashboardLayout({ user, onLogout }: Props) {
   );
 
   const akun = (
-    <div className="mt-4 border-t border-white/10 pt-4">
-      <div className="flex items-center gap-3 px-1">
+    <div className="relative mt-3 border-t border-white/10 pt-3">
+      {akunBuka && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setAkunBuka(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="menu"
+            className="absolute inset-x-0 bottom-full z-20 mb-2 rounded-xl border border-white/10 bg-gerbang p-1.5 shadow-2xl"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setAkunBuka(false);
+                setUbahPwOpen(true);
+              }}
+              className="flex h-10 w-full cursor-pointer items-center rounded-lg px-3 text-sm font-medium text-white/85 transition hover:bg-white/10"
+            >
+              Ubah sandi
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={onLogout}
+              className="flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg px-3 text-sm font-medium text-atap-terang transition hover:bg-white/10"
+            >
+              <LogoutIcon size={16} />
+              Keluar
+            </button>
+          </div>
+        </>
+      )}
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={akunBuka}
+        onClick={() => setAkunBuka((v) => !v)}
+        className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400"
+      >
         <span
           aria-hidden="true"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream text-[13px] font-bold text-gerbang"
         >
           {inisial(nama)}
         </span>
-        <span className="min-w-0 leading-tight">
+        <span className="min-w-0 flex-1 leading-tight">
           <span className="block truncate text-sm font-semibold text-white">
             {nama}
           </span>
           <span className="block text-xs text-white/55">{roleLabel}</span>
         </span>
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => setUbahPwOpen(true)}
-          className="h-9 cursor-pointer rounded-lg border border-white/15 text-[13px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400"
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="shrink-0 text-white/55"
+          aria-hidden="true"
         >
-          Ubah sandi
-        </button>
-        <button
-          type="button"
-          onClick={onLogout}
-          className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/15 text-[13px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-400"
-        >
-          <LogoutIcon size={15} />
-          Keluar
-        </button>
-      </div>
+          <path d="m6 15 6-6 6 6" />
+        </svg>
+      </button>
     </div>
   );
 
@@ -399,13 +437,13 @@ export default function DashboardLayout({ user, onLogout }: Props) {
         </a>
 
         <aside className="sticky top-0 hidden h-screen flex-col bg-hijau-tua p-4 lg:flex print:hidden">
-          <div className="mb-8 mt-1">{merek}</div>
+          <div className="mb-5 mt-1">{merek}</div>
           {menu}
           {akun}
         </aside>
 
         <div className="min-w-0">
-          <header className="sticky top-0 z-40 border-b border-field-line bg-page/90 backdrop-blur-md print:hidden">
+          <header className="sticky top-0 z-40 border-b border-field-line bg-page print:hidden">
             <div className="flex h-16 items-center justify-between px-4 lg:px-8">
               <div className="flex items-center gap-3">
                 <button
@@ -451,7 +489,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
               onClick={() => setDrawer(false)}
             />
             <div className="absolute inset-y-0 left-0 flex w-[284px] flex-col bg-hijau-tua p-4 shadow-2xl motion-safe:animate-[pop-in_.18s_ease-out]">
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between">
                 {merek}
                 <button
                   type="button"

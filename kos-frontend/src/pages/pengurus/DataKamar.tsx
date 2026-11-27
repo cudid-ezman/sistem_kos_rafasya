@@ -313,7 +313,7 @@ export default function DataKamar() {
                           <td className={`${tdCls} font-bold`}>
                             {k.nomor_kamar}
                           </td>
-                          <td className={tdCls}>
+                          <td className={`${tdCls} whitespace-nowrap`}>
                             <span className="capitalize">{k.tipe}</span>
                             <span className="ml-1.5 inline-block whitespace-nowrap rounded-md bg-cream px-2 py-0.5 text-[11px] font-semibold text-gerbang">
                               {jml}/2 org
@@ -528,7 +528,7 @@ export default function DataKamar() {
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
             <button
               type="button"
               onClick={() => setFormOpen(false)}

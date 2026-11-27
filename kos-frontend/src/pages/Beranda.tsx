@@ -88,6 +88,22 @@ function BerandaPengurus({ nama }: { nama: string }) {
     };
   }, [kamar, bukti, keluhan, tagihan]);
 
+  const pemasukan = useMemo(() => {
+    const periode = new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    const bulanIni = tagihan.filter(
+      (t) => (t.periode || '').toLowerCase() === periode.toLowerCase(),
+    );
+    const ditagih = bulanIni.reduce((s, t) => s + totalTagihan(t), 0);
+    const terkumpul = bulanIni.filter((t) => t.status === 'lunas').reduce((s, t) => s + totalTagihan(t), 0);
+    return {
+      periode,
+      ada: bulanIni.length > 0,
+      ditagih,
+      terkumpul,
+      persen: ditagih ? Math.round((terkumpul / ditagih) * 100) : 0,
+    };
+  }, [tagihan]);
+
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
@@ -135,7 +151,7 @@ function BerandaPengurus({ nama }: { nama: string }) {
         />
         <StatCard
           to="/dashboard/tagihan"
-          label="Tagihan belum lunas"
+          label="Belum lunas"
           value={ringkas.tunggakan.length}
           hint={
             ringkas.terlambat.length > 0
@@ -155,13 +171,53 @@ function BerandaPengurus({ nama }: { nama: string }) {
         />
         <StatCard
           to="/dashboard/keluhan"
-          label="Keluhan belum selesai"
+          label="Keluhan aktif"
           value={ringkas.keluhanAktif.length}
           hint="Perlu ditindaklanjuti"
           icon={<WarningIcon size={20} />}
           tone="kos"
         />
       </div>
+
+      <section className={`${panelCls} p-5 lg:p-6`} aria-label="Pemasukan bulan ini">
+        {pemasukan.ada ? (
+          <>
+            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+              <div>
+                <p className="text-sm font-medium text-ink-soft">Pemasukan {pemasukan.periode}</p>
+                <p className="mt-1 font-display text-3xl font-extrabold tracking-tight text-ink tabular-nums">
+                  {rupiah(pemasukan.terkumpul)}{' '}
+                  <span className="text-base font-semibold text-ink-soft">dari {rupiah(pemasukan.ditagih)}</span>
+                </p>
+              </div>
+              <p className="text-sm font-semibold text-kos-700 tabular-nums">{pemasukan.persen}% terkumpul</p>
+            </div>
+            <div
+              className="mt-4 h-2.5 overflow-hidden rounded-full bg-cream"
+              role="img"
+              aria-label={`${pemasukan.persen} persen tagihan bulan ini sudah masuk`}
+            >
+              <div
+                className="hatch h-full rounded-full bg-kos-500"
+                style={{ width: `${pemasukan.terkumpul > 0 ? Math.max(pemasukan.persen, 3) : 0}%` }}
+              />
+            </div>
+            <p className="mt-2 text-[13px] text-ink-soft">
+              Sisa {rupiah(Math.max(pemasukan.ditagih - pemasukan.terkumpul, 0))} belum masuk.
+            </p>
+          </>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-ink-soft">Pemasukan {pemasukan.periode}</p>
+              <p className="mt-1 text-base font-semibold text-ink">Tagihan bulan ini belum diterbitkan.</p>
+            </div>
+            <Link to="/dashboard/tagihan" className={`${btnPrimary} h-9 text-[13px]`}>
+              Buka tagihan
+            </Link>
+          </div>
+        )}
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className={panelCls}>

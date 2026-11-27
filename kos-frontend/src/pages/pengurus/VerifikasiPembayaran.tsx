@@ -265,7 +265,7 @@ export default function VerifikasiPembayaran() {
               ))}
             </div>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
             <button type="button" onClick={() => setTolakOpen(false)} className={btnOutline}>Batal</button>
             <button type="submit" disabled={memproses || alasan.trim().length < 3} className="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50">
               {memproses ? 'Memproses...' : 'Tolak Pembayaran'}

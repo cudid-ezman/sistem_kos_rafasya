@@ -174,3 +174,15 @@ input:-webkit-autofill:active {
   caret-color: var(--color-ink);
   transition: background-color 9999s ease-in-out 0s;
 }
+
+/* Kontrol bawaan browser mengikuti warna merek */
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--color-kos-600);
+}
+
+/* Scrollbar tipis dan senada di seluruh aplikasi */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cfc597 transparent;
+}

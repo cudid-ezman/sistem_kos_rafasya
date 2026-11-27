@@ -27,10 +27,10 @@ const PILIHAN: { key: Status; label: string }[] = [
 ];
 
 const BADGE_PEMILIK: Record<string, { label: string; cls: string }> = {
-  menunggu: { label: 'Menunggu Pemilik', cls: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  dicairkan: { label: 'Dana Dicairkan', cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  dicairkan_sebagian: { label: 'Dicairkan Sebagian', cls: 'bg-sky-50 text-sky-700 ring-sky-200' },
-  ditolak: { label: 'Ditolak Pemilik', cls: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  menunggu: { label: 'Menunggu Pemilik', cls: 'bg-amber-100 text-amber-800' },
+  dicairkan: { label: 'Dana Dicairkan', cls: 'bg-emerald-100 text-emerald-800' },
+  dicairkan_sebagian: { label: 'Dicairkan Sebagian', cls: 'bg-sky-100 text-sky-800' },
+  ditolak: { label: 'Ditolak Pemilik', cls: 'bg-rose-100 text-rose-800' },
 };
 
 export default function DaftarKeluhan() {
@@ -323,7 +323,7 @@ export default function DaftarKeluhan() {
                         <div className="flex flex-col items-start gap-1.5">
                           <StatusPill status={k.status} />
                           {badgePemilik && (
-                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${badgePemilik.cls}`}>
+                            <span className={`inline-flex whitespace-nowrap rounded-md px-2 py-1 text-xs font-semibold ${badgePemilik.cls}`}>
                               {badgePemilik.label}
                             </span>
                           )}
@@ -437,7 +437,7 @@ export default function DaftarKeluhan() {
             </div>
 
             <div>
-              <div className="mb-1.5 flex items-center justify-between gap-2">
+              <div className="mb-2 space-y-2">
                 <label htmlFor="catatan" className={`${labelCls} mb-0`}>Catatan untuk Penghuni</label>
                 <div className="flex flex-wrap gap-1.5">
                   {(statusBaru === 'selesai'
@@ -448,7 +448,7 @@ export default function DaftarKeluhan() {
                       key={preset}
                       type="button"
                       onClick={() => setCatatan(preset)}
-                      className="cursor-pointer rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-ink-soft transition hover:bg-kos-100/70 hover:text-kos-700"
+                      className="cursor-pointer rounded-md bg-cream px-2.5 py-1 text-[11px] font-medium text-gerbang transition hover:bg-kos-100"
                     >
                       {preset}
                     </button>
@@ -560,7 +560,7 @@ export default function DaftarKeluhan() {
               )
             )}
 
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-field-line bg-white px-6 py-4">
               <button type="button" onClick={() => setTerpilih(null)} className={btnOutline}>Batal</button>
               <button type="submit" disabled={isSubmitting} className={btnPrimary}>{isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
             </div>

@@ -12,7 +12,7 @@ interface Props<T extends string> {
 
 export default function FilterTabs<T extends string>({ tabs, value, onChange }: Props<T>) {
   return (
-    <div className="flex flex-wrap gap-x-6 gap-y-2" role="tablist">
+    <div className="flex min-w-0 gap-x-5 overflow-x-auto whitespace-nowrap [scrollbar-width:none]" role="tablist">
       {tabs.map((t) => {
         const aktif = value === t.key;
         return (
