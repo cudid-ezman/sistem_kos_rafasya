@@ -282,3 +282,13 @@ export const PhoneIcon = (p: P) => (
 export const ChevronLeftIcon = (p: P) => (
   <I {...p}><path d="m15 6-6 6 6 6" /></I>
 );
+export const DropletIcon = (p: P) => (
+  <I {...p}>
+    <path d="M12 3.5c3.2 3.8 5.5 6.6 5.5 9.6a5.5 5.5 0 0 1-11 0c0-3 2.3-5.8 5.5-9.6Z" />
+  </I>
+);
+export const BoltIcon = (p: P) => (
+  <I {...p}>
+    <path d="M13 3 5.5 13.2h5.3L10 21l7.5-10.2h-5.3L13 3Z" />
+  </I>
+);

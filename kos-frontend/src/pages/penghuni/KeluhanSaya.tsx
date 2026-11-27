@@ -6,7 +6,8 @@ import PageHeader from '../../components/portal/PageHeader';
 import StatusPill from '../../components/portal/StatusPill';
 import { PageSkeleton } from '../../components/portal/Skeleton';
 import { btnOutline, btnPrimary } from '../../components/portal/buttons';
-import { ArrowRightIcon, PlusIcon, SparkleIcon, WarningIcon, WrenchIcon } from '../../components/portal/icons';
+import { ArrowRightIcon, PlusIcon, WarningIcon } from '../../components/portal/icons';
+import IkonKategori from '../../components/portal/IkonKategori';
 
 const PER_HALAMAN = 5;
 
@@ -40,7 +41,7 @@ export default function KeluhanSaya() {
       <PageHeader
         crumbs={[{ label: 'Beranda' }, { label: 'Keluhan' }]}
         title="Keluhan"
-        subtitle="Pantau status keluhan fasilitas Anda."
+        subtitle="Pantau status keluhan fasilitasmu."
         action={
           <Link to="/dashboard/keluhan-saya/baru" className={btnPrimary}>
             <PlusIcon size={17} /> Buat Keluhan
@@ -56,9 +57,6 @@ export default function KeluhanSaya() {
 
         {total === 0 ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-kos-100/60 text-kos-600">
-              <SparkleIcon size={30} />
-            </div>
             <p className="text-lg font-bold text-ink">Belum ada keluhan</p>
             <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-ink-soft">
               Semua fasilitas kos dalam kondisi baik. Jika mengalami kendala teknis atau fasilitas, laporkan segera di sini.
@@ -84,7 +82,7 @@ export default function KeluhanSaya() {
                 >
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cream text-gerbang">
-                      <WrenchIcon size={18} />
+                      <IkonKategori nama={k.nama_kategori} size={18} />
                     </span>
                     <span className="font-semibold text-ink">{k.nama_kategori || 'Lainnya'}</span>
                     <span className="ml-auto md:hidden">
@@ -109,6 +107,7 @@ export default function KeluhanSaya() {
               <span>
                 Menampilkan {baris.length} dari {total} keluhan
               </span>
+              {total > PER_HALAMAN && (
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -127,6 +126,7 @@ export default function KeluhanSaya() {
                   Selanjutnya
                 </button>
               </div>
+              )}
             </div>
           </>
         )}

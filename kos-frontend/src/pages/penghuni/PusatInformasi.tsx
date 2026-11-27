@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { informasiService } from "../../services/informasiService";
 import type { InformasiItem } from "../../types/kos";
 import { tglPendek } from "../../lib/format";
+import LinkWhatsAppPengurus from "../../components/common/LinkWhatsAppPengurus";
 import PageHeader from "../../components/portal/PageHeader";
 import { PageSkeleton } from "../../components/portal/Skeleton";
 import {
@@ -48,6 +49,10 @@ export default function PusatInformasi() {
           <p className="font-semibold text-ink">Belum ada informasi tersedia</p>
           <p className="mt-1 text-sm text-ink-soft">
             Pengurus belum menambahkan informasi kos.
+          </p>
+          <p className="mt-4 text-sm text-ink-soft">
+            Sementara itu, tanya langsung ke pengurus lewat{" "}
+            <LinkWhatsAppPengurus label="WhatsApp" pesan="Halo Pengurus Kos Putra Raffasya, saya ingin menanyakan informasi kos (Wi-Fi, aturan, jam gerbang)." />.
           </p>
         </div>
       ) : (

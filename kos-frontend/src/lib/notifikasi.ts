@@ -6,6 +6,9 @@ import {
   tglAngka,
 } from "./format";
 
+/** Huruf awal tiap kata kapital, untuk periode seperti "desember 2026". */
+const kap = (s: string) => s.replace(/(^|\s)(\p{L})/gu, (_, a: string, b: string) => a + b.toUpperCase());
+
 export type NotifTone = "danger" | "warning" | "info" | "success" | "violet";
 
 export interface Notifikasi {
@@ -41,7 +44,7 @@ export function buatNotifikasi(
         title: "Pembayaran ditolak",
         text:
           b.catatan_penolakan ||
-          `Bukti pembayaran ${t.periode} tidak sesuai. Unggah ulang bukti.`,
+          `Bukti pembayaran ${kap(t.periode)} tidak sesuai. Unggah ulang bukti.`,
         time: tglAngka(b.tanggal_verifikasi),
         to: `/dashboard/tagihan-saya/${t.id}/upload`,
         linkLabel: "Upload Bukti Pembayaran",
@@ -56,7 +59,7 @@ export function buatNotifikasi(
         id: `dispensasi-ok-${t.id}-${t.tanggal_perpanjangan}`,
         tone: "success",
         title: "Perpanjangan jatuh tempo disetujui",
-        text: `Tenggat pembayaran ${t.periode} diperpanjang hingga ${tglAngka(t.tanggal_perpanjangan)}.`,
+        text: `Tenggat pembayaran ${kap(t.periode)} diperpanjang hingga ${tglAngka(t.tanggal_perpanjangan)}.`,
         to: `/dashboard/tagihan-saya/${t.id}`,
         linkLabel: "Lihat Rincian Tagihan",
       });
@@ -65,7 +68,7 @@ export function buatNotifikasi(
         id: `dispensasi-no-${t.id}`,
         tone: "danger",
         title: "Perpanjangan jatuh tempo ditolak",
-        text: `Pengajuan dispensasi untuk ${t.periode} belum dapat disetujui pengurus.`,
+        text: `Pengajuan dispensasi untuk ${kap(t.periode)} belum dapat disetujui pengurus.`,
         to: `/dashboard/tagihan-saya/${t.id}`,
         linkLabel: "Lihat Rincian Tagihan",
       });
@@ -80,7 +83,7 @@ export function buatNotifikasi(
         id: `denda-${t.id}`,
         tone: "warning",
         title: "Denda berjalan",
-        text: `Tagihan ${t.periode} terlambat ${hari} hari. Denda ${rupiah(denda)}.`,
+        text: `Tagihan ${kap(t.periode)} terlambat ${hari} hari. Denda ${rupiah(denda)}.`,
         time: tglAngka(t.jatuh_tempo),
         to: `/dashboard/tagihan-saya/${t.id}`,
         linkLabel: "Lihat Rincian Tagihan",
@@ -96,7 +99,7 @@ export function buatNotifikasi(
         id: `keluhan-${k.id}-${k.status}-${catatan.slice(0, 20)}`,
         tone: k.status === "selesai" ? "success" : "violet",
         title: k.status === "selesai" ? "Keluhan selesai" : "Keluhan diproses",
-        text: catatan
+        text: catatan && k.status === "diproses"
           ? `Keluhan ${k.nama_kategori ?? ""}: ${catatan}`.replace(/\s+/g, " ")
           : `Keluhan ${k.nama_kategori ?? ""}${k.nomor_kamar ? ` kamar ${k.nomor_kamar}` : ""} ${
               k.status === "selesai"
@@ -121,7 +124,7 @@ export function buatNotifikasi(
         id: `ingat-${t.id}`,
         tone: "info",
         title: "Pengingat jatuh tempo",
-        text: `Tagihan ${t.periode} jatuh tempo ${tglAngka(t.jatuh_tempo)}.`,
+        text: `Tagihan ${kap(t.periode)} jatuh tempo ${tglAngka(t.jatuh_tempo)}.`,
         to: `/dashboard/tagihan-saya/${t.id}`,
         linkLabel: "Lihat Rincian Tagihan",
       });
@@ -140,10 +143,10 @@ export function buatNotifikasi(
       id: `lunas-${lunas.id}`,
       tone: "success",
       title: "Pembayaran disetujui",
-      text: `Bukti pembayaran ${lunas.periode} telah diverifikasi dan lunas.`,
+      text: `Bukti pembayaran ${kap(lunas.periode)} telah diverifikasi dan lunas.`,
       time: tglAngka(bk?.tanggal_verifikasi),
       to: `/dashboard/tagihan-saya/${lunas.id}`,
-      linkLabel: `Rincian Tagihan (${lunas.periode})`,
+      linkLabel: `Rincian Tagihan (${kap(lunas.periode)})`,
     });
   }
 
@@ -167,7 +170,7 @@ export function buatNotifikasiPengurus(
       id: `pengurus-verif-${b.id}`,
       tone: "warning",
       title: "Bukti pembayaran baru",
-      text: `${b.nama_penghuni ?? "Penghuni"}${b.nomor_kamar ? ` (Kamar ${b.nomor_kamar})` : ""} mengunggah bukti pembayaran ${b.periode_tagihan ?? ""}.`.replace(
+      text: `${b.nama_penghuni ?? "Penghuni"}${b.nomor_kamar ? ` (Kamar ${b.nomor_kamar})` : ""} mengunggah bukti pembayaran ${kap(b.periode_tagihan ?? "")}.`.replace(
         /\s+/g,
         " ",
       ),
@@ -186,7 +189,7 @@ export function buatNotifikasiPengurus(
       id: `pengurus-dispensasi-${t.id}`,
       tone: "info",
       title: "Pengajuan perpanjangan jatuh tempo",
-      text: `${t.nama_penghuni ?? "Penghuni"} (Kamar ${t.nomor_kamar ?? "-"}) mengajukan dispensasi periode ${t.periode}${t.tanggal_perpanjangan ? ` s/d ${tglAngka(t.tanggal_perpanjangan)}` : ""}.`,
+      text: `${t.nama_penghuni ?? "Penghuni"} (Kamar ${t.nomor_kamar ?? "-"}) mengajukan dispensasi periode ${kap(t.periode)}${t.tanggal_perpanjangan ? ` s/d ${tglAngka(t.tanggal_perpanjangan)}` : ""}.`,
       to: "/dashboard/tagihan",
       linkLabel: "Tinjau Pengajuan",
     });
@@ -247,7 +250,7 @@ export function buatNotifikasiPengurus(
         id: `pengurus-telat-${t.id}`,
         tone: "danger",
         title: "Tagihan melewati jatuh tempo",
-        text: `Kamar ${t.nomor_kamar ?? "-"} (${t.nama_penghuni ?? "Penghuni"}) terlambat ${hari} hari untuk periode ${t.periode}.`,
+        text: `Kamar ${t.nomor_kamar ?? "-"} (${t.nama_penghuni ?? "Penghuni"}) terlambat ${hari} hari untuk periode ${kap(t.periode)}.`,
         time: tglAngka(t.jatuh_tempo),
         to: "/dashboard/tagihan",
         linkLabel: "Lihat Data Tagihan",
@@ -299,7 +302,7 @@ export function buatNotifikasiPemilik(
       id: `pemilik-lunas-${t.id}-${totalMasuk}`,
       tone: "success",
       title: "Pemasukan sewa terverifikasi",
-      text: `Kamar ${t.nomor_kamar ?? "-"} (${t.periode}) lunas sebesar ${rupiah(totalMasuk)}.`,
+      text: `Kamar ${t.nomor_kamar ?? "-"} (${kap(t.periode)}) lunas sebesar ${rupiah(totalMasuk)}.`,
       time: tglAngka(bk?.tanggal_verifikasi),
       to: "/dashboard/laporan",
       linkLabel: "Buka Laporan Keuangan",

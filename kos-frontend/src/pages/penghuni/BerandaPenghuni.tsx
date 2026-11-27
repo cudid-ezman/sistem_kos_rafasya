@@ -7,12 +7,14 @@ import {
   hitungDenda,
   parseTanggal,
   rupiah,
+  statusTampil,
   sudahTerbitH7,
   tglPendek,
   totalTagihan,
 } from "../../lib/format";
 import { usePortal } from "../../components/portal/portalContext";
 import { Atap, panelCls } from "../../components/admin/DashboardParts";
+import IkonKategori from "../../components/portal/IkonKategori";
 import StatusPill from "../../components/portal/StatusPill";
 import { PageSkeleton } from "../../components/portal/Skeleton";
 import { btnOutline, btnPrimary } from "../../components/portal/buttons";
@@ -23,7 +25,6 @@ import {
   ClockIcon,
   InfoCircleIcon,
   ReceiptIcon,
-  WarningIcon,
   WifiIcon,
   WrenchIcon,
 } from "../../components/portal/icons";
@@ -162,7 +163,7 @@ export default function BerandaPenghuni() {
                     {rupiah(totalBayar)}
                   </p>
                 </div>
-                <StatusPill status={terdekat.status} />
+                <StatusPill status={statusTampil(terdekat)} />
               </div>
 
               <div className="mt-5">
@@ -241,11 +242,11 @@ export default function BerandaPenghuni() {
         {/* Plat kamar */}
         <section
           aria-label="Kamar"
-          className="overflow-hidden rounded-2xl border border-gerbang/20 lg:col-start-1 lg:row-start-1"
+          className="flex flex-col overflow-hidden rounded-2xl border border-gerbang/20 lg:col-start-1 lg:row-start-1"
         >
           <Atap />
-          <div className="bg-gerbang p-3">
-            <div className="rounded-lg border border-cream/30 p-4">
+          <div className="flex flex-1 flex-col bg-gerbang p-3">
+            <div className="flex flex-1 flex-col justify-between rounded-lg border border-cream/30 p-4">
               <p className="text-sm text-cream/70">Kamarmu</p>
               <div className="mt-1 flex items-end justify-between gap-3">
                 <p className="font-display text-6xl font-extrabold leading-none tracking-tight text-cream">
@@ -290,50 +291,9 @@ export default function BerandaPenghuni() {
             to="/dashboard/informasi"
             ikon={<InfoCircleIcon size={20} />}
             judul="Info kos"
-            teks="Wifi, aturan, jam gerbang"
+            teks={info.length > 0 ? "Wifi, aturan, jam gerbang" : "Belum ada info dari pengurus"}
           />
         </div>
-
-        {/* Keluhan aktif */}
-        {keluhanAktif.length > 0 && (
-          <section
-            aria-label="Keluhan aktif"
-            className={`${panelCls} lg:col-start-2 lg:row-start-2`}
-          >
-            <div className="flex items-center justify-between border-b border-field-line px-5 py-3.5">
-              <h2 className="text-base font-bold text-ink">Keluhan yang berjalan</h2>
-              <Link
-                to="/dashboard/keluhan-saya"
-                className="text-[13px] font-semibold text-kos-700 hover:underline"
-              >
-                Semua
-              </Link>
-            </div>
-            <ul className="divide-y divide-field-line">
-              {keluhanAktif.slice(0, 3).map((k) => (
-                <li key={k.id}>
-                  <Link
-                    to={`/dashboard/keluhan-saya/${k.id}`}
-                    className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-cream/40"
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cream text-gerbang">
-                      <WarningIcon size={18} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-ink">
-                        {k.nama_kategori || "Lainnya"}
-                      </span>
-                      <span className="block truncate text-xs text-ink-soft">
-                        {k.deskripsi}
-                      </span>
-                    </span>
-                    <StatusPill status={k.status} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
 
         {/* Informasi */}
         {info.length > 0 && (
@@ -375,6 +335,47 @@ export default function BerandaPenghuni() {
             </ul>
           </section>
         )}
+        {/* Keluhan aktif */}
+        {keluhanAktif.length > 0 && (
+          <section
+            aria-label="Keluhan aktif"
+            className={`${panelCls} lg:col-start-2 lg:row-start-2`}
+          >
+            <div className="flex items-center justify-between border-b border-field-line px-5 py-3.5">
+              <h2 className="text-base font-bold text-ink">Keluhan yang berjalan</h2>
+              <Link
+                to="/dashboard/keluhan-saya"
+                className="text-[13px] font-semibold text-kos-700 hover:underline"
+              >
+                Semua
+              </Link>
+            </div>
+            <ul className="divide-y divide-field-line">
+              {keluhanAktif.slice(0, 3).map((k) => (
+                <li key={k.id}>
+                  <Link
+                    to={`/dashboard/keluhan-saya/${k.id}`}
+                    className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-cream/40"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cream text-gerbang">
+                      <IkonKategori nama={k.nama_kategori} size={18} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-ink">
+                        {k.nama_kategori || "Lainnya"}
+                      </span>
+                      <span className="block truncate text-xs text-ink-soft">
+                        {k.deskripsi}
+                      </span>
+                    </span>
+                    <StatusPill status={k.status} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
       </div>
     </div>
   );

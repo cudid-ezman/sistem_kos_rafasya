@@ -305,7 +305,7 @@ function BerandaPengurus({ nama }: { nama: string }) {
           <ul className="divide-y divide-field-line">
             {ringkas.keluhanAktif.slice(0, 5).map((k) => (
               <li key={k.id} className="flex items-center gap-4 px-6 py-3.5">
-                <IkonKotak tone="kos">
+                <IkonKotak tone="rose">
                   <WarningIcon size={19} />
                 </IkonKotak>
                 <div className="min-w-0 flex-1">

@@ -51,7 +51,7 @@ export default function UploadBukti() {
         </div>
         <h2 className="text-lg font-bold text-ink">{t ? 'Tagihan ini tidak perlu dibayar' : 'Tagihan tidak ditemukan'}</h2>
         <p className="mt-1.5 text-sm text-ink-soft">
-          {t ? 'Status tagihan sudah lunas atau sedang diverifikasi pengurus.' : 'Periksa kembali tautan yang Anda buka.'}
+          {t ? 'Status tagihan sudah lunas atau sedang diverifikasi pengurus.' : 'Periksa kembali tautan yang kamu buka.'}
         </p>
         <Link to="/dashboard/tagihan-saya" className={`${btnPrimary} mt-5`}>
           Kembali ke Tagihan Saya
@@ -96,7 +96,7 @@ export default function UploadBukti() {
       console.error('Gagal mengunggah bukti', err);
       setGalat(
         axios.isAxiosError(err) && !err.response
-          ? 'Tidak dapat terhubung ke server. Pastikan koneksi Anda aktif.'
+          ? 'Tidak dapat terhubung ke server. Pastikan koneksimu aktif.'
           : 'Format atau ukuran berkas tidak sesuai / isian wajib kosong. Pastikan berkas berformat JPG atau PNG dengan ukuran maksimal 2 MB.'
       );
     } finally {
@@ -230,7 +230,7 @@ export default function UploadBukti() {
                 </span>
               </div>
               <p className="mt-1.5 text-xs text-ink-soft">
-                {t.penghuni?.kamar?.tipe === 'berdua' ? 'Bagian Anda (kamar berdua dibagi rata) ' : 'Tagihan sewa '}
+                {t.penghuni?.kamar?.tipe === 'berdua' ? 'Bagianmu (kamar berdua dibagi rata) ' : 'Tagihan sewa '}
                 {rupiah(t.nominal)}
                 {denda > 0 ? ` + denda ${rupiah(denda)}` : ''}
               </p>
@@ -250,7 +250,7 @@ export default function UploadBukti() {
                 className="h-12 w-full rounded-lg border border-field-line bg-field px-4 text-sm text-ink outline-none transition focus:border-kos-600 focus:ring-2 focus:ring-kos-600/20"
               />
               <p className="mt-1.5 text-xs text-ink-soft">
-                Sesuaikan dengan tanggal transaksi pada bukti pembayaran Anda. Tanggal tidak boleh lebih dari hari ini.
+                Sesuaikan dengan tanggal transaksi pada bukti pembayaranmu. Tanggal tidak boleh lebih dari hari ini.
               </p>
             </div>
 

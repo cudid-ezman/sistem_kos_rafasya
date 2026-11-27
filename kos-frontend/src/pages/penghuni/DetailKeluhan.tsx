@@ -10,8 +10,8 @@ import {
   CheckIcon,
   FileImageIcon,
   WarningIcon,
-  WrenchIcon,
 } from "../../components/portal/icons";
+import IkonKategori from "../../components/portal/IkonKategori";
 
 const TAHAP = [
   {
@@ -41,7 +41,7 @@ const bersihkanCatatan = (catatan: string) =>
 export default function DetailKeluhan() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, kamar, keluhan, loading } = usePortal();
+  const { kamar, keluhan, loading } = usePortal();
 
   if (loading) return <PageSkeleton />;
 
@@ -72,7 +72,7 @@ export default function DetailKeluhan() {
         ]}
         title="Detail Keluhan"
         badge={<StatusPill status={k.status} />}
-        subtitle="Pantau penanganan kendala fasilitas Anda."
+        subtitle="Pantau penanganan kendala fasilitasmu."
         action={
           <button
             type="button"
@@ -87,7 +87,7 @@ export default function DetailKeluhan() {
       <div className="grid items-start gap-5 lg:grid-cols-[1.3fr_1fr]">
         <section className="rounded-2xl border border-field-line bg-field p-6">
           <h2 className="mb-5 flex items-center gap-2 text-base font-bold text-ink">
-            <WrenchIcon size={19} className="text-kos-600" /> Informasi Keluhan
+            <IkonKategori nama={k.nama_kategori} size={19} className="text-kos-600" /> Informasi Keluhan
           </h2>
 
           <dl className="grid gap-5 sm:grid-cols-2">
@@ -97,15 +97,6 @@ export default function DetailKeluhan() {
               </dt>
               <dd className="mt-1 font-semibold text-ink">
                 {k.nama_kategori || "Lainnya"}
-              </dd>
-            </div>
-            <div className="hidden sm:block" />
-            <div>
-              <dt className="text-[11px] font-semibold text-ink-soft">
-                Pelapor
-              </dt>
-              <dd className="mt-1 font-semibold text-ink">
-                {k.nama_penghuni || user.nama_lengkap || user.username}
               </dd>
             </div>
             <div>

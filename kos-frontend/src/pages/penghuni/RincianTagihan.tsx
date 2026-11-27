@@ -67,7 +67,7 @@ export default function RincianTagihan() {
           <ReceiptIcon size={26} />
         </div>
         <h2 className="text-lg font-bold text-ink">Tagihan tidak ditemukan</h2>
-        <p className="mt-1.5 text-sm text-ink-soft">Tagihan ini mungkin sudah dihapus atau bukan milik Anda.</p>
+        <p className="mt-1.5 text-sm text-ink-soft">Tagihan ini mungkin sudah dihapus atau bukan milikmu.</p>
         <Link to="/dashboard/tagihan-saya" className={`${btnPrimary} mt-5`}>
           Kembali ke Tagihan Saya
         </Link>
@@ -276,7 +276,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                 Transaksi pembayaran sewa {t.periode} telah diverifikasi dan dinyatakan sah
                 {buktiDiterima?.tanggal_verifikasi ? ` pada tanggal ${tglAngka(buktiDiterima.tanggal_verifikasi)}` : ''}.
               </p>
-              <p className="mt-2 text-xs text-emerald-800/70">Simpan bukti pembayaran ini untuk arsip pribadi Anda.</p>
+              <p className="mt-2 text-xs text-emerald-800/70">Simpan bukti pembayaran ini untuk arsip pribadimu.</p>
               <button type="button" onClick={cetakBukti} className={`${btnPrimary} mt-4 w-full`}>
                 <DownloadIcon size={17} /> Download Bukti PDF
               </button>
@@ -294,7 +294,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                   <h3 className="font-bold">Pembayaran Sedang Diperiksa</h3>
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-ink">
-                  Bukti pembayaran yang Anda unggah sedang diverifikasi oleh Pengurus Kos Rafasya. Proses verifikasi
+                  Bukti pembayaran yang kamu unggah sedang diverifikasi oleh Pengurus Kos Rafasya. Proses verifikasi
                   membutuhkan waktu maksimal 1x24 jam kerja.
                 </p>
               </div>
@@ -306,7 +306,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
             <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
               <div className="flex items-center gap-2 text-amber-700">
                 <WarningIcon size={20} />
-                <h3 className="font-bold">Menunggu pembayaran Anda</h3>
+                <h3 className="font-bold">Menunggu pembayaranmu</h3>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-ink">
                 Bayar lewat QRIS sesuai nominal {rupiah(total)}, lalu unggah bukti pembayaran agar segera diverifikasi
@@ -415,7 +415,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
                 </Link>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-ink-soft">
-                Tombol Upload Bukti tampil jika status Belum Dibayar atau Ditolak. Bukti pembayaran baru yang Anda unggah
+                Tombol Upload Bukti tampil jika status Belum Dibayar atau Ditolak. Bukti pembayaran baru yang kamu unggah
                 akan diverifikasi ulang oleh Pengurus dalam waktu maksimal 1x24 jam.
               </p>
             </div>

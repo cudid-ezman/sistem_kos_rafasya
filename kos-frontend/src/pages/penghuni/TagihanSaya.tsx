@@ -75,7 +75,7 @@ export default function TagihanSaya() {
           <WarningIcon size={26} />
         </div>
         <h2 className="text-lg font-bold text-ink">Data tagihan belum bisa dimuat</h2>
-        <p className="mt-1.5 text-sm text-ink-soft">Periksa koneksi Anda atau pastikan server menyala, lalu coba lagi.</p>
+        <p className="mt-1.5 text-sm text-ink-soft">Periksa koneksimu atau pastikan server menyala, lalu coba lagi.</p>
         <button type="button" onClick={() => void reload()} className={`${btnPrimary} mt-5`}>
           Coba lagi
         </button>
@@ -92,7 +92,7 @@ export default function TagihanSaya() {
       <PageHeader
         crumbs={[{ label: 'Beranda' }, { label: 'Tagihan Saya' }]}
         title="Tagihan Saya"
-        subtitle="Kelola riwayat tagihan sewa kamar kos dan konfirmasi status pembayaran Anda secara berkala."
+        subtitle="Kelola riwayat tagihan sewa kamar kos dan konfirmasi status pembayaranmu secara berkala."
       />
 
       {/* Ringkasan */}
@@ -196,7 +196,7 @@ export default function TagihanSaya() {
             <p className="font-semibold text-ink">
               {tagihan.length === 0 ? 'Belum ada tagihan' : 'Tidak ada tagihan di kategori ini'}
             </p>
-            <p className="mt-1 text-sm text-ink-soft">Tagihan baru akan muncul di sini sesuai tanggal jatuh tempo Anda.</p>
+            <p className="mt-1 text-sm text-ink-soft">Tagihan baru akan muncul di sini sesuai tanggal jatuh tempomu.</p>
           </div>
         ) : (
           <>
@@ -246,7 +246,7 @@ export default function TagihanSaya() {
 
       <p className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-white/60 px-4 py-3 text-[13px] text-ink-soft">
         <InfoCircleIcon size={16} className="text-kos-600" />
-        Tagihan bulanan otomatis aktif mulai 7 hari (H-7) sebelum tanggal jatuh tempo Anda.
+        Tagihan bulanan otomatis aktif mulai 7 hari (H-7) sebelum tanggal jatuh tempomu.
       </p>
     </div>
   );

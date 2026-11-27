@@ -60,7 +60,7 @@ export default function BuatKeluhan() {
       navigate('/dashboard/keluhan-saya', { replace: true });
     } catch (err) {
       console.error('Gagal mengirim keluhan', err);
-      setGalat('Keluhan belum terkirim. Periksa isian Anda lalu coba lagi.');
+      setGalat('Keluhan belum terkirim. Periksa isianmu lalu coba lagi.');
     } finally {
       setKirim(false);
     }
@@ -77,7 +77,8 @@ export default function BuatKeluhan() {
         subtitle="Sampaikan kendala fasilitas agar segera ditangani pengurus."
       />
 
-      <form onSubmit={submit} noValidate className="max-w-3xl rounded-2xl border border-field-line bg-field p-5 sm:p-8">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <form onSubmit={submit} noValidate className="rounded-2xl border border-field-line bg-field p-5 sm:p-8">
         {galat && (
           <div role="alert" className="mb-6 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
             <WarningIcon size={18} className="shrink-0" />
@@ -166,6 +167,19 @@ export default function BuatKeluhan() {
           </button>
         </div>
       </form>
+
+      <aside className="rounded-2xl border border-field-line bg-cream/50 p-5 lg:sticky lg:top-40">
+        <h2 className="text-base font-bold text-ink">Biar cepat ditangani</h2>
+        <ul className="mt-3 space-y-3 text-sm leading-relaxed text-ink-soft">
+          <li>Sebut lokasinya dengan jelas, misalnya kamar mandi kamar A12 atau lorong blok A.</li>
+          <li>Tulis sejak kapan terjadi, dan seberapa mengganggu.</li>
+          <li>Lampirkan foto kalau ada, supaya pengurus bisa menyiapkan alat yang pas.</li>
+        </ul>
+        <p className="mt-4 border-t border-field-line pt-4 text-[13px] text-ink-soft">
+          Setelah terkirim, statusnya bisa kamu pantau di menu Keluhan.
+        </p>
+      </aside>
+      </div>
     </div>
   );
 }
