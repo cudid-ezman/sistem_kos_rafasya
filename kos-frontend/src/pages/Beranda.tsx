@@ -175,7 +175,7 @@ function BerandaPengurus({ nama }: { nama: string }) {
           value={ringkas.keluhanAktif.length}
           hint="Perlu ditindaklanjuti"
           icon={<WarningIcon size={20} />}
-          tone="kos"
+          tone="rose"
         />
       </div>
 
