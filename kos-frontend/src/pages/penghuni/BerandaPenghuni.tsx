@@ -242,10 +242,10 @@ export default function BerandaPenghuni() {
         {/* Plat kamar */}
         <section
           aria-label="Kamar"
-          className="flex flex-col overflow-hidden rounded-2xl border border-gerbang/20 lg:col-start-1 lg:row-start-1"
+          className="flex flex-col overflow-hidden rounded-2xl border border-hijau-tua/30 lg:col-start-1 lg:row-start-1"
         >
           <Atap />
-          <div className="flex flex-1 flex-col bg-gerbang p-3">
+          <div className="flex flex-1 flex-col bg-hijau-tua p-3">
             <div className="flex flex-1 flex-col justify-between rounded-lg border border-cream/30 p-4">
               <p className="text-sm text-cream/70">Kamarmu</p>
               <div className="mt-1 flex items-end justify-between gap-3">
