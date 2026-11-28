@@ -1377,7 +1377,7 @@ def respon_perpanjangan_api(request, pk):
 
     tagihan.status_perpanjangan = 'disetujui' if aksi == 'setujui' else 'ditolak'
     tagihan.save(update_fields=['status_perpanjangan'])
-    wa_respon_perpanjangan(tagihan)
+    wa_respon_perpanjangan(tagihan, aksi)
 
     return Response(TagihanSerializer(tagihan).data)
 
