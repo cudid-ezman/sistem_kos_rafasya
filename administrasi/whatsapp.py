@@ -183,7 +183,7 @@ def wa_respon_perpanjangan(tagihan, aksi: str):
         if aksi == "setujui":
             pesan = (
                 f"*[Kos Putra Raffasya]*\n"
-                f"Halo {nama}, pengajuan perpanjangan jatuh tempo *Kamar {kamar}* ({tagihan.periode}) *DISETUJUI* hingga *{tagihan.jatuh_tempo}*."
+                f"Halo {nama}, pengajuan perpanjangan jatuh tempo *Kamar {kamar}* ({tagihan.periode}) *DISETUJUI* hingga *{tagihan.tanggal_perpanjangan or tagihan.jatuh_tempo}*."
             )
             kirim_wa_async("penghuni", p.no_kontak, "dispensasi_disetujui", pesan)
         else:
