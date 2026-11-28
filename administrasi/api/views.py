@@ -38,6 +38,10 @@ from administrasi.whatsapp import (
 # --- AUTH & PROFILE ---
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+# ============================================================================
+# 1. PROFIL PENGGUNA & DATA DIRI
+# ============================================================================
+
 def data_diri(request):
     user = request.user
     role = 'unknown'
@@ -69,6 +73,10 @@ def data_diri(request):
     })
 
 # --- KAMAR (CRUD Pengurus) ---
+# ============================================================================
+# 2. MANAJEMEN KAMAR & PENGHUNI
+# ============================================================================
+
 class KamarListCreateAPI(generics.ListCreateAPIView):
     queryset = Kamar.objects.all().order_by('nomor_kamar')
     serializer_class = KamarSerializer
@@ -502,6 +510,10 @@ class PenghuniDetailAPI(generics.RetrieveUpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 # --- TAGIHAN & GENERATE TAGIHAN BULANAN ---
+# ============================================================================
+# 3. TAGIHAN, SIKLUS SEWA & DISPENSASI JATUH TEMPO
+# ============================================================================
+
 class TagihanListCreateAPI(generics.ListCreateAPIView):
     serializer_class = TagihanSerializer
     permission_classes = [IsAuthenticated]
@@ -525,6 +537,10 @@ class TagihanListCreateAPI(generics.ListCreateAPIView):
             ).distinct().order_by('-id')
         return Tagihan.objects.filter(penghuni=penghuni).order_by('-id')
     
+# ============================================================================
+# 4. AUTENTIKASI, GANTI SANDI & OTP RESET PASSWORD
+# ============================================================================
+
 class CustomLoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -712,6 +728,10 @@ def generate_tagihan_bulanan(request):
     return Response({'detail': pesan})
 
 # --- BUKTI PEMBAYARAN & VERIFIKASI PENGURUS ---
+# ============================================================================
+# 5. BUKTI PEMBAYARAN QRIS & VERIFIKASI
+# ============================================================================
+
 class BuktiPembayaranListCreateAPI(generics.ListCreateAPIView):
     serializer_class = BuktiPembayaranSerializer
     permission_classes = [IsAuthenticated]
@@ -793,6 +813,10 @@ def proses_verifikasi_api(request, bukti_id):
     return Response({'detail': f'Pembayaran berhasil di-{aksi}.'})
 
 # --- KELUHAN & PROSES KELUHAN ---
+# ============================================================================
+# 6. KELUHAN FASILITAS & ESKALASI PEMILIK
+# ============================================================================
+
 def _rapikan_nama_kategori(raw: str) -> str:
     bersih = re.sub(r'\s+', ' ', (raw or '').strip())
     if not bersih:
@@ -994,6 +1018,10 @@ def respon_keluhan_pemilik_api(request, pk):
 # --- LAPORAN KEUANGAN (PEMILIK) ---
 @api_view(['GET'])
 @permission_classes([IsPemilik])
+# ============================================================================
+# 7. LAPORAN KEUANGAN, KELOLA STAF, INFORMASI & TEMPLATE WA
+# ============================================================================
+
 def laporan_keuangan_api(request):
     tagihan_lunas = Tagihan.objects.filter(status='lunas').order_by('-id')
     total_pemasukan = (
