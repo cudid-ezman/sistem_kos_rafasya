@@ -26,13 +26,10 @@ const IKON: Record<string, typeof BookIcon> = {
 export default function DetailInformasi() {
   const { slug } = useParams();
   const [info, setInfo] = useState<InformasiItem | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(slug));
 
   useEffect(() => {
-    if (!slug) {
-      setLoading(false);
-      return;
-    }
+    if (!slug) return;
     informasiService
       .getById(slug)
       .then((res) => setInfo(res.data))

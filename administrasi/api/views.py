@@ -6,14 +6,10 @@ from django.db.models import Sum, Q, F
 from django.contrib.auth.models import User
 from rest_framework import generics, status, serializers
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from django.conf import settings
 from django.core.mail import send_mail
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from datetime import date
@@ -749,6 +745,7 @@ class BuktiPembayaranListCreateAPI(generics.ListCreateAPIView):
                     tagihan=tagihan,
                     defaults={'jumlah_hari': hari_telat, 'nominal': nominal_denda},
                 )
+            transaction.on_commit(lambda: wa_bukti_diunggah(bukti))
 
 @api_view(['POST'])
 @permission_classes([IsPengurus])
@@ -1380,6 +1377,7 @@ def respon_perpanjangan_api(request, pk):
 
     tagihan.status_perpanjangan = 'disetujui' if aksi == 'setujui' else 'ditolak'
     tagihan.save(update_fields=['status_perpanjangan'])
+    wa_respon_perpanjangan(tagihan)
 
     return Response(TagihanSerializer(tagihan).data)
 

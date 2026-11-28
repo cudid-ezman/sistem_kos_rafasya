@@ -84,6 +84,7 @@ export default function DataKamar() {
   useEffect(() => {
     if (params.get("tambah") === "1") {
       const nomorParam = (params.get("nomor") || "").trim().toUpperCase();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditingId(null);
       setEditingJumlahPenghuni(0);
       setForm({ ...KOSONG, nomor_kamar: nomorParam });

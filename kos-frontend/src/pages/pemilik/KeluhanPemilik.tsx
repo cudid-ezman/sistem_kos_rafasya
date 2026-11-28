@@ -49,6 +49,7 @@ export default function KeluhanPemilik() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void muatData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

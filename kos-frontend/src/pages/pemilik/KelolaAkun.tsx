@@ -66,6 +66,7 @@ export default function KelolaAkun() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
