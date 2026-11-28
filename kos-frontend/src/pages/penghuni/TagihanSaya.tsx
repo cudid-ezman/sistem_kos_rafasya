@@ -159,7 +159,8 @@ export default function TagihanSaya() {
       </section>
 
       {/* Daftar */}
-      <section className="mt-6 overflow-hidden rounded-2xl border border-field-line bg-field" aria-label="Daftar tagihan">
+      <section className={`${panelCls} mt-6`} aria-label="Daftar tagihan">
+        <Atap />
         <div className="flex flex-col gap-3 border-b border-field-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="flex items-center gap-2 text-base font-bold text-ink">
             <ReceiptIcon size={19} className="text-kos-600" /> Daftar Tagihan &amp; Status

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { tglAngka } from '../../lib/format';
 import { usePortal } from '../../components/portal/portalContext';
+import { Atap, panelCls } from '../../components/admin/DashboardParts';
 import PageHeader from '../../components/portal/PageHeader';
 import StatusPill from '../../components/portal/StatusPill';
 import { PageSkeleton } from '../../components/portal/Skeleton';
@@ -49,7 +50,8 @@ export default function KeluhanSaya() {
         }
       />
 
-      <section className="overflow-hidden rounded-2xl border border-field-line bg-field" aria-label="Daftar keluhan">
+      <section className={panelCls} aria-label="Daftar keluhan">
+        <Atap />
         <div className="flex items-center justify-between border-b border-field-line px-5 py-4">
           <h2 className="text-base font-bold text-ink">Daftar Keluhan &amp; Status</h2>
           <span className="rounded-md bg-cream px-2.5 py-1 text-xs font-semibold text-gerbang">Total {total} Laporan</span>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Atap } from '../../components/admin/DashboardParts';
 import { Link } from "react-router-dom";
 import { informasiService } from "../../services/informasiService";
 import type { InformasiItem } from "../../types/kos";
@@ -63,8 +64,9 @@ export default function PusatInformasi() {
               <Link
                 key={info.id}
                 to={`/dashboard/informasi/${info.id}`}
-                className="group flex flex-col rounded-2xl border border-field-line bg-field p-6 transition hover:border-kos-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-600"
+                className="group flex flex-col overflow-hidden rounded-2xl border border-field-line bg-field p-6 transition hover:border-kos-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kos-600"
               >
+                <Atap className="-mx-6 -mt-6 mb-6 shrink-0" />
                 <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-cream text-gerbang transition group-hover:bg-kos-600 group-hover:text-white">
                   <Ikon size={26} />
                 </span>

@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { Atap } from '../../components/admin/DashboardParts';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   hitungDenda,
@@ -160,6 +161,7 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
       <div className="grid items-start gap-5 lg:grid-cols-[1.35fr_1fr]">
         {/* Rincian biaya */}
         <section className="overflow-hidden rounded-2xl border border-field-line bg-field">
+          <Atap />
           <div className="flex items-center justify-between border-b border-field-line px-6 py-4">
             <h2 className="text-base font-bold text-ink">Rincian Biaya Sewa</h2>
             <span className="rounded-full bg-kos-100/60 px-3 py-1 text-xs font-semibold text-kos-700 capitalize">{t.periode}</span>
@@ -334,7 +336,8 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           )}
 
           {bolehAjukanDispensasi && (
-            <div className="rounded-2xl border border-field-line bg-field p-5">
+            <div className="overflow-hidden rounded-2xl border border-field-line bg-field p-5">
+              <Atap className="-mx-5 -mt-5 mb-5 shrink-0" />
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="text-sm font-bold text-ink">Butuh Kelonggaran Waktu Bayar?</h3>
@@ -405,7 +408,8 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
           )}
 
           {bisaUpload && (
-            <div className="rounded-2xl border border-field-line bg-field p-5">
+            <div className="overflow-hidden rounded-2xl border border-field-line bg-field p-5">
+              <Atap className="-mx-5 -mt-5 mb-5 shrink-0" />
               <div className="flex gap-3">
                 <Link to={`/dashboard/tagihan-saya/${t.id}/upload`} className={`${btnPrimary} flex-1`}>
                   <UploadCloudIcon size={17} /> Upload Bukti
@@ -428,7 +432,8 @@ ${baris('Tanggal bayar', tglAngka(buktiDiterima?.tanggal_bayar))}${baris('Tangga
 
 function BuktiKartu({ b, judul }: { b: import('../../types/kos').BuktiPembayaran; judul: string }) {
   return (
-    <div className="rounded-2xl border border-field-line bg-field p-5">
+    <div className="overflow-hidden rounded-2xl border border-field-line bg-field p-5">
+      <Atap className="-mx-5 -mt-5 mb-5 shrink-0" />
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-ink">{judul}</h3>
         <StatusPill status={b.status === 'diterima' ? 'lunas' : b.status} />

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Atap } from '../../components/admin/DashboardParts';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { tagihanService } from '../../services/tagihanService';
@@ -117,7 +118,8 @@ export default function UploadBukti() {
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,420px)_1fr]">
         {/* QRIS */}
-        <section className="rounded-2xl border border-field-line bg-field p-5">
+        <section className="overflow-hidden rounded-2xl border border-field-line bg-field p-5">
+          <Atap className="-mx-5 -mt-5 mb-5 shrink-0" />
           <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-ink">
             <QrIcon size={19} className="text-kos-600" /> Bayar dengan QRIS
           </h2>
@@ -195,7 +197,8 @@ export default function UploadBukti() {
         </section>
 
         {/* Form */}
-        <form onSubmit={submit} className="rounded-2xl border border-field-line bg-field p-5 sm:p-6" noValidate>
+        <form onSubmit={submit} className="overflow-hidden rounded-2xl border border-field-line bg-field p-5 sm:p-6" noValidate>
+          <Atap className="-mx-5 -mt-5 mb-5 shrink-0 sm:-mx-6 sm:-mt-6 sm:mb-6" />
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-field-line pb-4">
             <p className="flex items-center gap-2 text-sm text-ink-soft">
               Periode Tagihan:

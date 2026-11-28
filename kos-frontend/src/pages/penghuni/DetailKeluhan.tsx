@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Atap } from '../../components/admin/DashboardParts';
 import { namaBerkas, tglWaktu } from "../../lib/format";
 import { usePortal } from "../../components/portal/portalContext";
 import PageHeader from "../../components/portal/PageHeader";
@@ -85,7 +86,8 @@ export default function DetailKeluhan() {
       />
 
       <div className="grid items-start gap-5 lg:grid-cols-[1.3fr_1fr]">
-        <section className="rounded-2xl border border-field-line bg-field p-6">
+        <section className="overflow-hidden rounded-2xl border border-field-line bg-field p-6">
+          <Atap className="-mx-6 -mt-6 mb-6 shrink-0" />
           <h2 className="mb-5 flex items-center gap-2 text-base font-bold text-ink">
             <IkonKategori nama={k.nama_kategori} size={19} className="text-kos-600" /> Informasi Keluhan
           </h2>
@@ -162,7 +164,8 @@ export default function DetailKeluhan() {
         </section>
 
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-field-line bg-field p-6">
+          <section className="overflow-hidden rounded-2xl border border-field-line bg-field p-6">
+            <Atap className="-mx-6 -mt-6 mb-6 shrink-0" />
             <h2 className="mb-5 text-base font-bold text-ink">
               Riwayat Status
             </h2>
@@ -229,7 +232,8 @@ export default function DetailKeluhan() {
             </ol>
           </section>
 
-          <section className="rounded-2xl border border-field-line bg-field p-6">
+          <section className="overflow-hidden rounded-2xl border border-field-line bg-field p-6">
+            <Atap className="-mx-6 -mt-6 mb-6 shrink-0" />
             <div className="mb-3 flex items-center justify-between gap-2">
               <div>
                 <h2 className="text-base font-bold text-ink">

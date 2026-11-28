@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Atap } from '../../components/admin/DashboardParts';
 import { Link, useParams } from "react-router-dom";
 import { informasiService } from "../../services/informasiService";
 import type { InformasiItem } from "../../types/kos";
@@ -75,7 +76,8 @@ export default function DetailInformasi() {
         }
       />
 
-      <article className="max-w-4xl rounded-2xl border border-field-line bg-field p-6 sm:p-8">
+      <article className="max-w-4xl overflow-hidden rounded-2xl border border-field-line bg-field p-6 sm:p-8">
+        <Atap className="-mx-6 -mt-6 mb-6 shrink-0 sm:-mx-8 sm:-mt-8 sm:mb-8" />
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-field-line pb-5">
           <h2 className="flex items-center gap-3 text-lg font-bold text-ink">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-kos-100/60 text-kos-700">

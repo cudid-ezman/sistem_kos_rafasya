@@ -417,7 +417,7 @@ export default function DashboardLayout({ user, onLogout }: Props) {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="shrink-0 text-white/55"
+          className={`shrink-0 text-white/55 transition-transform motion-reduce:transition-none ${akunBuka ? 'rotate-180' : ''}`}
           aria-hidden="true"
         >
           <path d="m6 15 6-6 6 6" />

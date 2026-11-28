@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Atap } from '../../components/admin/DashboardParts';
 import { Link, useNavigate } from 'react-router-dom';
 import { keluhanService } from '../../services/keluhanService';
 import type { KategoriKeluhan } from '../../types/kos';
@@ -78,7 +79,8 @@ export default function BuatKeluhan() {
       />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-      <form onSubmit={submit} noValidate className="rounded-2xl border border-field-line bg-field p-5 sm:p-8">
+      <form onSubmit={submit} noValidate className="overflow-hidden rounded-2xl border border-field-line bg-field p-5 sm:p-8">
+        <Atap className="-mx-5 -mt-5 mb-5 shrink-0 sm:-mx-8 sm:-mt-8 sm:mb-8" />
         {galat && (
           <div role="alert" className="mb-6 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
             <WarningIcon size={18} className="shrink-0" />
@@ -168,7 +170,8 @@ export default function BuatKeluhan() {
         </div>
       </form>
 
-      <aside className="rounded-2xl border border-field-line bg-cream/50 p-5 lg:sticky lg:top-40">
+      <aside className="overflow-hidden rounded-2xl border border-field-line bg-cream/50 p-5 lg:sticky lg:top-40">
+        <Atap className="-mx-5 -mt-5 mb-5 shrink-0" />
         <h2 className="text-base font-bold text-ink">Biar cepat ditangani</h2>
         <ul className="mt-3 space-y-3 text-sm leading-relaxed text-ink-soft">
           <li>Sebut lokasinya dengan jelas, misalnya kamar mandi kamar A12 atau lorong blok A.</li>

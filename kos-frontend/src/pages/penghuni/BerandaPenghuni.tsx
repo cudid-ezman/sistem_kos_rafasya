@@ -301,6 +301,7 @@ export default function BerandaPenghuni() {
             aria-label="Informasi kos"
             className={`${panelCls} lg:col-span-2`}
           >
+            <Atap />
             <div className="flex items-center justify-between border-b border-field-line px-5 py-3.5">
               <h2 className="text-base font-bold text-ink">Yang perlu kamu tahu</h2>
               <Link
@@ -341,6 +342,7 @@ export default function BerandaPenghuni() {
             aria-label="Keluhan aktif"
             className={`${panelCls} lg:col-start-2 lg:row-start-2`}
           >
+            <Atap />
             <div className="flex items-center justify-between border-b border-field-line px-5 py-3.5">
               <h2 className="text-base font-bold text-ink">Keluhan yang berjalan</h2>
               <Link
